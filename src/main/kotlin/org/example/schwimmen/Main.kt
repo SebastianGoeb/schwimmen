@@ -7,6 +7,7 @@ import org.example.schwimmen.konfiguration.StilStarts
 import org.example.schwimmen.suche.Ergebnis
 import org.example.schwimmen.suche.StaffelBelegung
 import org.example.schwimmen.util.parseTimes
+import kotlin.math.round
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource.Monotonic.markNow
@@ -84,13 +85,14 @@ fun optimize(
     // dann schwimmer austauschen bis max starts eingehalten sind
     println("Score progress")
     val start = markNow()
-    for (i in 1..MAX_GENERATIONS) {
+    for (i in 0..<MAX_GENERATIONS) {
         ergebnis = if (Random.nextDouble() < 0.9) mutateVerySmart(ergebnis) else mutateRandom(ergebnis)
         if (ergebnis.score < bestErgebnis.score) {
             bestErgebnis = ergebnis
             println("${ergebnis.score} (gen $i)")
         }
-        if (markNow() > start + 5.seconds) {
+
+        if (markNow() > start + 2.seconds) {
             break
         }
     }
@@ -191,4 +193,15 @@ fun <E> List<E>.replace(
 ): List<E> {
     require(index < this.size)
     return this.mapIndexed { i, e -> if (i == index) newElement else e }
+}
+
+fun scoreBar(
+    score: Double,
+    maxScore: Double,
+    maxWidth: Int = 20,
+    barChar: Char = '-',
+    pointChar: Char = 'o',
+): String {
+    val numChars = round(score / maxScore * maxWidth).toInt()
+    return "${barChar.toString().repeat(numChars - 1)}$pointChar (${"%.2f".format(score)})"
 }
