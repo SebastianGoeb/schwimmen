@@ -85,7 +85,7 @@ fun optimize(
     println("Score progress")
     val start = markNow()
     for (i in 1..MAX_GENERATIONS) {
-        ergebnis = if (Random.nextDouble() < 0.9) mutateSmarter(ergebnis) else mutateRandom(ergebnis)
+        ergebnis = if (Random.nextDouble() < 0.9) mutateVerySmart(ergebnis) else mutateRandom(ergebnis)
         if (ergebnis.score < bestErgebnis.score) {
             bestErgebnis = ergebnis
             println("${ergebnis.score} (gen $i)")
@@ -125,7 +125,7 @@ fun mutateRandom(ergebnis: Ergebnis): Ergebnis {
     return Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration)
 }
 
-fun mutateSmarter(ergebnis: Ergebnis): Ergebnis {
+fun mutateSmart(ergebnis: Ergebnis): Ergebnis {
     val result = mutableListOf<Ergebnis>()
 
     for (staffelBelegungenIndex in ergebnis.staffelBelegungen.indices) {
@@ -151,6 +151,34 @@ fun mutateSmarter(ergebnis: Ergebnis): Ergebnis {
                 ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
 
             result.add(Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration))
+        }
+    }
+
+    return result.minBy { it.score }
+}
+
+fun mutateVerySmart(ergebnis: Ergebnis): Ergebnis {
+    val result = mutableListOf<Ergebnis>()
+
+    for (staffelBelegungenIndex in ergebnis.staffelBelegungen.indices) {
+        val staffelBelegung = ergebnis.staffelBelegungen[staffelBelegungenIndex]
+
+        for (startBelegungenIndex in staffelBelegung.startBelegungen.indices) {
+            val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
+
+            val auszutauschenderName = startBelegung.name
+            val schwimmerZeiten =
+                ergebnis.konfiguration.stilToSchwimmerZeiten[startBelegung.stil]
+                    ?: error("Keine Zeiten für Stil ${startBelegung.stil} gefunden")
+
+            for (name in schwimmerZeiten.filter { it.name != auszutauschenderName }.map { it.name }) {
+                val neueStartBelegungen =
+                    staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(name, startBelegung.stil))
+                val neueStaffelBelegungen =
+                    ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+
+                result.add(Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration))
+            }
         }
     }
 
