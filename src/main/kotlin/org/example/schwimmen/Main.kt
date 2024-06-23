@@ -7,6 +7,9 @@ import org.example.schwimmen.konfiguration.StilStarts
 import org.example.schwimmen.suche.Ergebnis
 import org.example.schwimmen.suche.StaffelBelegung
 import org.example.schwimmen.util.parseTimes
+import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource.Monotonic.markNow
 
 const val MAX_GENERATIONS = 10_000_000
 
@@ -77,16 +80,18 @@ fun optimize(
 
     var ergebnis = Ergebnis(staffelZuweisungen, konfiguration)
     var bestErgebnis = ergebnis
-    println(ergebnis.score)
 
     // dann schwimmer austauschen bis max starts eingehalten sind
-    println("Best score")
+    println("Score progress")
+    val start = markNow()
     for (i in 1..MAX_GENERATIONS) {
-        ergebnis = mutateRandom(ergebnis)
-
+        ergebnis = if (Random.nextDouble() < 0.9) mutateSmarter(ergebnis) else mutateRandom(ergebnis)
         if (ergebnis.score < bestErgebnis.score) {
             bestErgebnis = ergebnis
             println("${ergebnis.score} (gen $i)")
+        }
+        if (markNow() > start + 5.seconds) {
+            break
         }
     }
     println()
@@ -118,6 +123,38 @@ fun mutateRandom(ergebnis: Ergebnis): Ergebnis {
         ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
 
     return Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration)
+}
+
+fun mutateSmarter(ergebnis: Ergebnis): Ergebnis {
+    val result = mutableListOf<Ergebnis>()
+
+    for (staffelBelegungenIndex in ergebnis.staffelBelegungen.indices) {
+        val staffelBelegung = ergebnis.staffelBelegungen[staffelBelegungenIndex]
+
+        for (startBelegungenIndex in staffelBelegung.startBelegungen.indices) {
+            val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
+
+            val auszutauschenderName = startBelegung.name
+            val schwimmerZeiten =
+                ergebnis.konfiguration.stilToSchwimmerZeiten[startBelegung.stil]
+                    ?: error("Keine Zeiten für Stil ${startBelegung.stil} gefunden")
+
+            val neuerName =
+                schwimmerZeiten
+                    .filter { it.name != auszutauschenderName }
+                    .random()
+                    .name
+
+            val neueStartBelegungen =
+                staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(neuerName, startBelegung.stil))
+            val neueStaffelBelegungen =
+                ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+
+            result.add(Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration))
+        }
+    }
+
+    return result.minBy { it.score }
 }
 
 fun <E> List<E>.replace(
