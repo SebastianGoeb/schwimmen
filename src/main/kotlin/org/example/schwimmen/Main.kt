@@ -102,7 +102,7 @@ private fun runOnce() {
     printErgebnis(staffelErgebnis)
 }
 
-private fun optimizeHyperparamters() {
+private fun optimizeHyperparameters() {
     val schwimmerList = loadTall()
     val konfiguration =
         Konfiguration(
@@ -178,9 +178,9 @@ private fun runHyperparameterExperiment(
     val runs = 10
     val results = (1..runs).map { optimize(konfiguration, staffelnWide, hyperparameters, printProgress = false) }
     val avgScore = results.map { it.first.score }.reduce(Duration::plus).div(runs)
-    val maxScore = results.map { it.first.score }.max()
+    val maxScore = results.maxOf { it.first.score }
     val avgTime = results.map { it.second }.reduce(Duration::plus).div(runs)
-    val maxTime = results.map { it.second }.max()
+    val maxTime = results.maxOf { it.second }
     return ExperimentResult(avgScore, maxScore, avgTime, maxTime)
 }
 
