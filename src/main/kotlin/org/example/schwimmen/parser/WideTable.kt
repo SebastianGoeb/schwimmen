@@ -1,18 +1,18 @@
-package org.example.schwimmen.util
+package org.example.schwimmen.parser
 
 import com.github.doyaaaaaken.kotlincsv.dsl.context.InsufficientFieldsRowBehaviour
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import org.example.schwimmen.konfiguration.Schwimmer
-import kotlin.io.path.Path
+import org.example.schwimmen.util.parseZeit
 
-fun parseTimes(location: String): List<Schwimmer> {
+fun parseTimesFromWideTable(data: String): List<Schwimmer> {
     val reader =
         csvReader {
             delimiter = '\t'
             insufficientFieldsRowBehaviour = InsufficientFieldsRowBehaviour.EMPTY_STRING
         }
 
-    return reader.readAllWithHeader(Path(location).toFile()).map { row ->
+    return reader.readAllWithHeader(data).map { row ->
         row["Name"]
         Schwimmer(
             row["Name"] ?: error("Spalte 'Name' nicht gefunden"),

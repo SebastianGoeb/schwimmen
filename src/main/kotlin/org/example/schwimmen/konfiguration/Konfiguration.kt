@@ -3,15 +3,16 @@ package org.example.schwimmen.konfiguration
 import kotlin.time.Duration
 
 data class Konfiguration(
+    val alleMuessenSchwimmen: Boolean,
     val minSchwimmer: Int,
     val maxSchwimmer: Int,
     val maxStartsProSchwimmer: Int,
     val staffeln: List<Staffel>,
     val schwimmerList: List<Schwimmer>,
 ) {
+    val resolvedMinSchwimmer: Int by lazy { if (alleMuessenSchwimmen) schwimmerList.size else minSchwimmer }
     val stilToSchwimmerToZeit: Map<String, Map<String, Duration>> by lazy { buildStilToSchwimmerToZeit(schwimmerList) }
     val stilToSchwimmerZeiten: Map<String, List<SchwimmerZeit>> by lazy { buildStilToSchwimmerZeiten(schwimmerList) }
-    val schwimmerToStilZeiten: Map<String, List<StilZeit>> by lazy { buildSchwimmerToStilZeiten(schwimmerList) }
 }
 
 private fun buildStilToSchwimmerToZeit(schwimmerList: List<Schwimmer>): Map<String, Map<String, Duration>> {

@@ -67,7 +67,7 @@ data class Ergebnis(
         val staffelBelegungenScore = staffelBelegungen.map { it.score }.reduce(Duration::plus)
 
         val anzahlSchwimmer = gesamtAuslastung.size
-        val minSchwimmerPenalty = strafMinutenProRegelverstoss * max(konfiguration.minSchwimmer - anzahlSchwimmer, 0)
+        val minSchwimmerPenalty = strafMinutenProRegelverstoss * max(konfiguration.resolvedMinSchwimmer - anzahlSchwimmer, 0)
         val maxSchwimmerPenalty = strafMinutenProRegelverstoss * max(anzahlSchwimmer - konfiguration.maxSchwimmer, 0)
 
         val maxStartsProSchwimmerPenalty =

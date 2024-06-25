@@ -2,12 +2,16 @@ package org.example.schwimmen
 
 import org.example.schwimmen.konfiguration.Hyperparameters
 import org.example.schwimmen.konfiguration.Konfiguration
+import org.example.schwimmen.konfiguration.Schwimmer
 import org.example.schwimmen.konfiguration.SchwimmerStil
 import org.example.schwimmen.konfiguration.Staffel
 import org.example.schwimmen.konfiguration.StilStarts
+import org.example.schwimmen.parser.parseTimesFromTallTable
+import org.example.schwimmen.parser.parseTimesFromWideTable
 import org.example.schwimmen.suche.Ergebnis
 import org.example.schwimmen.suche.StaffelBelegung
-import org.example.schwimmen.util.parseTimes
+import org.example.schwimmen.util.convertTallToWide
+import java.io.File
 import kotlin.math.round
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -17,7 +21,7 @@ import kotlin.time.TimeSource.Monotonic.markNow
 
 const val MAX_GENERATIONS = 10_000_000
 
-val staffeln =
+val staffelnWide =
     listOf(
         Staffel(listOf(StilStarts("Kraul", 4)), false),
         Staffel(listOf(StilStarts("Kombi", 4)), false),
@@ -42,25 +46,51 @@ val staffeln =
         ),
     )
 
+val staffelnTall =
+    listOf(
+        Staffel(listOf(StilStarts("25m Kraul", 4)), false),
+        Staffel(listOf(StilStarts("25m BrAr/KrBei", 4)), false),
+        Staffel(listOf(StilStarts("25m Brust", 4)), false),
+        Staffel(
+            listOf(
+                StilStarts("25m R-Beine", 2),
+                StilStarts("25m Brust Beine", 2),
+                StilStarts("25m K-Beine", 2),
+            ),
+            false,
+        ),
+        Staffel(listOf(StilStarts("25m Rücken", 4)), false),
+        Staffel(listOf(StilStarts("200 Team", 4)), true),
+        Staffel(
+            listOf(
+                StilStarts("25m Rücken", 2),
+                StilStarts("25m Brust", 2),
+                StilStarts("25m Kraul", 2),
+            ),
+            false,
+        ),
+    )
+
 fun main() {
     runOnce()
 }
 
 private fun runOnce() {
-    val schwimmerList = parseTimes("src/main/resources/data_enriched.tsv")
+    val schwimmerList = loadTall()
     val konfiguration =
         Konfiguration(
-            minSchwimmer = 10,
+            alleMuessenSchwimmen = true,
+            minSchwimmer = 7,
             maxSchwimmer = 12,
             maxStartsProSchwimmer = 5,
-            staffeln = staffeln,
+            staffeln = staffelnTall,
             schwimmerList = schwimmerList,
         )
 
     val (staffelErgebnis, _) =
         optimize(
             konfiguration,
-            staffeln,
+            staffelnTall,
             Hyperparameters(
                 smartMutationRate = 0.85,
                 smartMutation = ::mutateVerySmart,
@@ -73,13 +103,14 @@ private fun runOnce() {
 }
 
 private fun optimizeHyperparamters() {
-    val schwimmerList = parseTimes("src/main/resources/data_enriched.tsv")
+    val schwimmerList = loadTall()
     val konfiguration =
         Konfiguration(
-            minSchwimmer = 10,
+            alleMuessenSchwimmen = true,
+            minSchwimmer = 7,
             maxSchwimmer = 12,
             maxStartsProSchwimmer = 5,
-            staffeln = staffeln,
+            staffeln = staffelnTall,
             schwimmerList = schwimmerList,
         )
 
@@ -97,7 +128,10 @@ private fun optimizeHyperparamters() {
         }
 
     // warmup
-    (1..20).toList().parallelStream().forEach { optimize(konfiguration, staffeln, hyperparametersList.random(), printProgress = false) }
+    (1..20)
+        .toList()
+        .parallelStream()
+        .forEach { optimize(konfiguration, staffelnTall, hyperparametersList.random(), printProgress = false) }
 
     val results =
         hyperparametersList
@@ -114,13 +148,26 @@ private fun optimizeHyperparamters() {
         val avgTimeMillis = "%5.2fms".format(it.second.avgTime.toDouble(MILLISECONDS))
         val maxTimeMillis = "%6.2fms".format(it.second.maxTime.toDouble(MILLISECONDS))
         println(
-            "smr=${"%.3f".format(
-                it.first.smartMutationRate,
-            )}: avgTime=$avgTimeMillis, maxTime=$maxTimeMillis, avgScore=$avgScore, maxScore=$maxScore",
+            "smr=${
+                "%.3f".format(
+                    it.first.smartMutationRate,
+                )
+            }: avgTime=$avgTimeMillis, maxTime=$maxTimeMillis, avgScore=$avgScore, maxScore=$maxScore",
         )
     }
 
     println("optimal hyperparameters: " + results.minBy { it.second.avgTime })
+}
+
+private fun loadWide(): List<Schwimmer> {
+    val file = File("src/main/resources/data_enriched.tsv")
+    return parseTimesFromWideTable(file.readText())
+}
+
+private fun loadTall(): List<Schwimmer> {
+    val file = File("src/main/resources/jugend_f_zeiten.tsv")
+    val schwimmerZeiten = parseTimesFromTallTable(file.readText())
+    return convertTallToWide(schwimmerZeiten)
 }
 
 private fun runHyperparameterExperiment(
@@ -129,7 +176,7 @@ private fun runHyperparameterExperiment(
 ): ExperimentResult {
     // benchmark
     val runs = 10
-    val results = (1..runs).map { optimize(konfiguration, staffeln, hyperparameters, printProgress = false) }
+    val results = (1..runs).map { optimize(konfiguration, staffelnWide, hyperparameters, printProgress = false) }
     val avgScore = results.map { it.first.score }.reduce(Duration::plus).div(runs)
     val maxScore = results.map { it.first.score }.max()
     val avgTime = results.map { it.second }.reduce(Duration::plus).div(runs)
