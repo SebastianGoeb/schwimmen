@@ -4,13 +4,14 @@ import kotlin.time.Duration
 
 data class Konfiguration(
     val alleMuessenSchwimmen: Boolean,
-    val minSchwimmer: Int,
-    val maxSchwimmer: Int,
+    val minSchwimmerProTeam: Int,
+    val maxSchwimmerProTeam: Int,
     val maxStartsProSchwimmer: Int,
     val staffeln: List<Staffel>,
+    val anzahlTeams: Int,
+    val teamsMoeglichstGleich: Boolean,
     val schwimmerList: List<Schwimmer>,
 ) {
-    val resolvedMinSchwimmer: Int by lazy { if (alleMuessenSchwimmen) schwimmerList.size else minSchwimmer }
     val stilToSchwimmerToZeit: Map<String, Map<String, Duration>> by lazy { buildStilToSchwimmerToZeit(schwimmerList) }
     val stilToSchwimmerZeiten: Map<String, List<SchwimmerZeit>> by lazy { buildStilToSchwimmerZeiten(schwimmerList) }
 }
@@ -35,21 +36,6 @@ private fun buildStilToSchwimmerZeiten(schwimmerList: List<Schwimmer>): Map<Stri
         schwimmer.zeiten.forEach { (stil, zeit) ->
             val schwimmerZeiten = result.computeIfAbsent(stil) { mutableListOf() }
             schwimmerZeiten.add(SchwimmerZeit(schwimmer.name, zeit))
-        }
-    }
-
-    result.values.forEach { it.sortBy { it.zeit } }
-
-    return result
-}
-
-private fun buildSchwimmerToStilZeiten(schwimmerList: List<Schwimmer>): Map<String, List<StilZeit>> {
-    val result = mutableMapOf<String, MutableList<StilZeit>>()
-
-    for (schwimmer in schwimmerList) {
-        schwimmer.zeiten.forEach { (stil, zeit) ->
-            val stilZeiten = result.computeIfAbsent(schwimmer.name) { mutableListOf() }
-            stilZeiten.add(StilZeit(stil, zeit))
         }
     }
 

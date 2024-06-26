@@ -10,6 +10,7 @@ import org.example.schwimmen.parser.parseTimesFromTallTable
 import org.example.schwimmen.parser.parseTimesFromWideTable
 import org.example.schwimmen.suche.Ergebnis
 import org.example.schwimmen.suche.StaffelBelegung
+import org.example.schwimmen.suche.Team
 import org.example.schwimmen.util.convertTallToWide
 import java.io.File
 import kotlin.math.round
@@ -80,10 +81,12 @@ private fun runOnce() {
     val konfiguration =
         Konfiguration(
             alleMuessenSchwimmen = true,
-            minSchwimmer = 7,
-            maxSchwimmer = 12,
+            minSchwimmerProTeam = 7,
+            maxSchwimmerProTeam = 12,
             maxStartsProSchwimmer = 5,
             staffeln = staffelnTall,
+            anzahlTeams = 1,
+            teamsMoeglichstGleich = true, // irrelevant für nur 1 team
             schwimmerList = schwimmerList,
         )
 
@@ -107,10 +110,12 @@ private fun optimizeHyperparameters() {
     val konfiguration =
         Konfiguration(
             alleMuessenSchwimmen = true,
-            minSchwimmer = 7,
-            maxSchwimmer = 12,
+            minSchwimmerProTeam = 7,
+            maxSchwimmerProTeam = 12,
             maxStartsProSchwimmer = 5,
             staffeln = staffelnTall,
+            anzahlTeams = 1,
+            teamsMoeglichstGleich = true, // irrelevant für nur 1 team
             schwimmerList = schwimmerList,
         )
 
@@ -200,15 +205,7 @@ fun optimize(
     val start = markNow()
 
     // erstmal optimal zuweisen, und alle einschränkungen ignorieren
-    val staffelZuweisungen =
-        staffeln.map { staffel ->
-            val zuweisungen: List<SchwimmerStil> =
-                staffel.stileAnzahl.flatMap { (stil, anzahl) ->
-                    val schwimmerZeiten = konfiguration.stilToSchwimmerZeiten[stil] ?: error("Keine Zeiten für Stil $stil gefunden")
-                    schwimmerZeiten.take(anzahl).map { SchwimmerStil(it.name, stil) }
-                }
-            StaffelBelegung(staffel, konfiguration, zuweisungen)
-        }
+    val staffelZuweisungen = initialRandomAssignment(konfiguration)
 
     var ergebnis = Ergebnis(staffelZuweisungen, konfiguration)
     var bestErgebnis = ergebnis
@@ -245,9 +242,48 @@ fun optimize(
     return Pair(bestErgebnis, timeToBestErgebnis)
 }
 
+private fun initialOptimalAssignment(
+    staffeln: List<Staffel>,
+    konfiguration: Konfiguration,
+): List<StaffelBelegung> {
+    val staffelZuweisungen =
+        staffeln.map { staffel ->
+            val zuweisungen: List<SchwimmerStil> =
+                staffel.stileAnzahl.flatMap { (stil, anzahl) ->
+                    val schwimmerZeiten =
+                        konfiguration.stilToSchwimmerZeiten[stil] ?: error("Keine Zeiten für Stil $stil gefunden")
+                    schwimmerZeiten.take(anzahl).map { SchwimmerStil(it.name, stil) }
+                }
+            StaffelBelegung(staffel, konfiguration, zuweisungen)
+        }
+    return staffelZuweisungen
+}
+
+private fun initialRandomAssignment(konfiguration: Konfiguration): List<Team> =
+    (1..konfiguration.anzahlTeams).map { i ->
+        Team(
+            "Team $i",
+            konfiguration.staffeln.map { staffel ->
+                StaffelBelegung(
+                    staffel,
+                    konfiguration,
+                    staffel.stileAnzahl.flatMap { (stil, anzahl) ->
+                        val schwimmerZeiten =
+                            konfiguration.stilToSchwimmerZeiten[stil] ?: error("Keine Zeiten für Stil $stil gefunden")
+                        schwimmerZeiten.shuffled().take(anzahl).map { SchwimmerStil(it.name, stil) }
+                    },
+                )
+            },
+            konfiguration,
+        )
+    }
+
 fun mutateRandom(ergebnis: Ergebnis): Ergebnis {
-    val staffelBelegungenIndex = ergebnis.staffelBelegungen.indices.random()
-    val staffelBelegung = ergebnis.staffelBelegungen[staffelBelegungenIndex]
+    val teamIndex = ergebnis.teams.indices.random()
+    val team = ergebnis.teams[teamIndex]
+
+    val staffelBelegungenIndex = team.staffelBelegungen.indices.random()
+    val staffelBelegung = team.staffelBelegungen[staffelBelegungenIndex]
 
     val startBelegungenIndex = staffelBelegung.startBelegungen.indices.random()
     val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
@@ -266,37 +302,45 @@ fun mutateRandom(ergebnis: Ergebnis): Ergebnis {
     val neueStartBelegungen =
         staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(neuerName, startBelegung.stil))
     val neueStaffelBelegungen =
-        ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+        team.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+    val neuesTeam =
+        ergebnis.teams.replace(teamIndex, team.copy(staffelBelegungen = neueStaffelBelegungen))
 
-    return Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration)
+    return Ergebnis(neuesTeam, ergebnis.konfiguration)
 }
 
 fun mutateSmart(ergebnis: Ergebnis): Ergebnis {
     val result = mutableListOf<Ergebnis>()
 
-    for (staffelBelegungenIndex in ergebnis.staffelBelegungen.indices) {
-        val staffelBelegung = ergebnis.staffelBelegungen[staffelBelegungenIndex]
+    for (teamIndex in ergebnis.teams.indices) {
+        val team = ergebnis.teams[teamIndex]
 
-        for (startBelegungenIndex in staffelBelegung.startBelegungen.indices) {
-            val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
+        for (staffelBelegungenIndex in team.staffelBelegungen.indices) {
+            val staffelBelegung = team.staffelBelegungen[staffelBelegungenIndex]
 
-            val auszutauschenderName = startBelegung.name
-            val schwimmerZeiten =
-                ergebnis.konfiguration.stilToSchwimmerZeiten[startBelegung.stil]
-                    ?: error("Keine Zeiten für Stil ${startBelegung.stil} gefunden")
+            for (startBelegungenIndex in staffelBelegung.startBelegungen.indices) {
+                val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
 
-            val neuerName =
-                schwimmerZeiten
-                    .filter { it.name != auszutauschenderName }
-                    .random()
-                    .name
+                val auszutauschenderName = startBelegung.name
+                val schwimmerZeiten =
+                    ergebnis.konfiguration.stilToSchwimmerZeiten[startBelegung.stil]
+                        ?: error("Keine Zeiten für Stil ${startBelegung.stil} gefunden")
 
-            val neueStartBelegungen =
-                staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(neuerName, startBelegung.stil))
-            val neueStaffelBelegungen =
-                ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+                val neuerName =
+                    schwimmerZeiten
+                        .filter { it.name != auszutauschenderName }
+                        .random()
+                        .name
 
-            result.add(Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration))
+                val neueStartBelegungen =
+                    staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(neuerName, startBelegung.stil))
+                val neueStaffelBelegungen =
+                    team.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+                val neuesTeam =
+                    ergebnis.teams.replace(teamIndex, team.copy(staffelBelegungen = neueStaffelBelegungen))
+
+                result.add(Ergebnis(neuesTeam, ergebnis.konfiguration))
+            }
         }
     }
 
@@ -306,24 +350,30 @@ fun mutateSmart(ergebnis: Ergebnis): Ergebnis {
 fun mutateVerySmart(ergebnis: Ergebnis): Ergebnis {
     val result = mutableListOf<Ergebnis>()
 
-    for (staffelBelegungenIndex in ergebnis.staffelBelegungen.indices) {
-        val staffelBelegung = ergebnis.staffelBelegungen[staffelBelegungenIndex]
+    for (teamIndex in ergebnis.teams.indices) {
+        val team = ergebnis.teams[teamIndex]
 
-        for (startBelegungenIndex in staffelBelegung.startBelegungen.indices) {
-            val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
+        for (staffelBelegungenIndex in team.staffelBelegungen.indices) {
+            val staffelBelegung = team.staffelBelegungen[staffelBelegungenIndex]
 
-            val auszutauschenderName = startBelegung.name
-            val schwimmerZeiten =
-                ergebnis.konfiguration.stilToSchwimmerZeiten[startBelegung.stil]
-                    ?: error("Keine Zeiten für Stil ${startBelegung.stil} gefunden")
+            for (startBelegungenIndex in staffelBelegung.startBelegungen.indices) {
+                val startBelegung = staffelBelegung.startBelegungen[startBelegungenIndex]
 
-            for (name in schwimmerZeiten.filter { it.name != auszutauschenderName }.map { it.name }) {
-                val neueStartBelegungen =
-                    staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(name, startBelegung.stil))
-                val neueStaffelBelegungen =
-                    ergebnis.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+                val auszutauschenderName = startBelegung.name
+                val schwimmerZeiten =
+                    ergebnis.konfiguration.stilToSchwimmerZeiten[startBelegung.stil]
+                        ?: error("Keine Zeiten für Stil ${startBelegung.stil} gefunden")
 
-                result.add(Ergebnis(neueStaffelBelegungen, ergebnis.konfiguration))
+                for (name in schwimmerZeiten.filter { it.name != auszutauschenderName }.map { it.name }) {
+                    val neueStartBelegungen =
+                        staffelBelegung.startBelegungen.replace(startBelegungenIndex, SchwimmerStil(name, startBelegung.stil))
+                    val neueStaffelBelegungen =
+                        team.staffelBelegungen.replace(staffelBelegungenIndex, staffelBelegung.copy(startBelegungen = neueStartBelegungen))
+                    val neuesTeam =
+                        ergebnis.teams.replace(teamIndex, team.copy(staffelBelegungen = neueStaffelBelegungen))
+
+                    result.add(Ergebnis(neuesTeam, ergebnis.konfiguration))
+                }
             }
         }
     }
@@ -350,15 +400,34 @@ fun scoreBar(
     return "${barChar.toString().repeat(numChars - 1)}$pointChar (${"%.2f".format(score)})"
 }
 
-private fun printErgebnis(staffelErgebnis: Ergebnis) {
-    staffelErgebnis.staffelBelegungen.forEach {
-        println(it.toPrettyString())
-        println()
+private fun printErgebnis(ergebnis: Ergebnis) {
+    for (team in ergebnis.teams) {
+        println(team.name)
+        team.staffelBelegungen.forEach {
+            println(it.toPrettyString())
+            println()
+        }
+
+        println("Team-Gesamtzeit: ${team.gesamtZeit}")
+        println("--------------------------------")
     }
 
-    println(staffelErgebnis.prettyGesamtAuslastung())
+    println(ergebnis.prettyStartsProSchwimmer())
     println()
 
-    println("Gesamtzeit: ${staffelErgebnis.gesamtZeit}")
-    println("Erfüllt alle Bedingungen: ${if (staffelErgebnis.valide) "ja ✅" else "nein ❌"}")
+    println("Insgesamt-Gesamtzeit: ${ergebnis.gesamtZeit}")
+
+    println(
+        "Max Starts pro Schwimmer <= ${ergebnis.konfiguration.maxStartsProSchwimmer}: ${if (ergebnis.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",
+    )
+    println("Schwimmer nicht in mehreren Teams: ${if (ergebnis.schwimmerInMehrerenTeamsViolations == 0) "✅" else "❌"}")
+    if (ergebnis.schwimmerInMehrerenTeamsViolations > 0) {
+        (
+            println("Schwimmer in mehreren Teams: ${ergebnis.schwimmerInMehrerenTeams}")
+        )
+    }
+    if (ergebnis.konfiguration.alleMuessenSchwimmen) {
+        println("Alle müssen schwimmen: ${if (ergebnis.alleMuessenSchwimmenViolations == 0) "✅" else "❌"}")
+    }
+    println("Erfüllt alle Bedingungen: ${if (ergebnis.valide) "✅" else "❌"}")
 }

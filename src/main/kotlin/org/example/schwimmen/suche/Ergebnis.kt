@@ -6,9 +6,13 @@ import org.example.schwimmen.konfiguration.Staffel
 import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit.MINUTES
 
-val stilThenName = compareBy<SchwimmerStil> { it.stil }.thenBy { it.name }
-val strafMinutenProRegelverstoss = 5.minutes
+private val stilThenName = compareBy<SchwimmerStil> { it.stil }.thenBy { it.name }
+
+private val maxStartsProSchwimmerProStaffel = 1
+private val zeitVarianzPenaltyMultiplier = 5
+private val strafMinutenProRegelverstoss = 5.minutes
 
 data class StaffelBelegung(
     val staffel: Staffel,
@@ -31,13 +35,13 @@ data class StaffelBelegung(
     }
 
     val score: Duration by lazy {
-        val maxStartsProSchwimmerProStaffel = 1
-        val anzahlDoppelbelegungen =
-            startBelegungen
-                .groupBy { it.name }
-                .map { it.value.size - maxStartsProSchwimmerProStaffel }
-                .sum()
-        gesamtZeit + (strafMinutenProRegelverstoss * anzahlDoppelbelegungen)
+        val doppelbelegungenPenalty =
+            strafMinutenProRegelverstoss *
+                startBelegungen
+                    .groupBy { it.name }
+                    .map { it.value.size - maxStartsProSchwimmerProStaffel }
+                    .sum()
+        gesamtZeit + doppelbelegungenPenalty
     }
 
     fun toPrettyString(): String {
@@ -58,45 +62,108 @@ Gesamtzeit: $gesamtZeit
 }
 
 data class Ergebnis(
+    val teams: List<Team>,
+    val konfiguration: Konfiguration,
+) {
+    val gesamtZeit: Duration by lazy { teams.map { it.gesamtZeit }.reduce(Duration::plus) }
+    val zeitVariance: Duration by lazy {
+        if (teams.size <= 1) {
+            Duration.ZERO
+        } else {
+            val teamMinutes = teams.map { it.gesamtZeit.toDouble(MINUTES) }
+            val meanZeit = teamMinutes.average()
+            val variance = teamMinutes.sumOf { it - meanZeit } / (teams.size - 1)
+            variance.minutes
+        }
+    }
+
+    val startsProSchwimmer: MutableMap<String, Int> by lazy {
+        val result = mutableMapOf<String, Int>()
+        teams.flatMap { it.staffelBelegungen }.forEach { staffelErgebnis ->
+            staffelErgebnis.startBelegungen.forEach {
+                result[it.name] = (result[it.name] ?: 0) + 1
+            }
+        }
+        result
+    }
+    val schwimmerInMehrerenTeams: Map<String, Set<String>> by lazy {
+        val teamZuweisungenProSchwimmer = mutableMapOf<String, MutableSet<String>>()
+        teams.forEach { team ->
+            team.staffelBelegungen.forEach { staffelBelegung ->
+                staffelBelegung.startBelegungen.forEach { schwimmerStil ->
+                    teamZuweisungenProSchwimmer.computeIfAbsent(schwimmerStil.name) { mutableSetOf() }.add(team.name)
+                }
+            }
+        }
+        teamZuweisungenProSchwimmer.filterValues { it.size > 1 }
+    }
+
+    val maxStartsProSchwimmerViolations: Int by lazy {
+        startsProSchwimmer
+            .map { max(it.value - konfiguration.maxStartsProSchwimmer, 0) }
+            .sum()
+    }
+
+    val alleMuessenSchwimmenViolations: Int by lazy {
+        if (konfiguration.alleMuessenSchwimmen) konfiguration.schwimmerList.size - startsProSchwimmer.size else 0
+    }
+    val schwimmerInMehrerenTeamsViolations: Int by lazy {
+        val teamZuweisungenProSchwimmer = mutableMapOf<String, MutableList<String>>()
+        teams.forEach { team ->
+            team.staffelBelegungen.forEach { staffelBelegung ->
+                staffelBelegung.startBelegungen.forEach { schwimmerStil ->
+                    teamZuweisungenProSchwimmer.computeIfAbsent(schwimmerStil.name) { mutableListOf() }.add(team.name)
+                }
+            }
+        }
+
+        val startsInAnderenTeamsProSchimmer: Map<String, Int> =
+            teamZuweisungenProSchwimmer.mapValues { (_, teamZuweisungen) ->
+                val startsProTeam: Map<String, Int> = teamZuweisungen.groupBy { it }.mapValues { it.value.size }
+                val mainTeam = startsProTeam.maxBy { it.value }.key
+                startsProTeam.filterKeys { it != mainTeam }.values.sum()
+            }
+
+        startsInAnderenTeamsProSchimmer.values.sum()
+    }
+
+    val valide: Boolean by lazy {
+        teams.all { it.valide } &&
+            maxStartsProSchwimmerViolations == 0 &&
+            alleMuessenSchwimmenViolations == 0 &&
+            schwimmerInMehrerenTeamsViolations == 0
+    }
+    val score: Duration by lazy {
+        teams.map { it.score }.reduce(Duration::plus) +
+            strafMinutenProRegelverstoss * maxStartsProSchwimmerViolations +
+            strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
+            strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
+            zeitVariance.times(zeitVarianzPenaltyMultiplier)
+    }
+
+    fun prettyStartsProSchwimmer(): String =
+        """
+Anzahl Starts:
+${startsProSchwimmer.toSortedMap().map { "${it.key} x${it.value}" }.joinToString("\n")}
+        """.trimIndent()
+}
+
+data class Team(
+    val name: String,
     val staffelBelegungen: List<StaffelBelegung>,
     val konfiguration: Konfiguration,
 ) {
-    val gesamtZeit: Duration by lazy { staffelBelegungen.map { it.gesamtZeit }.reduce(Duration::plus) }
+    val gesamtZeit = staffelBelegungen.map { it.gesamtZeit }.reduce(Duration::plus)
+    val anzahlSchwimmer = staffelBelegungen.flatMap { it.startBelegungen }.distinctBy { it.name }.size
 
-    val score: Duration by lazy {
-        val staffelBelegungenScore = staffelBelegungen.map { it.score }.reduce(Duration::plus)
+    val minSchwimmerViolations = max(konfiguration.minSchwimmerProTeam - anzahlSchwimmer, 0)
+    val maxSchwimmerViolations = max(anzahlSchwimmer - konfiguration.maxSchwimmerProTeam, 0)
 
-        val anzahlSchwimmer = gesamtAuslastung.size
-        val minSchwimmerPenalty = strafMinutenProRegelverstoss * max(konfiguration.resolvedMinSchwimmer - anzahlSchwimmer, 0)
-        val maxSchwimmerPenalty = strafMinutenProRegelverstoss * max(anzahlSchwimmer - konfiguration.maxSchwimmer, 0)
+    val valide = minSchwimmerViolations == 0 && maxSchwimmerViolations == 0
+    val score =
+        staffelBelegungen.map { it.score }.reduce(Duration::plus) +
+            strafMinutenProRegelverstoss * minSchwimmerViolations +
+            strafMinutenProRegelverstoss * maxSchwimmerViolations
 
-        val maxStartsProSchwimmerPenalty =
-            strafMinutenProRegelverstoss *
-                gesamtAuslastung
-                    .map { max(it.value - konfiguration.maxStartsProSchwimmer, 0) }
-                    .sum()
-
-        staffelBelegungenScore +
-            minSchwimmerPenalty +
-            maxSchwimmerPenalty +
-            maxStartsProSchwimmerPenalty
-    }
-
-    val gesamtAuslastung: MutableMap<String, Int> by lazy {
-        val auslastung = mutableMapOf<String, Int>()
-        staffelBelegungen.forEach { staffelErgebnis ->
-            staffelErgebnis.startBelegungen.forEach {
-                auslastung[it.name] = (auslastung[it.name] ?: 0) + 1
-            }
-        }
-        auslastung
-    }
-
-    val valide: Boolean by lazy { gesamtZeit == score }
-
-    fun prettyGesamtAuslastung(): String =
-        """
-Gesamtauslastung
-${gesamtAuslastung.toSortedMap().map { "${it.key} x${it.value}" }.joinToString("\n")}
-        """.trimIndent()
+    // TODO min 2 M/W
 }
