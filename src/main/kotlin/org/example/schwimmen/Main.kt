@@ -20,7 +20,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit.MILLISECONDS
 import kotlin.time.TimeSource.Monotonic.markNow
 
-const val MAX_GENERATIONS = 10_000_000
+private const val MAX_GENERATIONS = 10_000_000
+private const val LINE = "--------------------------------"
 
 val staffelnWide =
     listOf(
@@ -55,7 +56,7 @@ val staffelnTall =
         Staffel(
             listOf(
                 StilStarts("25m R-Beine", 2),
-                StilStarts("25m Brust Beine", 2),
+                StilStarts("25m B-Beine", 2),
                 StilStarts("25m K-Beine", 2),
             ),
             false,
@@ -409,13 +410,15 @@ private fun printErgebnis(ergebnis: Ergebnis) {
         }
 
         println("Team-Gesamtzeit: ${team.gesamtZeit}")
-        println("--------------------------------")
+        println(LINE)
     }
 
     println(ergebnis.prettyStartsProSchwimmer())
-    println()
+    println(LINE)
 
+    ergebnis.teams.forEach { println("${it.name}-Gesamtzeit: ${it.gesamtZeit}") }
     println("Insgesamt-Gesamtzeit: ${ergebnis.gesamtZeit}")
+    println(LINE)
 
     println(
         "Max Starts pro Schwimmer <= ${ergebnis.konfiguration.maxStartsProSchwimmer}: ${if (ergebnis.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",

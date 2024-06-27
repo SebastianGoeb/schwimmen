@@ -4,6 +4,8 @@ import org.example.schwimmen.konfiguration.Konfiguration
 import org.example.schwimmen.konfiguration.SchwimmerStil
 import org.example.schwimmen.konfiguration.Staffel
 import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit.MINUTES
@@ -11,7 +13,7 @@ import kotlin.time.DurationUnit.MINUTES
 private val stilThenName = compareBy<SchwimmerStil> { it.stil }.thenBy { it.name }
 
 private val maxStartsProSchwimmerProStaffel = 1
-private val zeitVarianzPenaltyMultiplier = 5
+private val zeitStdDevPenaltyMultiplier = 1
 private val strafMinutenProRegelverstoss = 5.minutes
 
 data class StaffelBelegung(
@@ -66,14 +68,13 @@ data class Ergebnis(
     val konfiguration: Konfiguration,
 ) {
     val gesamtZeit: Duration by lazy { teams.map { it.gesamtZeit }.reduce(Duration::plus) }
-    val zeitVariance: Duration by lazy {
+    val zeitStdDev: Duration by lazy {
         if (teams.size <= 1) {
             Duration.ZERO
         } else {
             val teamMinutes = teams.map { it.gesamtZeit.toDouble(MINUTES) }
             val meanZeit = teamMinutes.average()
-            val variance = teamMinutes.sumOf { it - meanZeit } / (teams.size - 1)
-            variance.minutes
+            sqrt(teamMinutes.sumOf { (it - meanZeit).pow(2) } / teams.size).minutes
         }
     }
 
@@ -138,7 +139,7 @@ data class Ergebnis(
             strafMinutenProRegelverstoss * maxStartsProSchwimmerViolations +
             strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
             strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
-            zeitVariance.times(zeitVarianzPenaltyMultiplier)
+            zeitStdDev.times(zeitStdDevPenaltyMultiplier)
     }
 
     fun prettyStartsProSchwimmer(): String =
