@@ -7,7 +7,6 @@ import org.example.schwimmen.konfiguration.SchwimmerStil
 import org.example.schwimmen.konfiguration.Staffel
 import org.example.schwimmen.konfiguration.StilStarts
 import org.example.schwimmen.parser.parseTimesFromTallTable
-import org.example.schwimmen.parser.parseTimesFromWideTable
 import org.example.schwimmen.suche.Ergebnis
 import org.example.schwimmen.suche.StaffelBelegung
 import org.example.schwimmen.suche.Team
@@ -78,7 +77,7 @@ fun main() {
 }
 
 private fun runOnce() {
-    val schwimmerList = loadTall()
+    val schwimmerList = loadFJugend()
     val konfiguration =
         Konfiguration(
             alleMuessenSchwimmen = true,
@@ -107,7 +106,7 @@ private fun runOnce() {
 }
 
 private fun optimizeHyperparameters() {
-    val schwimmerList = loadTall()
+    val schwimmerList = loadFJugend()
     val konfiguration =
         Konfiguration(
             alleMuessenSchwimmen = true,
@@ -165,13 +164,14 @@ private fun optimizeHyperparameters() {
     println("optimal hyperparameters: " + results.minBy { it.second.avgTime })
 }
 
-private fun loadWide(): List<Schwimmer> {
-    val file = File("src/main/resources/data_enriched.tsv")
-    return parseTimesFromWideTable(file.readText())
+private fun loadFJugend(): List<Schwimmer> {
+    val file = File("src/main/resources/jugend_f_zeiten.tsv")
+    val schwimmerZeiten = parseTimesFromTallTable(file.readText())
+    return convertTallToWide(schwimmerZeiten)
 }
 
-private fun loadTall(): List<Schwimmer> {
-    val file = File("src/main/resources/jugend_f_zeiten.tsv")
+private fun loadEJugend(): List<Schwimmer> {
+    val file = File("src/main/resources/jugend_e_zeiten.tsv")
     val schwimmerZeiten = parseTimesFromTallTable(file.readText())
     return convertTallToWide(schwimmerZeiten)
 }
