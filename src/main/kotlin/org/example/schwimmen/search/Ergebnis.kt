@@ -1,4 +1,4 @@
-package org.example.schwimmen.suche
+package org.example.schwimmen.search
 
 import org.example.schwimmen.model.Konfiguration
 import org.example.schwimmen.model.SchwimmerStil

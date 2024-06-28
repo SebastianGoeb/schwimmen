@@ -1,6 +1,6 @@
 package org.example.schwimmen.ausgabe
 
-import org.example.schwimmen.suche.Ergebnis
+import org.example.schwimmen.search.Ergebnis
 import java.text.DecimalFormat
 import kotlin.time.Duration
 
