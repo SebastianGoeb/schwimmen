@@ -109,18 +109,18 @@ data class Ergebnis(
         if (konfiguration.alleMuessenSchwimmen) konfiguration.schwimmerList.size - startsProSchwimmer.size else 0
     }
     val schwimmerInMehrerenTeamsViolations: Int by lazy {
-        val teamZuweisungenProSchwimmer = mutableMapOf<String, MutableList<String>>()
+        val teamZuweisungenProSchwimmer = mutableMapOf<String, MutableMap<String, Int>>()
         teams.forEach { team ->
             team.staffelBelegungen.forEach { staffelBelegung ->
                 staffelBelegung.startBelegungen.forEach { schwimmerStil ->
-                    teamZuweisungenProSchwimmer.computeIfAbsent(schwimmerStil.name) { mutableListOf() }.add(team.name)
+                    val computeIfAbsent = teamZuweisungenProSchwimmer.computeIfAbsent(schwimmerStil.name) { mutableMapOf() }
+                    computeIfAbsent[team.name] = (computeIfAbsent[team.name] ?: 0) + 1
                 }
             }
         }
 
         val startsInAnderenTeamsProSchimmer: Map<String, Int> =
-            teamZuweisungenProSchwimmer.mapValues { (_, teamZuweisungen) ->
-                val startsProTeam: Map<String, Int> = teamZuweisungen.groupBy { it }.mapValues { it.value.size }
+            teamZuweisungenProSchwimmer.mapValues { (_, startsProTeam) ->
                 val mainTeam = startsProTeam.maxBy { it.value }.key
                 startsProTeam.filterKeys { it != mainTeam }.values.sum()
             }
