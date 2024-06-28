@@ -1,11 +1,10 @@
-package org.example.schwimmen.konfiguration
+package org.example.schwimmen.model
 
 data class Staffel(
+    val name: String,
     val stileAnzahl: List<StilStarts>,
     val team: Boolean,
-) {
-    val name: String by lazy { stileAnzahl.joinToString { "${it.starts}x ${it.stil}" } }
-}
+)
 
 data class StilStarts(
     val stil: String,

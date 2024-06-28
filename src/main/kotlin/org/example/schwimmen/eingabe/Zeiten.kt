@@ -1,14 +1,17 @@
-package org.example.schwimmen.parser
+package org.example.schwimmen.eingabe
 
-import org.example.schwimmen.konfiguration.SchwimmerZeit
+import org.example.schwimmen.model.Schwimmer
+import org.example.schwimmen.model.SchwimmerZeit
 import org.example.schwimmen.util.parseZeit
+import kotlin.time.Duration
 
-fun parseTimesFromTallTable(data: String): List<StilZeiten> {
+fun parseStilZeiten(data: String): List<Schwimmer> {
     val rows = data.lines().map { it.split("\t") }
-    return parseStilZeiten(rows)
+    val zeitenByStil = parseStilZeitenFromGrid(rows)
+    return groupBySchwimmer(zeitenByStil)
 }
 
-fun parseStilZeiten(rows: List<List<String>>): List<StilZeiten> {
+private fun parseStilZeitenFromGrid(rows: List<List<String>>): List<StilZeiten> {
     val rowGroups = mutableListOf<StilZeiten>()
 
     var group: StilZeiten? = null
@@ -25,7 +28,7 @@ fun parseStilZeiten(rows: List<List<String>>): List<StilZeiten> {
 
         // process zeit
         if (group != null) {
-            parseSchwimmerZeit(group.stil, row)?.let { group.zeiten.add(it) }
+            parseSchwimmerZeitRow(group.stil, row)?.let { group.zeiten.add(it) }
         } else {
             println("Es gibt Zeiteinträge, die keinem Schwimmstil zugeordnet sind: ${row.joinToString(" ")}")
         }
@@ -41,7 +44,7 @@ fun parseStilZeiten(rows: List<List<String>>): List<StilZeiten> {
 
 private fun isHeaderRow(row: List<String>) = row[0].isNotBlank()
 
-private fun parseSchwimmerZeit(
+private fun parseSchwimmerZeitRow(
     stil: String,
     row: List<String>,
 ): SchwimmerZeit? {
@@ -59,7 +62,19 @@ private fun parseSchwimmerZeit(
     return SchwimmerZeit(nameCell, parseZeit(zeitCell))
 }
 
-data class StilZeiten(
+private fun groupBySchwimmer(stilZeitenList: List<StilZeiten>): List<Schwimmer> {
+    val schwimmerList = mutableMapOf<String, MutableMap<String, Duration>>()
+
+    stilZeitenList.forEach { (stil, zeiten) ->
+        zeiten.forEach { (name, zeit) ->
+            schwimmerList.computeIfAbsent(name) { mutableMapOf() }[stil] = zeit
+        }
+    }
+
+    return schwimmerList.map { Schwimmer(it.key, it.value) }
+}
+
+private data class StilZeiten(
     val stil: String,
     val zeiten: MutableList<SchwimmerZeit>,
 )

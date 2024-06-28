@@ -1,18 +1,17 @@
 package org.example.schwimmen
 
-import org.example.schwimmen.konfiguration.Hyperparameters
-import org.example.schwimmen.konfiguration.Konfiguration
-import org.example.schwimmen.konfiguration.Schwimmer
-import org.example.schwimmen.konfiguration.SchwimmerStil
-import org.example.schwimmen.konfiguration.Staffel
-import org.example.schwimmen.konfiguration.StilStarts
-import org.example.schwimmen.parser.parseTimesFromTallTable
+import org.example.schwimmen.ausgabe.printErgebnis
+import org.example.schwimmen.eingabe.STAFFELN
+import org.example.schwimmen.eingabe.parseStilZeiten
+import org.example.schwimmen.model.Konfiguration
+import org.example.schwimmen.model.SchwimmerStil
+import org.example.schwimmen.model.Staffel
 import org.example.schwimmen.suche.Ergebnis
+import org.example.schwimmen.suche.Hyperparameters
 import org.example.schwimmen.suche.StaffelBelegung
 import org.example.schwimmen.suche.Team
-import org.example.schwimmen.util.convertTallToWide
+import org.example.schwimmen.util.replace
 import java.io.File
-import java.text.DecimalFormat
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -20,56 +19,37 @@ import kotlin.time.DurationUnit.MILLISECONDS
 import kotlin.time.TimeSource.Monotonic.markNow
 
 private const val MAX_GENERATIONS = 10_000_000
-private const val LINE = "--------------------------------"
 
-val staffelnWide =
-    listOf(
-        Staffel(listOf(StilStarts("Kraul", 4)), false),
-        Staffel(listOf(StilStarts("25m BrAr/KrBei", 4)), false),
-        Staffel(listOf(StilStarts("Brust", 4)), false),
-        Staffel(
-            listOf(
-                StilStarts("Rücken Beine", 2),
-                StilStarts("Brust Beine", 2),
-                StilStarts("Kraul Beine", 2),
-            ),
-            false,
-        ),
-        Staffel(listOf(StilStarts("Rücken", 4)), false),
-        Staffel(listOf(StilStarts("200m Team", 4)), true),
-        Staffel(
-            listOf(
-                StilStarts("Rücken", 2),
-                StilStarts("Brust", 2),
-                StilStarts("Kraul", 2),
-            ),
-            false,
-        ),
+val HYPERPARAMETERS =
+    Hyperparameters(
+        smartMutationRate = 0.85,
+        smartMutation = ::mutateVerySmart,
+        dumbMutation = ::mutateRandom,
+        timeout = 5.seconds,
     )
 
-val staffelnTall =
-    listOf(
-        Staffel(listOf(StilStarts("25m Kraul", 4)), false),
-        Staffel(listOf(StilStarts("25m BrAr/KrBei", 4)), false),
-        Staffel(listOf(StilStarts("25m Brust", 4)), false),
-        Staffel(
-            listOf(
-                StilStarts("25m Rücken Beine", 2),
-                StilStarts("25m Brust Beine", 2),
-                StilStarts("25m Kraul Beine", 2),
-            ),
-            false,
-        ),
-        Staffel(listOf(StilStarts("25m Rücken", 4)), false),
-        Staffel(listOf(StilStarts("200m Team", 4)), true),
-        Staffel(
-            listOf(
-                StilStarts("25m Rücken", 2),
-                StilStarts("25m Brust", 2),
-                StilStarts("25m Kraul", 2),
-            ),
-            false,
-        ),
+private fun loadFJugend(): Konfiguration =
+    Konfiguration(
+        alleMuessenSchwimmen = true,
+        minSchwimmerProTeam = 7,
+        maxSchwimmerProTeam = 12,
+        maxStartsProSchwimmer = 5,
+        staffeln = STAFFELN,
+        anzahlTeams = 1,
+        maxZeitspanneProStaffel = 1.seconds,
+        schwimmerList = parseStilZeiten(File("src/main/resources/f_jugend/zeiten.tsv").readText()),
+    )
+
+private fun loadEJugend(): Konfiguration =
+    Konfiguration(
+        alleMuessenSchwimmen = true,
+        minSchwimmerProTeam = 7,
+        maxSchwimmerProTeam = 12,
+        maxStartsProSchwimmer = 5,
+        staffeln = STAFFELN,
+        anzahlTeams = 2,
+        maxZeitspanneProStaffel = 1.seconds,
+        schwimmerList = parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText()),
     )
 
 fun main() {
@@ -77,46 +57,13 @@ fun main() {
 }
 
 private fun runOnce() {
-    val schwimmerList = loadEJugend()
-    val konfiguration =
-        Konfiguration(
-            alleMuessenSchwimmen = true,
-            minSchwimmerProTeam = 7,
-            maxSchwimmerProTeam = 12,
-            maxStartsProSchwimmer = 5,
-            staffeln = staffelnTall,
-            anzahlTeams = 2,
-            maxZeitspanneProStaffel = 1.seconds,
-            schwimmerList = schwimmerList,
-        )
-
-    val (staffelErgebnis, _, optionsChecked) =
-        optimize(
-            konfiguration,
-            Hyperparameters(
-                smartMutationRate = 0.85,
-                smartMutation = ::mutateVerySmart,
-                dumbMutation = ::mutateRandom,
-                timeout = 5.seconds,
-            ),
-        )
-
-    printErgebnis(staffelErgebnis, optionsChecked)
+    val konfiguration = loadEJugend()
+    val (staffelErgebnis, duration, statesChecked) = optimize(konfiguration, HYPERPARAMETERS)
+    printErgebnis(staffelErgebnis, duration, statesChecked)
 }
 
 private fun optimizeHyperparameters() {
-    val schwimmerList = loadFJugend()
-    val konfiguration =
-        Konfiguration(
-            alleMuessenSchwimmen = true,
-            minSchwimmerProTeam = 7,
-            maxSchwimmerProTeam = 12,
-            maxStartsProSchwimmer = 5,
-            staffeln = staffelnTall,
-            anzahlTeams = 1,
-            maxZeitspanneProStaffel = 1.seconds,
-            schwimmerList = schwimmerList,
-        )
+    val konfiguration = loadFJugend()
 
     val start = 0.5
     val end = 1
@@ -161,18 +108,6 @@ private fun optimizeHyperparameters() {
     }
 
     println("optimal hyperparameters: " + results.minBy { it.second.avgTime })
-}
-
-private fun loadFJugend(): List<Schwimmer> {
-    val file = File("src/main/resources/jugend_f_zeiten.tsv")
-    val schwimmerZeiten = parseTimesFromTallTable(file.readText())
-    return convertTallToWide(schwimmerZeiten)
-}
-
-private fun loadEJugend(): List<Schwimmer> {
-    val file = File("src/main/resources/jugend_e_zeiten.tsv")
-    val schwimmerZeiten = parseTimesFromTallTable(file.readText())
-    return convertTallToWide(schwimmerZeiten)
 }
 
 private fun runHyperparameterExperiment(
@@ -381,61 +316,4 @@ fun mutateVerySmart(ergebnis: Ergebnis): Pair<Ergebnis, Int> {
     }
 
     return Pair(result.minBy { it.score }, result.size)
-}
-
-fun <E> List<E>.replace(
-    index: Int,
-    newElement: E,
-): List<E> {
-    require(index < this.size)
-    return this.mapIndexed { i, e -> if (i == index) newElement else e }
-}
-
-private fun printErgebnis(
-    ergebnis: Ergebnis,
-    optionsChecked: Int,
-) {
-    for (team in ergebnis.teams) {
-        println(team.name)
-        team.staffelBelegungen.forEach {
-            println(it.toPrettyString())
-            println()
-        }
-
-        println("Team-Gesamtzeit: ${team.gesamtZeit}")
-        println(LINE)
-    }
-
-    println(ergebnis.prettyStartsProSchwimmer())
-    println(LINE)
-
-    ergebnis.konfiguration.staffeln.forEachIndexed { index, staffel ->
-        val zeiten = ergebnis.teams.map { it.staffelBelegungen[index].gesamtZeit }
-        println("Staffelzeiten: ${zeiten.joinToString()} (Spanne: ${zeiten.max() - zeiten.min()}) ${staffel.name}")
-    }
-    println(LINE)
-
-    ergebnis.teams.forEach { println("${it.name}-Gesamtzeit: ${it.gesamtZeit}") }
-    println("Insgesamt-Gesamtzeit: ${ergebnis.gesamtZeit}")
-    println(LINE)
-
-    println(
-        "Max Starts pro Schwimmer <= ${ergebnis.konfiguration.maxStartsProSchwimmer}: ${if (ergebnis.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",
-    )
-    println("Schwimmer nicht in mehreren Teams: ${if (ergebnis.schwimmerInMehrerenTeamsViolations == 0) "✅" else "❌"}")
-    if (ergebnis.schwimmerInMehrerenTeamsViolations > 0) {
-        (
-            println("Schwimmer in mehreren Teams: ${ergebnis.schwimmerInMehrerenTeams}")
-        )
-    }
-    if (ergebnis.konfiguration.alleMuessenSchwimmen) {
-        println("Alle müssen schwimmen: ${if (ergebnis.alleMuessenSchwimmenViolations == 0) "✅" else "❌"}")
-    }
-    if (ergebnis.konfiguration.anzahlTeams > 1) {
-        println(
-            "Zeitspanne pro Staffel < ${ergebnis.konfiguration.maxZeitspanneProStaffel}: ${if (ergebnis.zeitspanneViolations == 0) "✅" else "❌"}",
-        )
-    }
-    println("Erfüllt alle Bedingungen: ${if (ergebnis.valide) "✅" else "❌"}")
-    println("Geprüfte Konstellationen: ${DecimalFormat("#,###").format(optionsChecked)}")
 }

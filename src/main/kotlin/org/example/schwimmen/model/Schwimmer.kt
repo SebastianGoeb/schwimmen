@@ -1,4 +1,4 @@
-package org.example.schwimmen.konfiguration
+package org.example.schwimmen.model
 
 import kotlin.time.Duration
 

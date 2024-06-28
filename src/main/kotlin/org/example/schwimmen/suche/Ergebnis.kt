@@ -1,8 +1,8 @@
 package org.example.schwimmen.suche
 
-import org.example.schwimmen.konfiguration.Konfiguration
-import org.example.schwimmen.konfiguration.SchwimmerStil
-import org.example.schwimmen.konfiguration.Staffel
+import org.example.schwimmen.model.Konfiguration
+import org.example.schwimmen.model.SchwimmerStil
+import org.example.schwimmen.model.Staffel
 import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes

@@ -1,6 +1,5 @@
-package org.example.schwimmen.konfiguration
+package org.example.schwimmen.suche
 
-import org.example.schwimmen.suche.Ergebnis
 import kotlin.time.Duration
 
 data class Hyperparameters(
