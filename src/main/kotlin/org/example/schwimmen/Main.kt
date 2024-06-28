@@ -25,18 +25,18 @@ private const val LINE = "--------------------------------"
 val staffelnWide =
     listOf(
         Staffel(listOf(StilStarts("Kraul", 4)), false),
-        Staffel(listOf(StilStarts("Kombi", 4)), false),
+        Staffel(listOf(StilStarts("25m BrAr/KrBei", 4)), false),
         Staffel(listOf(StilStarts("Brust", 4)), false),
         Staffel(
             listOf(
-                StilStarts("Rücken-Beine", 2),
-                StilStarts("Brust-Beine", 2),
-                StilStarts("Kraul-Beine", 2),
+                StilStarts("Rücken Beine", 2),
+                StilStarts("Brust Beine", 2),
+                StilStarts("Kraul Beine", 2),
             ),
             false,
         ),
         Staffel(listOf(StilStarts("Rücken", 4)), false),
-        Staffel(listOf(StilStarts("200 Team", 4)), true),
+        Staffel(listOf(StilStarts("200m Team", 4)), true),
         Staffel(
             listOf(
                 StilStarts("Rücken", 2),
@@ -54,14 +54,14 @@ val staffelnTall =
         Staffel(listOf(StilStarts("25m Brust", 4)), false),
         Staffel(
             listOf(
-                StilStarts("25m R-Beine", 2),
-                StilStarts("25m B-Beine", 2),
-                StilStarts("25m K-Beine", 2),
+                StilStarts("25m Rücken Beine", 2),
+                StilStarts("25m Brust Beine", 2),
+                StilStarts("25m Kraul Beine", 2),
             ),
             false,
         ),
         Staffel(listOf(StilStarts("25m Rücken", 4)), false),
-        Staffel(listOf(StilStarts("200 Team", 4)), true),
+        Staffel(listOf(StilStarts("200m Team", 4)), true),
         Staffel(
             listOf(
                 StilStarts("25m Rücken", 2),
@@ -98,7 +98,7 @@ private fun runOnce() {
                 smartMutationRate = 0.85,
                 smartMutation = ::mutateVerySmart,
                 dumbMutation = ::mutateRandom,
-                timeout = 5.seconds,
+                timeout = 60.seconds,
             ),
         )
 
