@@ -9,7 +9,7 @@ data class Konfiguration(
     val maxStartsProSchwimmer: Int,
     val staffeln: List<Staffel>,
     val anzahlTeams: Int,
-    val teamsMoeglichstGleich: Boolean,
+    val maxZeitspanneProStaffel: Duration,
     val schwimmerList: List<Schwimmer>,
 ) {
     val stilToSchwimmerToZeit: Map<String, Map<String, Duration>> by lazy { buildStilToSchwimmerToZeit(schwimmerList) }

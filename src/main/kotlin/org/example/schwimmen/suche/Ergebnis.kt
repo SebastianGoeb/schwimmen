@@ -4,16 +4,12 @@ import org.example.schwimmen.konfiguration.Konfiguration
 import org.example.schwimmen.konfiguration.SchwimmerStil
 import org.example.schwimmen.konfiguration.Staffel
 import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.DurationUnit.MINUTES
 
 private val stilThenName = compareBy<SchwimmerStil> { it.stil }.thenBy { it.name }
 
 private val maxStartsProSchwimmerProStaffel = 1
-private val zeitStdDevPenaltyMultiplier = 1
 private val strafMinutenProRegelverstoss = 5.minutes
 
 data class StaffelBelegung(
@@ -68,13 +64,17 @@ data class Ergebnis(
     val konfiguration: Konfiguration,
 ) {
     val gesamtZeit: Duration by lazy { teams.map { it.gesamtZeit }.reduce(Duration::plus) }
-    val zeitStdDev: Duration by lazy {
-        if (teams.size <= 1) {
-            Duration.ZERO
+
+    val zeitspanneViolations: Int by lazy {
+        if (konfiguration.anzahlTeams <= 1) {
+            0
         } else {
-            val teamMinutes = teams.map { it.gesamtZeit.toDouble(MINUTES) }
-            val meanZeit = teamMinutes.average()
-            sqrt(teamMinutes.sumOf { (it - meanZeit).pow(2) } / teams.size).minutes
+            konfiguration.staffeln.indices
+                .map { i ->
+                    val zeiten = teams.map { it.staffelBelegungen[i].gesamtZeit }
+                    zeiten.max() - zeiten.min()
+                }.filter { it > konfiguration.maxZeitspanneProStaffel }
+                .size
         }
     }
 
@@ -132,14 +132,16 @@ data class Ergebnis(
         teams.all { it.valide } &&
             maxStartsProSchwimmerViolations == 0 &&
             alleMuessenSchwimmenViolations == 0 &&
-            schwimmerInMehrerenTeamsViolations == 0
+            schwimmerInMehrerenTeamsViolations == 0 &&
+            zeitspanneViolations == 0
     }
+
     val score: Duration by lazy {
         teams.map { it.score }.reduce(Duration::plus) +
             strafMinutenProRegelverstoss * maxStartsProSchwimmerViolations +
             strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
             strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
-            zeitStdDev.times(zeitStdDevPenaltyMultiplier)
+            strafMinutenProRegelverstoss * zeitspanneViolations
     }
 
     fun prettyStartsProSchwimmer(): String =

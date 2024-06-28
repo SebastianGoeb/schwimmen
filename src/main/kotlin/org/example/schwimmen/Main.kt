@@ -12,7 +12,7 @@ import org.example.schwimmen.suche.StaffelBelegung
 import org.example.schwimmen.suche.Team
 import org.example.schwimmen.util.convertTallToWide
 import java.io.File
-import kotlin.math.round
+import java.text.DecimalFormat
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -77,7 +77,7 @@ fun main() {
 }
 
 private fun runOnce() {
-    val schwimmerList = loadFJugend()
+    val schwimmerList = loadEJugend()
     val konfiguration =
         Konfiguration(
             alleMuessenSchwimmen = true,
@@ -85,24 +85,23 @@ private fun runOnce() {
             maxSchwimmerProTeam = 12,
             maxStartsProSchwimmer = 5,
             staffeln = staffelnTall,
-            anzahlTeams = 1,
-            teamsMoeglichstGleich = true, // irrelevant für nur 1 team
+            anzahlTeams = 2,
+            maxZeitspanneProStaffel = 1.seconds,
             schwimmerList = schwimmerList,
         )
 
-    val (staffelErgebnis, _) =
+    val (staffelErgebnis, _, optionsChecked) =
         optimize(
             konfiguration,
-            staffelnTall,
             Hyperparameters(
                 smartMutationRate = 0.85,
                 smartMutation = ::mutateVerySmart,
                 dumbMutation = ::mutateRandom,
-                timeout = 60.seconds,
+                timeout = 5.seconds,
             ),
         )
 
-    printErgebnis(staffelErgebnis)
+    printErgebnis(staffelErgebnis, optionsChecked)
 }
 
 private fun optimizeHyperparameters() {
@@ -115,7 +114,7 @@ private fun optimizeHyperparameters() {
             maxStartsProSchwimmer = 5,
             staffeln = staffelnTall,
             anzahlTeams = 1,
-            teamsMoeglichstGleich = true, // irrelevant für nur 1 team
+            maxZeitspanneProStaffel = 1.seconds,
             schwimmerList = schwimmerList,
         )
 
@@ -128,7 +127,7 @@ private fun optimizeHyperparameters() {
                 smartMutationRate = start * (1 - it / steps.toDouble()) + end * (it / steps.toDouble()),
                 smartMutation = ::mutateVerySmart,
                 dumbMutation = ::mutateRandom,
-                timeout = 1.seconds,
+                timeout = 5.seconds,
             )
         }
 
@@ -136,7 +135,7 @@ private fun optimizeHyperparameters() {
     (1..20)
         .toList()
         .parallelStream()
-        .forEach { optimize(konfiguration, staffelnTall, hyperparametersList.random(), printProgress = false) }
+        .forEach { optimize(konfiguration, hyperparametersList.random(), printProgress = false) }
 
     val results =
         hyperparametersList
@@ -182,7 +181,7 @@ private fun runHyperparameterExperiment(
 ): ExperimentResult {
     // benchmark
     val runs = 10
-    val results = (1..runs).map { optimize(konfiguration, staffelnWide, hyperparameters, printProgress = false) }
+    val results = (1..runs).map { optimize(konfiguration, hyperparameters, printProgress = false) }
     val avgScore = results.map { it.first.score }.reduce(Duration::plus).div(runs)
     val maxScore = results.maxOf { it.first.score }
     val avgTime = results.map { it.second }.reduce(Duration::plus).div(runs)
@@ -199,40 +198,42 @@ data class ExperimentResult(
 
 fun optimize(
     konfiguration: Konfiguration,
-    staffeln: List<Staffel>,
     hyperparameters: Hyperparameters,
     printProgress: Boolean = true,
-): Pair<Ergebnis, Duration> {
+): Triple<Ergebnis, Duration, Int> {
     val start = markNow()
 
     // erstmal optimal zuweisen, und alle einschränkungen ignorieren
     val staffelZuweisungen = initialRandomAssignment(konfiguration)
 
     var ergebnis = Ergebnis(staffelZuweisungen, konfiguration)
+    var optionsChecked = 0
     var bestErgebnis = ergebnis
-    var timeToBestErgebnis = markNow() - start
+    var timeOfBestErgebnis = markNow()
 
     // dann schwimmer austauschen bis max starts eingehalten sind
     if (printProgress) {
         println("Score progress")
     }
     for (i in 0..<MAX_GENERATIONS) {
-        ergebnis =
+        val mutationResult =
             if (Random.nextDouble() < hyperparameters.smartMutationRate) {
                 hyperparameters.smartMutation(ergebnis)
             } else {
                 hyperparameters.dumbMutation(ergebnis)
             }
+        ergebnis = mutationResult.first
+        optionsChecked += mutationResult.second
 
         if (ergebnis.score < bestErgebnis.score) {
             bestErgebnis = ergebnis
-            timeToBestErgebnis = markNow() - start
+            timeOfBestErgebnis = markNow()
             if (printProgress) {
                 println("${ergebnis.score} ${if (ergebnis.valide) "✓" else "✗"} (gen $i)")
             }
         }
 
-        if (markNow() > start + hyperparameters.timeout) {
+        if (markNow() - timeOfBestErgebnis > hyperparameters.timeout) {
             break
         }
     }
@@ -240,7 +241,7 @@ fun optimize(
         println()
     }
 
-    return Pair(bestErgebnis, timeToBestErgebnis)
+    return Triple(bestErgebnis, timeOfBestErgebnis - start, optionsChecked)
 }
 
 private fun initialOptimalAssignment(
@@ -279,7 +280,7 @@ private fun initialRandomAssignment(konfiguration: Konfiguration): List<Team> =
         )
     }
 
-fun mutateRandom(ergebnis: Ergebnis): Ergebnis {
+fun mutateRandom(ergebnis: Ergebnis): Pair<Ergebnis, Int> {
     val teamIndex = ergebnis.teams.indices.random()
     val team = ergebnis.teams[teamIndex]
 
@@ -307,10 +308,10 @@ fun mutateRandom(ergebnis: Ergebnis): Ergebnis {
     val neuesTeam =
         ergebnis.teams.replace(teamIndex, team.copy(staffelBelegungen = neueStaffelBelegungen))
 
-    return Ergebnis(neuesTeam, ergebnis.konfiguration)
+    return Pair(Ergebnis(neuesTeam, ergebnis.konfiguration), 1)
 }
 
-fun mutateSmart(ergebnis: Ergebnis): Ergebnis {
+fun mutateSmart(ergebnis: Ergebnis): Pair<Ergebnis, Int> {
     val result = mutableListOf<Ergebnis>()
 
     for (teamIndex in ergebnis.teams.indices) {
@@ -345,10 +346,10 @@ fun mutateSmart(ergebnis: Ergebnis): Ergebnis {
         }
     }
 
-    return result.minBy { it.score }
+    return Pair(result.minBy { it.score }, result.size)
 }
 
-fun mutateVerySmart(ergebnis: Ergebnis): Ergebnis {
+fun mutateVerySmart(ergebnis: Ergebnis): Pair<Ergebnis, Int> {
     val result = mutableListOf<Ergebnis>()
 
     for (teamIndex in ergebnis.teams.indices) {
@@ -379,7 +380,7 @@ fun mutateVerySmart(ergebnis: Ergebnis): Ergebnis {
         }
     }
 
-    return result.minBy { it.score }
+    return Pair(result.minBy { it.score }, result.size)
 }
 
 fun <E> List<E>.replace(
@@ -390,18 +391,10 @@ fun <E> List<E>.replace(
     return this.mapIndexed { i, e -> if (i == index) newElement else e }
 }
 
-fun scoreBar(
-    score: Double,
-    maxScore: Double,
-    maxWidth: Int = 20,
-    barChar: Char = '-',
-    pointChar: Char = 'o',
-): String {
-    val numChars = round(score / maxScore * maxWidth).toInt()
-    return "${barChar.toString().repeat(numChars - 1)}$pointChar (${"%.2f".format(score)})"
-}
-
-private fun printErgebnis(ergebnis: Ergebnis) {
+private fun printErgebnis(
+    ergebnis: Ergebnis,
+    optionsChecked: Int,
+) {
     for (team in ergebnis.teams) {
         println(team.name)
         team.staffelBelegungen.forEach {
@@ -414,6 +407,12 @@ private fun printErgebnis(ergebnis: Ergebnis) {
     }
 
     println(ergebnis.prettyStartsProSchwimmer())
+    println(LINE)
+
+    ergebnis.konfiguration.staffeln.forEachIndexed { index, staffel ->
+        val zeiten = ergebnis.teams.map { it.staffelBelegungen[index].gesamtZeit }
+        println("Staffelzeiten: ${zeiten.joinToString()} (Spanne: ${zeiten.max() - zeiten.min()}) ${staffel.name}")
+    }
     println(LINE)
 
     ergebnis.teams.forEach { println("${it.name}-Gesamtzeit: ${it.gesamtZeit}") }
@@ -432,5 +431,11 @@ private fun printErgebnis(ergebnis: Ergebnis) {
     if (ergebnis.konfiguration.alleMuessenSchwimmen) {
         println("Alle müssen schwimmen: ${if (ergebnis.alleMuessenSchwimmenViolations == 0) "✅" else "❌"}")
     }
+    if (ergebnis.konfiguration.anzahlTeams > 1) {
+        println(
+            "Zeitspanne pro Staffel < ${ergebnis.konfiguration.maxZeitspanneProStaffel}: ${if (ergebnis.zeitspanneViolations == 0) "✅" else "❌"}",
+        )
+    }
     println("Erfüllt alle Bedingungen: ${if (ergebnis.valide) "✅" else "❌"}")
+    println("Geprüfte Konstellationen: ${DecimalFormat("#,###").format(optionsChecked)}")
 }
