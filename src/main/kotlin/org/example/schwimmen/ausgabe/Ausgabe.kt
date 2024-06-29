@@ -1,6 +1,7 @@
 package org.example.schwimmen.ausgabe
 
 import org.example.schwimmen.search.Ergebnis
+import org.example.schwimmen.util.formatZeit
 import java.text.DecimalFormat
 import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
@@ -23,8 +24,8 @@ fun printErgebnis(
             println()
         }
 
-        println("Team-Gesamtzeit: ${team.gesamtZeit}")
-        println(LINE)
+        println("Team-Gesamtzeit: ${formatZeit(team.gesamtZeit)}")
+        println()
     }
 
     println(ergebnis.prettyStartsProSchwimmer())
@@ -32,12 +33,12 @@ fun printErgebnis(
 
     ergebnis.konfiguration.staffeln.forEachIndexed { index, staffel ->
         val zeiten = ergebnis.teams.map { it.staffelBelegungen[index].gesamtZeit }
-        println("Staffelzeiten: ${zeiten.joinToString()} (Spanne: ${zeiten.max() - zeiten.min()}) ${staffel.name}")
+        println("Staffelzeiten: ${zeiten.joinToString{ formatZeit(it) }} (Spanne: ${zeiten.max() - zeiten.min()}) ${staffel.name}")
     }
     println(LINE)
 
-    ergebnis.teams.forEach { println("${it.name}-Gesamtzeit: ${it.gesamtZeit}") }
-    println("Insgesamt-Gesamtzeit: ${ergebnis.gesamtZeit}")
+    ergebnis.teams.forEach { println("${it.name}-Gesamtzeit: ${formatZeit(it.gesamtZeit)}") }
+    println("Insgesamt-Gesamtzeit: ${formatZeit(ergebnis.gesamtZeit)}")
     println(LINE)
 
     println(

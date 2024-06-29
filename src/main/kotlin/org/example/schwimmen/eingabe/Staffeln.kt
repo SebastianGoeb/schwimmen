@@ -6,7 +6,7 @@ import org.example.schwimmen.model.StilStarts
 val STAFFELN =
     listOf(
         Staffel("4x 25m Kraul", listOf(StilStarts("25m Kraul", 4)), false),
-        Staffel("4x 25m BrAr", listOf(StilStarts("25m BrAr/KrBei", 4)), false),
+        Staffel("4x 25m BrAr/KrBei", listOf(StilStarts("25m BrAr/KrBei", 4)), false),
         Staffel("4x 25m Brust", listOf(StilStarts("25m Brust", 4)), false),
         Staffel(
             "6x 25m Lagen Beine",

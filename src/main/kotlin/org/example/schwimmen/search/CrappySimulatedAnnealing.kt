@@ -3,7 +3,9 @@ package org.example.schwimmen.search
 import org.example.schwimmen.model.Konfiguration
 import org.example.schwimmen.model.SchwimmerStil
 import org.example.schwimmen.model.Staffel
+import org.example.schwimmen.util.formatZeit
 import org.example.schwimmen.util.replace
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -16,6 +18,7 @@ data class Hyperparameters(
     val dumbMutation: (Ergebnis) -> Pair<Ergebnis, Int>,
     val timeout: Duration,
     val maxGenerations: Int,
+    val populationSize: Int,
 )
 
 fun runCrappySimulatedAnnealing(
@@ -25,12 +28,12 @@ fun runCrappySimulatedAnnealing(
 ): Triple<Ergebnis, Duration, Int> {
     val start = markNow()
 
-    // erstmal optimal zuweisen, und alle einschränkungen ignorieren
-    val staffelZuweisungen = initialRandomAssignment(konfiguration)
-
-    var ergebnis = Ergebnis(staffelZuweisungen, konfiguration)
-    var optionsChecked = 0
-    var bestErgebnis = ergebnis
+    var ergebnisse: MutableList<Ergebnis> =
+        MutableList(hyperparameters.populationSize) {
+            Ergebnis(initialRandomAssignment(konfiguration), konfiguration)
+        }
+    val statesChecked = AtomicInteger(0)
+    var bestErgebnis = ergebnisse.minBy { it.score }
     var timeOfBestErgebnis = markNow()
 
     // dann schwimmer austauschen bis max starts eingehalten sind
@@ -38,20 +41,21 @@ fun runCrappySimulatedAnnealing(
         println("Score progress")
     }
     for (i in 0..<hyperparameters.maxGenerations) {
-        val mutationResult =
-            if (Random.nextDouble() < hyperparameters.smartMutationRate) {
-                hyperparameters.smartMutation(ergebnis)
-            } else {
-                hyperparameters.dumbMutation(ergebnis)
-            }
-        ergebnis = mutationResult.first
-        optionsChecked += mutationResult.second
+        ergebnisse =
+            ergebnisse
+                .parallelStream()
+                .map {
+                    val (newState, newStatesChecked) = generateNewState(hyperparameters, it)
+                    statesChecked.addAndGet(newStatesChecked)
+                    newState
+                }.toList()
+        val newBestErgebnis = ergebnisse.minBy { it.score }
 
-        if (ergebnis.score < bestErgebnis.score) {
-            bestErgebnis = ergebnis
+        if (newBestErgebnis.score < bestErgebnis.score) {
+            bestErgebnis = newBestErgebnis
             timeOfBestErgebnis = markNow()
             if (printProgress) {
-                println("${ergebnis.score} ${if (ergebnis.valide) "✓" else "✗"} (gen $i)")
+                println("${formatZeit(bestErgebnis.score)} ${if (bestErgebnis.valide) "✓" else "✗"} (gen $i)")
             }
         }
 
@@ -63,7 +67,16 @@ fun runCrappySimulatedAnnealing(
         println()
     }
 
-    return Triple(bestErgebnis, timeOfBestErgebnis - start, optionsChecked)
+    return Triple(bestErgebnis, timeOfBestErgebnis - start, statesChecked.get())
+}
+
+private fun generateNewState(
+    hyperparameters: Hyperparameters,
+    state: Ergebnis,
+) = if (Random.nextDouble() < hyperparameters.smartMutationRate) {
+    hyperparameters.smartMutation(state)
+} else {
+    hyperparameters.dumbMutation(state)
 }
 
 private fun initialOptimalAssignment(
@@ -216,7 +229,8 @@ private fun optimizeHyperparameters(konfiguration: Konfiguration) {
                 smartMutation = ::mutateVerySmart,
                 dumbMutation = ::mutateRandom,
                 timeout = 5.seconds,
-                10_000_000,
+                1_000_000,
+                8,
             )
         }
 

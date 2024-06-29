@@ -23,8 +23,12 @@ val HYPERPARAMETERS =
         smartMutation = ::mutateVerySmart,
         dumbMutation = ::mutateRandom,
         timeout = 5.seconds,
-        maxGenerations = 10_000_000,
+        maxGenerations = 1_000_000,
+        32,
     )
+
+val maxZeitspanneProStaffel = 1.seconds
+val maxZeitspanneProTeam = 3.seconds
 
 private fun loadFJugend(): Konfiguration =
     Konfiguration(
@@ -35,7 +39,7 @@ private fun loadFJugend(): Konfiguration =
         minFemaleProTeam = 2,
         maxStartsProSchwimmer = 5,
         anzahlTeams = 1,
-        maxZeitspanneProStaffel = 1.seconds,
+        maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = STAFFELN,
         schwimmerList =
             parseStilZeiten(File("src/main/resources/f_jugend/zeiten.tsv").readText())
@@ -52,7 +56,7 @@ private fun loadEJugendOhneOskar(): Konfiguration =
         minFemaleProTeam = 2,
         maxStartsProSchwimmer = 5,
         anzahlTeams = 2,
-        maxZeitspanneProStaffel = 1.seconds,
+        maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = STAFFELN,
         schwimmerList =
             parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
@@ -69,7 +73,7 @@ private fun loadEJugendMitOskar(): Konfiguration =
         minFemaleProTeam = 2,
         maxStartsProSchwimmer = 5,
         anzahlTeams = 2,
-        maxZeitspanneProStaffel = 1.seconds,
+        maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = STAFFELN,
         schwimmerList =
             parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())

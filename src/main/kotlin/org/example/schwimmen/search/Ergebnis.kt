@@ -6,6 +6,7 @@ import org.example.schwimmen.eingabe.Geschlecht.MALE
 import org.example.schwimmen.model.Konfiguration
 import org.example.schwimmen.model.SchwimmerStil
 import org.example.schwimmen.model.Staffel
+import org.example.schwimmen.util.formatZeit
 import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -97,7 +98,7 @@ data class Ergebnis(
     fun prettyStartsProSchwimmer(): String =
         """
 Anzahl Starts:
-${startsProSchwimmer.toSortedMap().map { "${it.key} x${it.value}" }.joinToString("\n")}
+${startsProSchwimmer.toSortedMap().map { "${it.key}\t${it.value}" }.joinToString("\n")}
         """.trimIndent()
 }
 
@@ -170,12 +171,12 @@ data class StaffelBelegung(
                 .joinToString("\n") { zuweisung ->
                     val schwimmerZeiten = konfiguration.stilToSchwimmerToZeit[zuweisung.stil] ?: error("Programmierfehler")
                     val zeit = schwimmerZeiten[zuweisung.name] ?: error("Programmierfehler")
-                    "${zuweisung.stil}: ${zuweisung.name} ($zeit)"
+                    "${zuweisung.stil}\t${zuweisung.name}\t${formatZeit(zeit)}"
                 }
         return """
 Staffel: ${staffel.name}
 $schwimmerZeilen
-Gesamtzeit: $gesamtZeit
+Gesamtzeit		${formatZeit(gesamtZeit)}
             """.trimIndent()
     }
 }
