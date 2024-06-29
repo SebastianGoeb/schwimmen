@@ -2,6 +2,9 @@ package org.example.schwimmen
 
 import org.example.schwimmen.ausgabe.printErgebnis
 import org.example.schwimmen.eingabe.STAFFELN
+import org.example.schwimmen.eingabe.abwesenheitenEJugendMitOskar
+import org.example.schwimmen.eingabe.abwesenheitenEJugendOhneOskar
+import org.example.schwimmen.eingabe.abwesenheitenFJugend
 import org.example.schwimmen.eingabe.geschlechtEJugend
 import org.example.schwimmen.eingabe.geschlechtFJugend
 import org.example.schwimmen.eingabe.parseStilZeiten
@@ -34,11 +37,13 @@ private fun loadFJugend(): Konfiguration =
         anzahlTeams = 1,
         maxZeitspanneProStaffel = 1.seconds,
         staffeln = STAFFELN,
-        schwimmerList = parseStilZeiten(File("src/main/resources/f_jugend/zeiten.tsv").readText()),
-        geschlechtFJugend,
+        schwimmerList =
+            parseStilZeiten(File("src/main/resources/f_jugend/zeiten.tsv").readText())
+                .filter { !abwesenheitenFJugend.contains(it.name) },
+        geschlechtFJugend.filterKeys { !abwesenheitenFJugend.contains(it) },
     )
 
-private fun loadEJugend(): Konfiguration =
+private fun loadEJugendOhneOskar(): Konfiguration =
     Konfiguration(
         alleMuessenSchwimmen = true,
         minSchwimmerProTeam = 7,
@@ -49,12 +54,31 @@ private fun loadEJugend(): Konfiguration =
         anzahlTeams = 2,
         maxZeitspanneProStaffel = 1.seconds,
         staffeln = STAFFELN,
-        schwimmerList = parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText()),
-        geschlechtEJugend,
+        schwimmerList =
+            parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
+                .filter { !abwesenheitenEJugendOhneOskar.contains(it.name) },
+        geschlechtEJugend.filterKeys { !abwesenheitenEJugendOhneOskar.contains(it) },
+    )
+
+private fun loadEJugendMitOskar(): Konfiguration =
+    Konfiguration(
+        alleMuessenSchwimmen = true,
+        minSchwimmerProTeam = 7,
+        maxSchwimmerProTeam = 12,
+        minMaleProTeam = 2,
+        minFemaleProTeam = 2,
+        maxStartsProSchwimmer = 5,
+        anzahlTeams = 2,
+        maxZeitspanneProStaffel = 1.seconds,
+        staffeln = STAFFELN,
+        schwimmerList =
+            parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
+                .filter { !abwesenheitenEJugendMitOskar.contains(it.name) },
+        geschlechtEJugend.filterKeys { !abwesenheitenEJugendMitOskar.contains(it) },
     )
 
 fun main() {
-    val konfiguration = loadEJugend()
+    val konfiguration = loadEJugendOhneOskar()
     if (!konfiguration.valid()) {
         exitProcess(1)
     }
