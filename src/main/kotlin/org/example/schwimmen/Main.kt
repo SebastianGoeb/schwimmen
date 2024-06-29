@@ -22,9 +22,9 @@ val HYPERPARAMETERS =
         smartMutationRate = 0.85,
         smartMutation = ::mutateVerySmart,
         dumbMutation = ::mutateRandom,
-        timeout = 5.seconds,
+        timeout = 10.seconds,
         maxGenerations = 1_000_000,
-        32,
+        64,
     )
 
 val maxZeitspanneProStaffel = 1.seconds
@@ -82,7 +82,7 @@ private fun loadEJugendMitOskar(): Konfiguration =
     )
 
 fun main() {
-    val konfiguration = loadEJugendOhneOskar()
+    val konfiguration = loadEJugendMitOskar()
     if (!konfiguration.valid()) {
         exitProcess(1)
     }

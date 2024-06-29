@@ -3,6 +3,8 @@ package org.example.schwimmen.search
 import org.example.schwimmen.eingabe.Geschlecht
 import org.example.schwimmen.eingabe.Geschlecht.FEMALE
 import org.example.schwimmen.eingabe.Geschlecht.MALE
+import org.example.schwimmen.eingabe.maxStartsProSchwimmer
+import org.example.schwimmen.eingabe.minStartsProSchwimmer
 import org.example.schwimmen.model.Konfiguration
 import org.example.schwimmen.model.SchwimmerStil
 import org.example.schwimmen.model.Staffel
@@ -53,7 +55,11 @@ data class Ergebnis(
         }
     val maxStartsProSchwimmerViolations: Int =
         startsProSchwimmer
-            .map { max(it.value - konfiguration.maxStartsProSchwimmer, 0) }
+            .map { max(it.value - (maxStartsProSchwimmer[it.key] ?: konfiguration.maxStartsProSchwimmer), 0) }
+            .sum()
+    val minStartsProSchwimmerViolations: Int =
+        startsProSchwimmer
+            .map { max((minStartsProSchwimmer[it.key] ?: 0) - it.value, 0) }
             .sum()
 
     val alleMuessenSchwimmenViolations: Int =
@@ -82,6 +88,7 @@ data class Ergebnis(
     val valide: Boolean by lazy {
         teams.all { it.valide } &&
             maxStartsProSchwimmerViolations == 0 &&
+            minStartsProSchwimmerViolations == 0 &&
             alleMuessenSchwimmenViolations == 0 &&
             schwimmerInMehrerenTeamsViolations == 0 &&
             zeitspanneViolations == 0
@@ -90,6 +97,7 @@ data class Ergebnis(
     val score: Duration by lazy {
         teams.map { it.score }.reduce(Duration::plus) +
             strafMinutenProRegelverstoss * maxStartsProSchwimmerViolations +
+            strafMinutenProRegelverstoss * minStartsProSchwimmerViolations +
             strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
             strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
             strafMinutenProRegelverstoss * zeitspanneViolations
