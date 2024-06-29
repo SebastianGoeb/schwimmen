@@ -2,7 +2,12 @@ package org.example.schwimmen.ausgabe
 
 import org.example.schwimmen.search.Ergebnis
 import java.text.DecimalFormat
+import java.time.temporal.ChronoUnit
+import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.DurationUnit.SECONDS
+import kotlin.time.toJavaDuration
+import kotlin.time.toKotlinDuration
 
 private const val LINE = "--------------------------------"
 
@@ -53,5 +58,11 @@ fun printErgebnis(
         )
     }
     println("Erfüllt alle Bedingungen: ${if (ergebnis.valide) "✅" else "❌"}")
-    println("Geprüfte Konstellationen: ${DecimalFormat("#,###").format(statesChecked)}")
+
+    val statesFormatted = DecimalFormat("#,###").format(statesChecked)
+    val durationTruncated = duration.toJavaDuration().truncatedTo(ChronoUnit.SECONDS).toKotlinDuration()
+    val statesPerSecondFormatted = DecimalFormat("#,###").format((statesChecked / duration.toDouble(SECONDS)).roundToInt())
+    println(
+        "Geprüfte Konstellationen: $statesFormatted in $durationTruncated ($statesPerSecondFormatted/s)",
+    )
 }
