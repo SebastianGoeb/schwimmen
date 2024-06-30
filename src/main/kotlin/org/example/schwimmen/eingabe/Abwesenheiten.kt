@@ -9,6 +9,7 @@ val abwesenheitenEJugendOhneOskar =
 val abwesenheitenEJugendMitOskar =
     listOf(
         "Nea Louise Benner",
+        "Niklas Martin Berberich",
     )
 
 val abwesenheitenFJugend =

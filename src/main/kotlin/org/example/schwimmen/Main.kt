@@ -10,21 +10,35 @@ import org.example.schwimmen.eingabe.geschlechtFJugend
 import org.example.schwimmen.eingabe.parseStilZeiten
 import org.example.schwimmen.model.Konfiguration
 import org.example.schwimmen.search.Hyperparameters
+import org.example.schwimmen.search.ga.crossover.OnePointAnywhereCrossover
+import org.example.schwimmen.search.ga.runGeneticAlgorithm
+import org.example.schwimmen.search.ga.selection.TournamentSelection
 import org.example.schwimmen.search.mutateRandom
 import org.example.schwimmen.search.mutateVerySmart
-import org.example.schwimmen.search.runCrappySimulatedAnnealing
 import java.io.File
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
-val HYPERPARAMETERS =
+val CSA_HYPERPARAMETERS =
     Hyperparameters(
         smartMutationRate = 0.85,
         smartMutation = ::mutateVerySmart,
         dumbMutation = ::mutateRandom,
+        timeout = 30.seconds,
+        maxGenerations = 1_000_000,
+        128,
+    )
+val GA_HYPERPARAMETERS =
+    org.example.schwimmen.search.ga.Hyperparameters(
+        numElites = 1,
+        selection = TournamentSelection(3, withReplacement = true)::selectParents,
+        crossoverProbability = 0.6,
+        crossover = OnePointAnywhereCrossover()::crossover,
+        mutationProbability = 0.01,
+        mutate = { mutateRandom(it).first },
         timeout = 10.seconds,
         maxGenerations = 1_000_000,
-        64,
+        100,
     )
 
 val maxZeitspanneProStaffel = 1.seconds
@@ -87,7 +101,7 @@ fun main() {
         exitProcess(1)
     }
 
-    val (staffelErgebnis, duration, statesChecked) = runCrappySimulatedAnnealing(konfiguration, HYPERPARAMETERS)
+    val (staffelErgebnis, duration, statesChecked) = runGeneticAlgorithm(konfiguration, GA_HYPERPARAMETERS)
 
     printErgebnis(staffelErgebnis, duration, statesChecked)
 }

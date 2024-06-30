@@ -32,16 +32,16 @@ data class Ergebnis(
             }
         }
     val schwimmerInMehrerenTeams: Map<String, Set<String>> =
-        mutableMapOf<String, MutableSet<String>>().apply {
-            teams.forEach { team ->
-                team.staffelBelegungen.forEach { staffelBelegung ->
-                    staffelBelegung.startBelegungen.forEach { schwimmerStil ->
-                        this.computeIfAbsent(schwimmerStil.name) { mutableSetOf() }.add(team.name)
+        mutableMapOf<String, MutableSet<String>>()
+            .apply {
+                teams.forEach { team ->
+                    team.staffelBelegungen.forEach { staffelBelegung ->
+                        staffelBelegung.startBelegungen.forEach { schwimmerStil ->
+                            this.computeIfAbsent(schwimmerStil.name) { mutableSetOf() }.add(team.name)
+                        }
                     }
                 }
-            }
-            this.filterValues { it.size > 1 }
-        }
+            }.let { it.filterValues { it.size > 1 } }
 
     val zeitspanneViolations: Int =
         if (konfiguration.anzahlTeams <= 1) {
