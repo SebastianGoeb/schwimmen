@@ -7,9 +7,8 @@ data class Schwimmer(
     val zeiten: Map<String, Duration>,
 )
 
-data class SchwimmerZeit(
+data class Disziplin(
     val name: String,
-    val zeit: Duration,
 )
 
 data class StilZeit(
@@ -17,7 +16,12 @@ data class StilZeit(
     val zeit: Duration,
 )
 
-data class SchwimmerStil(
-    val name: String,
-    val stil: String,
+data class StartBelegung(
+    val schwimmerId: Int,
+    val disziplinId: Int,
+)
+
+data class SchwimmerIdZeit(
+    val schwimmerId: Int,
+    val zeit: Duration,
 )

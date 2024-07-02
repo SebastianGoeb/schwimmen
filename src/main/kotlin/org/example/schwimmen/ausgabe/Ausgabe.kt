@@ -1,6 +1,8 @@
 package org.example.schwimmen.ausgabe
 
-import org.example.schwimmen.search.Ergebnis
+import org.example.schwimmen.model.Konfiguration
+import org.example.schwimmen.search.StaffelBelegung
+import org.example.schwimmen.search.State
 import org.example.schwimmen.util.formatZeit
 import java.text.DecimalFormat
 import java.time.temporal.ChronoUnit
@@ -13,14 +15,14 @@ import kotlin.time.toKotlinDuration
 private const val LINE = "--------------------------------"
 
 fun printErgebnis(
-    ergebnis: Ergebnis,
+    state: State,
     duration: Duration,
     statesChecked: Int,
 ) {
-    for (team in ergebnis.teams) {
+    for (team in state.teams) {
         println(team.name)
         team.staffelBelegungen.forEach {
-            println(it.toPrettyString())
+            println(staffelBelegungToPrettyString(state.konfiguration, it))
             println()
         }
 
@@ -28,37 +30,37 @@ fun printErgebnis(
         println()
     }
 
-    println(ergebnis.prettyStartsProSchwimmer())
+    println(prettyStartsProSchwimmer(state))
     println(LINE)
 
-    ergebnis.konfiguration.staffeln.forEachIndexed { index, staffel ->
-        val zeiten = ergebnis.teams.map { it.staffelBelegungen[index].gesamtZeit }
+    state.konfiguration.staffeln.forEachIndexed { index, staffel ->
+        val zeiten = state.teams.map { it.staffelBelegungen[index].gesamtZeit }
         println("Staffelzeiten: ${zeiten.joinToString{ formatZeit(it) }} (Spanne: ${zeiten.max() - zeiten.min()}) ${staffel.name}")
     }
     println(LINE)
 
-    ergebnis.teams.forEach { println("${it.name}-Gesamtzeit: ${formatZeit(it.gesamtZeit)}") }
-    println("Insgesamt-Gesamtzeit: ${formatZeit(ergebnis.gesamtZeit)}")
+    state.teams.forEach { println("${it.name}-Gesamtzeit: ${formatZeit(it.gesamtZeit)}") }
+    println("Insgesamt-Gesamtzeit: ${formatZeit(state.gesamtZeit)}")
     println(LINE)
 
     println(
-        "Max Starts pro Schwimmer <= ${ergebnis.konfiguration.maxStartsProSchwimmer}: ${if (ergebnis.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",
+        "Max Starts pro Schwimmer <= ${state.konfiguration.maxStartsProSchwimmer}: ${if (state.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",
     )
-    println("Schwimmer nicht in mehreren Teams: ${if (ergebnis.schwimmerInMehrerenTeamsViolations == 0) "✅" else "❌"}")
-    if (ergebnis.schwimmerInMehrerenTeamsViolations > 0) {
+    println("Schwimmer nicht in mehreren Teams: ${if (state.schwimmerInMehrerenTeamsViolations == 0) "✅" else "❌"}")
+    if (state.schwimmerInMehrerenTeamsViolations > 0) {
         (
-            println("Schwimmer in mehreren Teams: ${ergebnis.schwimmerInMehrerenTeams}")
+            println("Schwimmer in mehreren Teams: ${state.schwimmerInMehrerenTeams}")
         )
     }
-    if (ergebnis.konfiguration.alleMuessenSchwimmen) {
-        println("Alle müssen schwimmen: ${if (ergebnis.alleMuessenSchwimmenViolations == 0) "✅" else "❌"}")
+    if (state.konfiguration.alleMuessenSchwimmen) {
+        println("Alle müssen schwimmen: ${if (state.alleMuessenSchwimmenViolations == 0) "✅" else "❌"}")
     }
-    if (ergebnis.konfiguration.anzahlTeams > 1) {
+    if (state.konfiguration.anzahlTeams > 1) {
         println(
-            "Zeitspanne pro Staffel < ${ergebnis.konfiguration.maxZeitspanneProStaffel}: ${if (ergebnis.zeitspanneViolations == 0) "✅" else "❌"}",
+            "Zeitspanne pro Staffel < ${state.konfiguration.maxZeitspanneProStaffel}: ${if (state.zeitspanneViolations == 0) "✅" else "❌"}",
         )
     }
-    println("Erfüllt alle Bedingungen: ${if (ergebnis.valide) "✅" else "❌"}")
+    println("Erfüllt alle Bedingungen: ${if (state.valide) "✅" else "❌"}")
 
     val statesFormatted = DecimalFormat("#,###").format(statesChecked)
     val durationTruncated = duration.toJavaDuration().truncatedTo(ChronoUnit.SECONDS).toKotlinDuration()
@@ -66,4 +68,39 @@ fun printErgebnis(
     println(
         "Geprüfte Konstellationen: $statesFormatted in $durationTruncated ($statesPerSecondFormatted/s)",
     )
+}
+
+fun prettyStartsProSchwimmer(state: State): String {
+    val joinToString =
+        state.startsProSchwimmer
+            .mapIndexed { schwimmerId, starts -> Pair(state.konfiguration.schwimmerList[schwimmerId].name, starts) }
+            .sortedBy { it.first }
+            .joinToString("\n") { "${it.first}\t${it.second}" }
+    return """
+Anzahl Starts:
+$joinToString
+        """.trimIndent()
+}
+
+fun staffelBelegungToPrettyString(
+    konfiguration: Konfiguration,
+    staffelBelegung: StaffelBelegung,
+): String {
+    val schwimmerZeilen =
+        staffelBelegung.startBelegungen
+            .joinToString("\n") { startBelegung ->
+                val zeit =
+                    konfiguration.getZeit(
+                        disziplinId = startBelegung.disziplinId,
+                        schimmerId = startBelegung.schwimmerId,
+                    )
+                val disziplin = konfiguration.disziplinen[startBelegung.disziplinId]
+                val schwimmer = konfiguration.schwimmerList[startBelegung.schwimmerId]
+                "${disziplin}\t${schwimmer.name}\t${formatZeit(zeit)}"
+            }
+    return """
+Staffel: ${staffelBelegung.staffel.name}
+$schwimmerZeilen
+Gesamtzeit		${formatZeit(staffelBelegung.gesamtZeit)}
+        """.trimIndent()
 }

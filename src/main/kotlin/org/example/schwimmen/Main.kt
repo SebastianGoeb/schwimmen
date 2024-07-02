@@ -7,14 +7,17 @@ import org.example.schwimmen.eingabe.abwesenheitenEJugendOhneOskar
 import org.example.schwimmen.eingabe.abwesenheitenFJugend
 import org.example.schwimmen.eingabe.geschlechtEJugend
 import org.example.schwimmen.eingabe.geschlechtFJugend
+import org.example.schwimmen.eingabe.maxStartsProSchwimmer
+import org.example.schwimmen.eingabe.minStartsProSchwimmer
 import org.example.schwimmen.eingabe.parseStilZeiten
 import org.example.schwimmen.model.Konfiguration
-import org.example.schwimmen.search.Hyperparameters
 import org.example.schwimmen.search.ga.crossover.OnePointAnywhereCrossover
-import org.example.schwimmen.search.ga.runGeneticAlgorithm
 import org.example.schwimmen.search.ga.selection.TournamentSelection
-import org.example.schwimmen.search.mutateRandom
-import org.example.schwimmen.search.mutateVerySmart
+import org.example.schwimmen.search.sa.Hyperparameters
+import org.example.schwimmen.search.sa.mutateHeuristically
+import org.example.schwimmen.search.sa.mutateRandom
+import org.example.schwimmen.search.sa.mutateVerySmart
+import org.example.schwimmen.search.sa.runCrappySimulatedAnnealing
 import java.io.File
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
@@ -23,10 +26,12 @@ val CSA_HYPERPARAMETERS =
     Hyperparameters(
         smartMutationRate = 0.85,
         smartMutation = ::mutateVerySmart,
-        dumbMutation = ::mutateRandom,
-        timeout = 30.seconds,
+        dumbMutation = ::mutateHeuristically,
+        acceptanceProbability = 0.1,
+        globalGenerationLimit = 100,
+        restartGenerationLimit = 50,
         maxGenerations = 1_000_000,
-        128,
+        100,
     )
 val GA_HYPERPARAMETERS =
     org.example.schwimmen.search.ga.Hyperparameters(
@@ -51,14 +56,17 @@ private fun loadFJugend(): Konfiguration =
         maxSchwimmerProTeam = 12,
         minMaleProTeam = 2,
         minFemaleProTeam = 2,
-        maxStartsProSchwimmer = 5,
+        minStartsProSchwimmer = minStartsProSchwimmer,
+        minStartsProSchwimmerDefault = 0,
+        maxStartsProSchwimmer = maxStartsProSchwimmer,
+        maxStartsProSchwimmerDefault = 5,
         anzahlTeams = 1,
         maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = STAFFELN,
         schwimmerList =
             parseStilZeiten(File("src/main/resources/f_jugend/zeiten.tsv").readText())
                 .filter { !abwesenheitenFJugend.contains(it.name) },
-        geschlechtFJugend.filterKeys { !abwesenheitenFJugend.contains(it) },
+        geschlecht = geschlechtFJugend.filterKeys { !abwesenheitenFJugend.contains(it) },
     )
 
 private fun loadEJugendOhneOskar(): Konfiguration =
@@ -68,14 +76,17 @@ private fun loadEJugendOhneOskar(): Konfiguration =
         maxSchwimmerProTeam = 12,
         minMaleProTeam = 2,
         minFemaleProTeam = 2,
-        maxStartsProSchwimmer = 5,
+        minStartsProSchwimmer = minStartsProSchwimmer,
+        minStartsProSchwimmerDefault = 0,
+        maxStartsProSchwimmer = maxStartsProSchwimmer,
+        maxStartsProSchwimmerDefault = 5,
         anzahlTeams = 2,
         maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = STAFFELN,
         schwimmerList =
             parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
                 .filter { !abwesenheitenEJugendOhneOskar.contains(it.name) },
-        geschlechtEJugend.filterKeys { !abwesenheitenEJugendOhneOskar.contains(it) },
+        geschlecht = geschlechtEJugend.filterKeys { !abwesenheitenEJugendOhneOskar.contains(it) },
     )
 
 private fun loadEJugendMitOskar(): Konfiguration =
@@ -85,14 +96,17 @@ private fun loadEJugendMitOskar(): Konfiguration =
         maxSchwimmerProTeam = 12,
         minMaleProTeam = 2,
         minFemaleProTeam = 2,
-        maxStartsProSchwimmer = 5,
+        minStartsProSchwimmer = minStartsProSchwimmer,
+        minStartsProSchwimmerDefault = 0,
+        maxStartsProSchwimmer = maxStartsProSchwimmer,
+        maxStartsProSchwimmerDefault = 5,
         anzahlTeams = 2,
         maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = STAFFELN,
         schwimmerList =
             parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
                 .filter { !abwesenheitenEJugendMitOskar.contains(it.name) },
-        geschlechtEJugend.filterKeys { !abwesenheitenEJugendMitOskar.contains(it) },
+        geschlecht = geschlechtEJugend.filterKeys { !abwesenheitenEJugendMitOskar.contains(it) },
     )
 
 fun main() {
@@ -101,7 +115,7 @@ fun main() {
         exitProcess(1)
     }
 
-    val (staffelErgebnis, duration, statesChecked) = runGeneticAlgorithm(konfiguration, GA_HYPERPARAMETERS)
+    val (staffelErgebnis, duration, statesChecked) = runCrappySimulatedAnnealing(konfiguration, CSA_HYPERPARAMETERS)
 
     printErgebnis(staffelErgebnis, duration, statesChecked)
 }

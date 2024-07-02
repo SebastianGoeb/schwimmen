@@ -1,13 +1,10 @@
 package org.example.schwimmen.search.ga
 
 import org.example.schwimmen.model.Konfiguration
-import org.example.schwimmen.model.SchwimmerStil
-import org.example.schwimmen.model.Staffel
-import org.example.schwimmen.search.Ergebnis
-import org.example.schwimmen.search.ExperimentResult
-import org.example.schwimmen.search.StaffelBelegung
-import org.example.schwimmen.search.Team
+import org.example.schwimmen.search.State
+import org.example.schwimmen.search.common.initialRandomAssignment
 import org.example.schwimmen.search.ga.pairing.RandomPairing
+import org.example.schwimmen.search.sa.ExperimentResult
 import org.example.schwimmen.util.formatZeit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
@@ -16,11 +13,11 @@ import kotlin.time.TimeSource.Monotonic.markNow
 
 data class Hyperparameters(
     val numElites: Int,
-    val selection: (List<Ergebnis>) -> List<Ergebnis>,
+    val selection: (List<State>) -> List<State>,
     val crossoverProbability: Double,
-    val crossover: (Ergebnis, Ergebnis) -> Ergebnis,
+    val crossover: (State, State) -> State,
     val mutationProbability: Double,
-    val mutate: (Ergebnis) -> Ergebnis,
+    val mutate: (State) -> State,
     val timeout: Duration,
     val maxGenerations: Int,
     val populationSize: Int,
@@ -30,15 +27,15 @@ fun runGeneticAlgorithm(
     konfiguration: Konfiguration,
     hyperparameters: Hyperparameters,
     printProgress: Boolean = true,
-): Triple<Ergebnis, Duration, Int> {
+): Triple<State, Duration, Int> {
     val start = markNow()
     if (printProgress) {
         println("Score progress")
     }
 
-    var population: MutableList<Ergebnis> =
+    var population: MutableList<State> =
         MutableList(hyperparameters.populationSize) {
-            Ergebnis(initialRandomAssignment(konfiguration), konfiguration)
+            State(initialRandomAssignment(konfiguration), konfiguration)
         }
     val statesChecked = AtomicInteger(0)
     var bestErgebnis = population.minBy { it.score }
@@ -91,7 +88,7 @@ fun runGeneticAlgorithm(
 private fun reproduce(
     hyperparameters: Hyperparameters,
     pairing: RandomPairing,
-): Ergebnis =
+): State =
     if (Random.nextDouble() < hyperparameters.crossoverProbability) {
         val (parentA, parentB) = pairing.selectPair()
         hyperparameters.crossover(parentA, parentB)
@@ -101,48 +98,12 @@ private fun reproduce(
 
 private fun mutate(
     hyperparameters: Hyperparameters,
-    individual: Ergebnis,
-): Ergebnis =
+    individual: State,
+): State =
     if (Random.nextDouble() < hyperparameters.mutationProbability) {
         hyperparameters.mutate(individual)
     } else {
         individual
-    }
-
-private fun initialOptimalAssignment(
-    staffeln: List<Staffel>,
-    konfiguration: Konfiguration,
-): List<StaffelBelegung> {
-    val staffelZuweisungen =
-        staffeln.map { staffel ->
-            val zuweisungen: List<SchwimmerStil> =
-                staffel.stileAnzahl.flatMap { (stil, anzahl) ->
-                    val schwimmerZeiten =
-                        konfiguration.stilToSchwimmerZeiten[stil] ?: error("Keine Zeiten für Stil $stil gefunden")
-                    schwimmerZeiten.take(anzahl).map { SchwimmerStil(it.name, stil) }
-                }
-            StaffelBelegung(staffel, konfiguration, zuweisungen)
-        }
-    return staffelZuweisungen
-}
-
-private fun initialRandomAssignment(konfiguration: Konfiguration): List<Team> =
-    (1..konfiguration.anzahlTeams).map { i ->
-        Team(
-            "Team $i",
-            konfiguration.staffeln.map { staffel ->
-                StaffelBelegung(
-                    staffel,
-                    konfiguration,
-                    staffel.stileAnzahl.flatMap { (stil, anzahl) ->
-                        val schwimmerZeiten =
-                            konfiguration.stilToSchwimmerZeiten[stil] ?: error("Keine Zeiten für Stil $stil gefunden")
-                        schwimmerZeiten.shuffled().take(anzahl).map { SchwimmerStil(it.name, stil) }
-                    },
-                )
-            },
-            konfiguration,
-        )
     }
 
 // private fun optimizeHyperparameters(konfiguration: Konfiguration) {

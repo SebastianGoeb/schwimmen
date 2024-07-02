@@ -1,13 +1,13 @@
 package org.example.schwimmen.search.ga.crossover
 
-import org.example.schwimmen.search.Ergebnis
+import org.example.schwimmen.search.State
 import kotlin.random.Random
 
 class OnePointStaffelCrossover {
     fun crossover(
-        parentA: Ergebnis,
-        parentB: Ergebnis,
-    ): Ergebnis {
+        parentA: State,
+        parentB: State,
+    ): State {
         val teamIndex = parentA.teams.indices.random()
         val staffelIndex =
             parentA.teams[teamIndex]
@@ -21,11 +21,11 @@ class OnePointStaffelCrossover {
     }
 
     private fun combine(
-        parentA: Ergebnis,
-        parentB: Ergebnis,
+        parentA: State,
+        parentB: State,
         teamCrossoverIndex: Int,
         staffelCrossoverIndex: Int,
-    ): Ergebnis =
+    ): State =
         parentA.copy(
             teams =
                 parentA.teams

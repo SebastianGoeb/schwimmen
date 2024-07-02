@@ -1,7 +1,6 @@
 package org.example.schwimmen.eingabe
 
 import org.example.schwimmen.model.Schwimmer
-import org.example.schwimmen.model.SchwimmerZeit
 import org.example.schwimmen.util.parseZeit
 import kotlin.time.Duration
 
@@ -77,4 +76,9 @@ private fun groupBySchwimmer(stilZeitenList: List<StilZeiten>): List<Schwimmer> 
 private data class StilZeiten(
     val stil: String,
     val zeiten: MutableList<SchwimmerZeit>,
+)
+
+data class SchwimmerZeit(
+    val name: String,
+    val zeit: Duration,
 )
