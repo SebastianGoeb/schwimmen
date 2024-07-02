@@ -9,14 +9,13 @@ import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-private val maxStartsProSchwimmerProStaffel = 1
 private val strafMinutenProRegelverstoss = 5.minutes
 
 data class State(
     val teams: List<Team>,
     val konfiguration: Konfiguration,
 ) {
-    val gesamtZeit = teams.map { it.gesamtZeit }.reduce(Duration::plus)
+    val gesamtZeit: Duration by lazy { teams.map { it.gesamtZeit }.reduce(Duration::plus) }
 
     val startsProSchwimmer: IntArray = calculateStartsProSchwimmer()
 
@@ -45,26 +44,37 @@ data class State(
             }.run { this.filterValues { it.size > 1 } }
     }
 
-    val zeitspanneViolations: Int =
+    val zeitspannePenalty: Duration =
         if (konfiguration.anzahlTeams <= 1) {
-            0
+            Duration.ZERO
         } else {
-            konfiguration.staffeln.indices
-                .asSequence()
-                .map { i -> teams.maxOf { it.staffelBelegungen[i].gesamtZeit } - teams.minOf { it.staffelBelegungen[i].gesamtZeit } }
-                .filter { it > konfiguration.maxZeitspanneProStaffel }
-                .count()
+            var penalty = Duration.ZERO
+            for (i in konfiguration.staffeln.indices) {
+                val spanne = teams.maxOf { it.staffelBelegungen[i].gesamtZeit } - teams.minOf { it.staffelBelegungen[i].gesamtZeit }
+                if (spanne > konfiguration.maxZeitspanneProStaffel) {
+                    penalty += spanne + strafMinutenProRegelverstoss
+                }
+            }
+            penalty
         }
     val maxStartsProSchwimmerViolations: Int =
-        startsProSchwimmer
-            .asSequence()
-            .mapIndexed { schwimmerId, starts -> max(starts - konfiguration.maxStartsProSchwimmerLookup[schwimmerId], 0) }
-            .sum()
+        run {
+            var violations = 0
+            for (schwimmerId in startsProSchwimmer.indices) {
+                val starts = startsProSchwimmer[schwimmerId]
+                violations += max(starts - konfiguration.maxStartsProSchwimmerLookup[schwimmerId], 0)
+            }
+            violations
+        }
     val minStartsProSchwimmerViolations: Int =
-        startsProSchwimmer
-            .asSequence()
-            .mapIndexed { schwimmerId, starts -> max(konfiguration.minStartsProSchwimmerLookup[schwimmerId] - starts, 0) }
-            .sum()
+        run {
+            var violations = 0
+            for (schwimmerId in startsProSchwimmer.indices) {
+                val starts = startsProSchwimmer[schwimmerId]
+                violations += max(konfiguration.minStartsProSchwimmerLookup[schwimmerId] - starts, 0)
+            }
+            violations
+        }
 
     val alleMuessenSchwimmenViolations: Int =
         if (konfiguration.alleMuessenSchwimmen) konfiguration.schwimmerList.size - startsProSchwimmer.count { it > 0 } else 0
@@ -78,7 +88,7 @@ data class State(
             minStartsProSchwimmerViolations == 0 &&
             alleMuessenSchwimmenViolations == 0 &&
             schwimmerInMehrerenTeamsViolations == 0 &&
-            zeitspanneViolations == 0
+            zeitspannePenalty == Duration.ZERO
 
     val score: Duration =
         teams.map { it.score }.reduce(Duration::plus) +
@@ -86,9 +96,8 @@ data class State(
             strafMinutenProRegelverstoss * minStartsProSchwimmerViolations +
             strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
             strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
-            strafMinutenProRegelverstoss * zeitspanneViolations
+            zeitspannePenalty
 
-    // ugly but optimized
     private fun calculateSchwimmerInMehrerenTeamsViolations(): Int {
         val hasMultipleTeams = BooleanArray(konfiguration.schwimmerList.size)
         val primaryTeamNumber = IntArray(konfiguration.schwimmerList.size) { -1 }
@@ -116,7 +125,7 @@ data class Team(
     val staffelBelegungen: List<StaffelBelegung>,
     val konfiguration: Konfiguration,
 ) {
-    val gesamtZeit = staffelBelegungen.map { it.gesamtZeit }.reduce(Duration::plus)
+    val gesamtZeit: Duration by lazy { staffelBelegungen.map { it.gesamtZeit }.reduce(Duration::plus) }
     private val anzahlSchwimmer = countSchwimmer()
 
     private val minSchwimmerViolations = max(konfiguration.minSchwimmerProTeam - anzahlSchwimmer, 0)
@@ -173,15 +182,18 @@ data class StaffelBelegung(
 ) {
     val gesamtZeit: Duration =
         startBelegungen
+            .asSequence()
             .map { (schimmerId, disziplinId) -> konfiguration.getZeit(disziplinId, schimmerId) }
             .let { if (staffel.team) it.max() else it.reduce(Duration::plus) }
 
-    private val doppelbelegungenViolations =
-        startBelegungen
-            .groupBy { it.schwimmerId }
-            .asSequence()
-            .map { max(it.value.size - maxStartsProSchwimmerProStaffel, 0) }
-            .sum()
+    private val maxOneStartProSchwimmerViolations =
+        run {
+            val starts = IntArray(konfiguration.schwimmerList.size)
+            for (startBelegung in startBelegungen) {
+                starts[startBelegung.schwimmerId]++
+            }
+            starts.sumOf { max(it - 1, 0) }
+        }
 
     private val minOneMaleViolations: Int =
         if (startBelegungen.count { konfiguration.getGeschlecht(it.schwimmerId) == MALE } >= 1) 0 else 1
@@ -190,7 +202,7 @@ data class StaffelBelegung(
 
     val score: Duration =
         gesamtZeit +
-            strafMinutenProRegelverstoss * doppelbelegungenViolations +
+            strafMinutenProRegelverstoss * maxOneStartProSchwimmerViolations +
             strafMinutenProRegelverstoss * minOneMaleViolations +
             strafMinutenProRegelverstoss * minOneFemaleViolations
 }

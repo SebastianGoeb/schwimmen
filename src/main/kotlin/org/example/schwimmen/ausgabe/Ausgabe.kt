@@ -57,7 +57,7 @@ fun printErgebnis(
     }
     if (state.konfiguration.anzahlTeams > 1) {
         println(
-            "Zeitspanne pro Staffel < ${state.konfiguration.maxZeitspanneProStaffel}: ${if (state.zeitspanneViolations == 0) "✅" else "❌"}",
+            "Zeitspanne pro Staffel < ${state.konfiguration.maxZeitspanneProStaffel}: ${if (state.zeitspannePenalty == Duration.ZERO) "✅" else "❌"}",
         )
     }
     println("Erfüllt alle Bedingungen: ${if (state.valide) "✅" else "❌"}")

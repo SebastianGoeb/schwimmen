@@ -169,8 +169,8 @@ fun mutateRandom(state: State): Pair<State, Int> {
 }
 
 fun mutateSmart(state: State): Pair<State, Int> {
-    // TODO keep only best
-    val result = mutableListOf<State>()
+    var best: State? = null
+    var tried = 0
 
     for (teamIndex in state.teams.indices) {
         val team = state.teams[teamIndex]
@@ -180,26 +180,27 @@ fun mutateSmart(state: State): Pair<State, Int> {
 
             for (startIndex in staffelBelegung.startBelegungen.indices) {
                 val startBelegung = staffelBelegung.startBelegungen[startIndex]
-
-                val schwimmerZeiten = state.konfiguration.getZeiten(disziplinId = startBelegung.disziplinId)
-
                 val neueSchwimmerId =
-                    schwimmerZeiten
+                    state.konfiguration
+                        .getZeiten(disziplinId = startBelegung.disziplinId)
                         .filter { it.schwimmerId != startBelegung.schwimmerId }
                         .random()
                         .schwimmerId
-
-                result.add(replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId))
+                val candidate = replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId)
+                if (best == null || candidate.score < best.score) {
+                    best = candidate
+                }
+                tried++
             }
         }
     }
 
-    return Pair(result.minBy { it.score }, result.size)
+    return Pair(best!!, tried)
 }
 
 fun mutateVerySmart(state: State): Pair<State, Int> {
-    // TODO keep only best
-    val result = mutableListOf<State>()
+    var best: State? = null
+    var tried = 0
 
     for (teamIndex in state.teams.indices) {
         val team = state.teams[teamIndex]
@@ -210,18 +211,20 @@ fun mutateVerySmart(state: State): Pair<State, Int> {
             for (startIndex in staffelBelegung.startBelegungen.indices) {
                 val startBelegung = staffelBelegung.startBelegungen[startIndex]
 
-                for (schwimmerId in state.konfiguration
-                    .getZeiten(disziplinId = startBelegung.disziplinId)
-                    .asSequence()
-                    .map { it.schwimmerId }
-                    .filter { it != startBelegung.schwimmerId }) {
-                    result.add(replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, schwimmerId))
+                for (schwimmerIdZeit in state.konfiguration.getZeiten(disziplinId = startBelegung.disziplinId)) {
+                    if (schwimmerIdZeit.schwimmerId != startBelegung.schwimmerId) {
+                        val candidate = replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, schwimmerIdZeit.schwimmerId)
+                        if (best == null || candidate.score < best.score) {
+                            best = candidate
+                        }
+                        tried++
+                    }
                 }
             }
         }
     }
 
-    return Pair(result.minBy { it.score }, result.size)
+    return Pair(best!!, tried)
 }
 
 private fun replaceSchwimmer(
