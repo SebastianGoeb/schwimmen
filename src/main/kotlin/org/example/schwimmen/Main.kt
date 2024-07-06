@@ -1,16 +1,15 @@
 package org.example.schwimmen
 
 import org.example.schwimmen.ausgabe.printErgebnis
-import org.example.schwimmen.eingabe.STAFFELN
-import org.example.schwimmen.eingabe.abwesenheitenEJugendMitOskar
-import org.example.schwimmen.eingabe.abwesenheitenEJugendOhneOskar
-import org.example.schwimmen.eingabe.abwesenheitenFJugend
-import org.example.schwimmen.eingabe.geschlechtEJugend
-import org.example.schwimmen.eingabe.geschlechtFJugend
-import org.example.schwimmen.eingabe.maxStartsProSchwimmer
-import org.example.schwimmen.eingabe.minStartsProSchwimmer
+import org.example.schwimmen.eingabe.Geschlecht
+import org.example.schwimmen.eingabe.parseAbwesenheiten
+import org.example.schwimmen.eingabe.parseGeschlechter
+import org.example.schwimmen.eingabe.parseMinMax
+import org.example.schwimmen.eingabe.parseStaffeln
 import org.example.schwimmen.eingabe.parseStilZeiten
 import org.example.schwimmen.model.Konfiguration
+import org.example.schwimmen.model.Schwimmer
+import org.example.schwimmen.search.State
 import org.example.schwimmen.search.ga.crossover.OnePointAnywhereCrossover
 import org.example.schwimmen.search.ga.selection.TournamentSelection
 import org.example.schwimmen.search.sa.Hyperparameters
@@ -19,8 +18,13 @@ import org.example.schwimmen.search.sa.mutateRandom
 import org.example.schwimmen.search.sa.mutateVerySmart
 import org.example.schwimmen.search.sa.runCrappySimulatedAnnealing
 import java.io.File
+import java.util.Locale.UK
+import kotlin.math.roundToInt
 import kotlin.system.exitProcess
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit.MINUTES
+import kotlin.time.DurationUnit.SECONDS
 
 val CSA_HYPERPARAMETERS =
     Hyperparameters(
@@ -31,7 +35,7 @@ val CSA_HYPERPARAMETERS =
         globalGenerationLimit = 100,
         restartGenerationLimit = 50,
         maxGenerations = 1_000_000,
-        100,
+        20,
     )
 val GA_HYPERPARAMETERS =
     org.example.schwimmen.search.ga.Hyperparameters(
@@ -47,75 +51,114 @@ val GA_HYPERPARAMETERS =
     )
 
 val maxZeitspanneProStaffel = 1.seconds
-val maxZeitspanneProTeam = 3.seconds
 
-private fun loadFJugend(): Konfiguration =
-    Konfiguration(
+private fun loadFJugend(): Konfiguration {
+    val abwesenheiten = parseAbwesenheiten(File("src/main/resources/abwesenheiten_f.tsv").readText())
+    return Konfiguration(
         alleMuessenSchwimmen = true,
         minSchwimmerProTeam = 7,
         maxSchwimmerProTeam = 12,
         minMaleProTeam = 2,
         minFemaleProTeam = 2,
-        minStartsProSchwimmer = minStartsProSchwimmer,
-        minStartsProSchwimmerDefault = 0,
-        maxStartsProSchwimmer = maxStartsProSchwimmer,
-        maxStartsProSchwimmerDefault = 5,
+        minMax = parseMinMax(File("src/main/resources/min_max.tsv").readText()),
+        minDefault = 0,
+        maxDefault = 5,
         anzahlTeams = 1,
         maxZeitspanneProStaffel = maxZeitspanneProStaffel,
-        staffeln = STAFFELN,
-        schwimmerList =
-            parseStilZeiten(File("src/main/resources/f_jugend/zeiten.tsv").readText())
-                .filter { !abwesenheitenFJugend.contains(it.name) },
-        geschlecht = geschlechtFJugend.filterKeys { !abwesenheitenFJugend.contains(it) },
+        staffeln = staffeln(),
+        schwimmerList = zeiten("src/main/resources/f_jugend/zeiten.tsv").filter { !abwesenheiten.contains(it.name) },
+        geschlecht = geschlecht("src/main/resources/geschlecht_f.tsv").filterKeys { !abwesenheiten.contains(it) },
     )
+}
 
-private fun loadEJugendOhneOskar(): Konfiguration =
-    Konfiguration(
+private fun loadEJugend(): Konfiguration {
+    val abwesenheiten = parseAbwesenheiten(File("src/main/resources/abwesenheiten_e.tsv").readText())
+    return Konfiguration(
         alleMuessenSchwimmen = true,
         minSchwimmerProTeam = 7,
         maxSchwimmerProTeam = 12,
         minMaleProTeam = 2,
         minFemaleProTeam = 2,
-        minStartsProSchwimmer = minStartsProSchwimmer,
-        minStartsProSchwimmerDefault = 0,
-        maxStartsProSchwimmer = maxStartsProSchwimmer,
-        maxStartsProSchwimmerDefault = 5,
+        minMax = parseMinMax(File("src/main/resources/min_max.tsv").readText()),
+        minDefault = 0,
+        maxDefault = 5,
         anzahlTeams = 2,
         maxZeitspanneProStaffel = maxZeitspanneProStaffel,
-        staffeln = STAFFELN,
-        schwimmerList =
-            parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
-                .filter { !abwesenheitenEJugendOhneOskar.contains(it.name) },
-        geschlecht = geschlechtEJugend.filterKeys { !abwesenheitenEJugendOhneOskar.contains(it) },
+        staffeln = staffeln(),
+        schwimmerList = zeiten("src/main/resources/e_jugend/zeiten.tsv").filter { !abwesenheiten.contains(it.name) },
+        geschlecht = geschlecht("src/main/resources/geschlecht_e.tsv").filterKeys { !abwesenheiten.contains(it) },
     )
+}
 
-private fun loadEJugendMitOskar(): Konfiguration =
-    Konfiguration(
-        alleMuessenSchwimmen = true,
-        minSchwimmerProTeam = 7,
-        maxSchwimmerProTeam = 12,
-        minMaleProTeam = 2,
-        minFemaleProTeam = 2,
-        minStartsProSchwimmer = minStartsProSchwimmer,
-        minStartsProSchwimmerDefault = 0,
-        maxStartsProSchwimmer = maxStartsProSchwimmer,
-        maxStartsProSchwimmerDefault = 5,
-        anzahlTeams = 2,
-        maxZeitspanneProStaffel = maxZeitspanneProStaffel,
-        staffeln = STAFFELN,
-        schwimmerList =
-            parseStilZeiten(File("src/main/resources/e_jugend/zeiten.tsv").readText())
-                .filter { !abwesenheitenEJugendMitOskar.contains(it.name) },
-        geschlecht = geschlechtEJugend.filterKeys { !abwesenheitenEJugendMitOskar.contains(it) },
-    )
+private fun zeiten(file: String): List<Schwimmer> = parseStilZeiten(File(file).readText())
+
+private fun staffeln() = parseStaffeln(File("src/main/resources/staffeln.tsv").readText())
+
+private fun geschlecht(file: String): Map<String, Geschlecht> = parseGeschlechter(File(file).readText())
 
 fun main() {
-    val konfiguration = loadEJugendMitOskar()
+    val konfiguration = loadEJugend()
     if (!konfiguration.valid()) {
         exitProcess(1)
     }
 
-    val (staffelErgebnis, duration, statesChecked) = runCrappySimulatedAnnealing(konfiguration, CSA_HYPERPARAMETERS)
+//    runExperiment(konfiguration)
+    runOnce(konfiguration)
+}
 
+private fun runOnce(konfiguration: Konfiguration) {
+    val (staffelErgebnis, duration, statesChecked) = runCrappySimulatedAnnealing(konfiguration, CSA_HYPERPARAMETERS)
     printErgebnis(staffelErgebnis, duration, statesChecked)
+}
+
+private fun runExperiment(konfiguration: Konfiguration) {
+    println(
+        listOf(
+            "popsize",
+            "restarts",
+            "avgScore",
+            "bestScore",
+            "avgTime",
+            "bestTime",
+            "avgStatesPerSecond",
+        ).joinToString("\t"),
+    )
+
+    for (popsize in listOf(30, 40, 50, 60, 70, 80)) {
+        for (i in (1..5)) {
+            val restarts = i * 20 - 10
+
+            val results: List<Triple<State, Duration, Int>> =
+                (1..7).map {
+                    runCrappySimulatedAnnealing(
+                        konfiguration,
+                        CSA_HYPERPARAMETERS.copy(
+                            populationSize = popsize,
+                            restartGenerationLimit = restarts,
+                        ),
+                        printProgress = false,
+                    )
+                }
+            val scores = results.map { it.first.score.toDouble(MINUTES) }
+            val avgScore = scores.average()
+            val bestScore = scores.min()
+
+            val avgTime = results.map { it.second.toDouble(SECONDS) }.average()
+            val bestTime = results.map { it.second.toDouble(SECONDS) }.min()
+
+            val avgStatesPerSecond = results.map { (it.third / it.second.toDouble(SECONDS)).roundToInt() }.average()
+
+            println(
+                listOf(
+                    popsize,
+                    restarts,
+                    "%.1f".format(UK, avgScore),
+                    "%.1f".format(UK, bestScore),
+                    "%.1f".format(UK, avgTime),
+                    "%.1f".format(UK, bestTime),
+                    "%.0f".format(UK, avgStatesPerSecond),
+                ).joinToString("\t"),
+            )
+        }
+    }
 }

@@ -25,7 +25,7 @@ private fun generateStaffelbelegung(
 ) = StaffelBelegung(
     staffel = staffel,
     konfiguration = konfiguration,
-    startBelegungen = staffel.startDisziplinPaare.map { disziplinName -> generateStartBelegung(konfiguration, disziplinName) },
+    startBelegungen = staffel.disziplinen.map { disziplinName -> generateStartBelegung(konfiguration, disziplinName) },
 )
 
 private fun generateStartBelegung(

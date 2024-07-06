@@ -44,7 +44,7 @@ fun printErgebnis(
     println(LINE)
 
     println(
-        "Max Starts pro Schwimmer <= ${state.konfiguration.maxStartsProSchwimmer}: ${if (state.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",
+        "Max Starts pro Schwimmer <= max: ${if (state.maxStartsProSchwimmerViolations == 0) "✅" else "❌"}",
     )
     println("Schwimmer nicht in mehreren Teams: ${if (state.schwimmerInMehrerenTeamsViolations == 0) "✅" else "❌"}")
     if (state.schwimmerInMehrerenTeamsViolations > 0) {

@@ -2,80 +2,37 @@ package org.example.schwimmen.eingabe
 
 import org.example.schwimmen.model.Staffel
 
-val STAFFELN =
-    listOf(
+fun parseStaffeln(data: String): List<Staffel> = parseStaffeln(data.lines().map { it.split("\t") })
+
+fun parseStaffeln(rows: List<List<String>>): List<Staffel> {
+    val result = mutableListOf<Staffel>()
+    var staffelBuilder: StaffelBuilder? = null
+    for (row in rows) {
+        if (isHeader(row)) {
+            staffelBuilder?.let { result.add(it.build()) }
+            staffelBuilder = StaffelBuilder(row[1], mutableListOf())
+        } else if (row[0].isNotBlank()) {
+            (staffelBuilder ?: error("Konfigurationsformat falsch. Header 'Staffel' nicht gefunden.")).startsDisziplinen.add(
+                Pair(row[0].toInt(), row[1]),
+            )
+        }
+    }
+
+    staffelBuilder?.let { result.add(it.build()) }
+
+    return result
+}
+
+private fun isHeader(row: List<String>): Boolean = row[0].trim() == "Staffel"
+
+data class StaffelBuilder(
+    val name: String,
+    val startsDisziplinen: MutableList<Pair<Int, String>>,
+) {
+    fun build(): Staffel =
         Staffel(
-            "4x 25m Kraul",
-            listOf(
-                "25m Kraul",
-                "25m Kraul",
-                "25m Kraul",
-                "25m Kraul",
-            ),
-            false,
-        ),
-        Staffel(
-            "4x 25m BrAr/KrBei",
-            listOf(
-                "25m BrAr/KrBei",
-                "25m BrAr/KrBei",
-                "25m BrAr/KrBei",
-                "25m BrAr/KrBei",
-            ),
-            false,
-        ),
-        Staffel(
-            "4x 25m Brust",
-            listOf(
-                "25m Brust",
-                "25m Brust",
-                "25m Brust",
-                "25m Brust",
-            ),
-            false,
-        ),
-        Staffel(
-            "6x 25m Lagen Beine",
-            listOf(
-                "25m Rücken Beine",
-                "25m Rücken Beine",
-                "25m Brust Beine",
-                "25m Brust Beine",
-                "25m Kraul Beine",
-                "25m Kraul Beine",
-            ),
-            false,
-        ),
-        Staffel(
-            "4x 25m Rücken",
-            listOf(
-                "25m Rücken",
-                "25m Rücken",
-                "25m Rücken",
-                "25m Rücken",
-            ),
-            false,
-        ),
-        Staffel(
-            "4x 200m Team",
-            listOf(
-                "200m Team",
-                "200m Team",
-                "200m Team",
-                "200m Team",
-            ),
-            true,
-        ),
-        Staffel(
-            "6x 25m Lagen",
-            listOf(
-                "25m Rücken",
-                "25m Rücken",
-                "25m Brust",
-                "25m Brust",
-                "25m Kraul",
-                "25m Kraul",
-            ),
-            false,
-        ),
-    )
+            name,
+            startsDisziplinen.flatMap { (starts, disziplin) -> List(starts) { disziplin } },
+            team = name.contains("team", ignoreCase = true),
+        )
+}

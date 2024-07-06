@@ -1,6 +1,7 @@
 package org.example.schwimmen.model
 
 import org.example.schwimmen.eingabe.Geschlecht
+import org.example.schwimmen.eingabe.MinMax
 import kotlin.time.Duration
 
 data class Konfiguration(
@@ -9,17 +10,16 @@ data class Konfiguration(
     val maxSchwimmerProTeam: Int,
     val minMaleProTeam: Int,
     val minFemaleProTeam: Int,
-    val minStartsProSchwimmer: Map<String, Int>,
-    val minStartsProSchwimmerDefault: Int,
-    val maxStartsProSchwimmer: Map<String, Int>,
-    val maxStartsProSchwimmerDefault: Int,
+    val minMax: Map<String, MinMax>,
+    val minDefault: Int,
+    val maxDefault: Int,
     val anzahlTeams: Int,
     val maxZeitspanneProStaffel: Duration,
     val staffeln: List<Staffel>,
     val schwimmerList: List<Schwimmer>,
     val geschlecht: Map<String, Geschlecht>,
 ) {
-    val disziplinen: List<String> = staffeln.flatMap { it.startDisziplinPaare }.distinct()
+    val disziplinen: List<String> = staffeln.flatMap { it.disziplinen }.distinct()
 
     // ==== fast id/offset-based lookups ====
     private val disziplinToSchwimmerToZeit: List<List<Duration?>> =
@@ -35,10 +35,8 @@ data class Konfiguration(
 
     private val schwimmerToGeschlecht: List<Geschlecht> =
         schwimmerList.map { geschlecht[it.name] ?: error("Geschlecht für Schwimmer ${it.name} wurde nicht gefunden") }
-    val minStartsProSchwimmerLookup: List<Int> =
-        schwimmerList.map { minStartsProSchwimmer[it.name] ?: minStartsProSchwimmerDefault }
-    val maxStartsProSchwimmerLookup: List<Int> =
-        schwimmerList.map { maxStartsProSchwimmer[it.name] ?: maxStartsProSchwimmerDefault }
+    val minStartsProSchwimmerLookup: List<Int> = schwimmerList.map { minMax[it.name]?.min ?: minDefault }
+    val maxStartsProSchwimmerLookup: List<Int> = schwimmerList.map { minMax[it.name]?.max ?: maxDefault }
 
     fun getZeit(
         disziplinId: Int,

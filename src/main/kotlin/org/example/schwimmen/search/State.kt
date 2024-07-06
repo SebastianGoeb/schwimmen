@@ -77,7 +77,7 @@ data class State(
         }
 
     val alleMuessenSchwimmenViolations: Int =
-        if (konfiguration.alleMuessenSchwimmen) konfiguration.schwimmerList.size - startsProSchwimmer.count { it > 0 } else 0
+        if (konfiguration.alleMuessenSchwimmen) startsProSchwimmer.count { it == 0 } else 0
 
     val schwimmerInMehrerenTeamsViolations: Int =
         calculateSchwimmerInMehrerenTeamsViolations()
@@ -99,6 +99,7 @@ data class State(
             zeitspannePenalty
 
     private fun calculateSchwimmerInMehrerenTeamsViolations(): Int {
+        // TODO could track how many teams they are in
         val hasMultipleTeams = BooleanArray(konfiguration.schwimmerList.size)
         val primaryTeamNumber = IntArray(konfiguration.schwimmerList.size) { -1 }
         teams.forEachIndexed { index, team ->
@@ -117,6 +118,18 @@ data class State(
         }
         return hasMultipleTeams.count { it }
     }
+
+    fun compress(): List<Int> {
+        val result = mutableListOf<Int>()
+        for (team in teams) {
+            for (staffelBelegung in team.staffelBelegungen) {
+                for (startBelegung in staffelBelegung.startBelegungen) {
+                    result.add(startBelegung.schwimmerId)
+                }
+            }
+        }
+        return result
+    }
 }
 
 data class Team(
@@ -131,8 +144,8 @@ data class Team(
     private val minSchwimmerViolations = max(konfiguration.minSchwimmerProTeam - anzahlSchwimmer, 0)
     private val maxSchwimmerViolations = max(anzahlSchwimmer - konfiguration.maxSchwimmerProTeam, 0)
     private val geschlechter = countGeschlechter()
-    private val minMaleViolations: Int = if (geschlechter.first >= konfiguration.minMaleProTeam) 0 else 1
-    private val minFemaleViolations: Int = if (geschlechter.second >= konfiguration.minFemaleProTeam) 0 else 1
+    private val minMaleViolations: Int = max(konfiguration.minMaleProTeam - geschlechter.first, 0)
+    private val minFemaleViolations: Int = max(konfiguration.minFemaleProTeam - geschlechter.second, 0)
 
     val valide =
         minSchwimmerViolations == 0 &&
@@ -196,9 +209,9 @@ data class StaffelBelegung(
         }
 
     private val minOneMaleViolations: Int =
-        if (startBelegungen.count { konfiguration.getGeschlecht(it.schwimmerId) == MALE } >= 1) 0 else 1
+        max(1 - startBelegungen.count { konfiguration.getGeschlecht(it.schwimmerId) == MALE }, 0)
     private val minOneFemaleViolations: Int =
-        if (startBelegungen.count { konfiguration.getGeschlecht(it.schwimmerId) == FEMALE } >= 1) 0 else 1
+        max(1 - startBelegungen.count { konfiguration.getGeschlecht(it.schwimmerId) == FEMALE }, 0)
 
     val score: Duration =
         gesamtZeit +
