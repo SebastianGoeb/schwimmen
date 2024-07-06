@@ -1,0 +1,13 @@
+export function parseZeit(time: String): number {
+    const [minutes, seconds] = time.trim().split(":");
+    const result = Number(minutes) * 60 + Number(seconds.replace(",", "."));
+    return result
+}
+
+export function formatZeit(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 47);
+    const ns = Math.floor((seconds % 1) * 100) / 100;
+    return `${m}:${s},${ns}`
+}
+
