@@ -22,6 +22,7 @@ export interface Konfiguration {
   staffeln: StaffelX[];
   schwimmerList: Schwimmer[];
   geschlecht: Geschlecht[];
+  disziplinToSchwimmerZeiten: { schwimmerId: number; zeit: number }[][];
   disziplinToSchwimmerToZeit: (number | undefined)[][];
 }
 
@@ -106,6 +107,27 @@ function buildDisziplinToSchwimmerToZeit(
   );
 }
 
+function buildDisziplinToSchwimmerZeiten(
+  disziplinen: string[],
+  konfigurationBuilder: KonfigurationBuilder,
+): { schwimmerId: number; zeit: number }[][] {
+  return disziplinen.map((disziplin) =>
+    konfigurationBuilder.schwimmerList
+      .map((schwimmer, schwimmerId) => ({
+        schwimmerId: schwimmerId,
+        zeit: schwimmer.zeitenSeconds.get(disziplin),
+      }))
+      .filter(hasZeit),
+  );
+}
+
+function hasZeit(argument: {
+  schwimmerId: number;
+  zeit: number | undefined;
+}): argument is { schwimmerId: number; zeit: number } {
+  return argument.zeit !== undefined;
+}
+
 function buildStaffelX(staffel: Staffel, disziplinNameToId: Map<string, number>) {
   return {
     name: staffel.name,
@@ -123,6 +145,7 @@ export function buildKonfiguration(konfigurationBuilder: KonfigurationBuilder): 
   const geschlecht = buildGeschlecht(konfigurationBuilder);
   const disziplinToSchwimmerToZeit = buildDisziplinToSchwimmerToZeit(disziplinen, konfigurationBuilder);
   const staffeln = konfigurationBuilder.staffeln.map((staffel) => buildStaffelX(staffel, disziplinNameToId));
+  const disziplinToSchwimmerZeiten = buildDisziplinToSchwimmerZeiten(disziplinen, konfigurationBuilder);
 
   return {
     alleMuessenSchwimmen: konfigurationBuilder.alleMuessenSchwimmen,
@@ -138,6 +161,7 @@ export function buildKonfiguration(konfigurationBuilder: KonfigurationBuilder): 
     schwimmerList: konfigurationBuilder.schwimmerList,
     geschlecht,
     disziplinToSchwimmerToZeit,
+    disziplinToSchwimmerZeiten,
   };
 }
 
