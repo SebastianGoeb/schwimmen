@@ -7,11 +7,16 @@ import org.example.schwimmen.search.common.initialRandomAssignment
 import org.example.schwimmen.util.formatZeit
 import org.example.schwimmen.util.replace
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.DurationUnit.MILLISECONDS
 import kotlin.time.DurationUnit.MINUTES
 import kotlin.time.TimeSource.Monotonic.markNow
+
+val knownStatesCompressed = HashSet<List<Int>>()
+var hits = AtomicLong(0)
+var accesses = AtomicLong(0)
 
 data class Hyperparameters(
     val smartMutationRate: Double,
@@ -65,15 +70,11 @@ fun runCrappySimulatedAnnealing(
                     }
                     return@mapIndexed new
                 }.zip(states)
-                .mapIndexed { index, (new, old) ->
-                    if (new.score > old.score) {
-                        if (Random.nextDouble() < hyperparameters.acceptanceProbability) {
-                            return@mapIndexed old
-                        } else {
-                            return@mapIndexed new
-                        }
+                .map { (new, old) ->
+                    if (new.score > old.score && Random.nextDouble() < hyperparameters.acceptanceProbability) {
+                        return@map old
                     } else {
-                        return@mapIndexed new
+                        return@map new
                     }
                 }
         states = newStates
@@ -86,6 +87,9 @@ fun runCrappySimulatedAnnealing(
             timeOfBestErgebnis = markNow()
             if (printProgress) {
                 println("${formatZeit(bestErgebnis.score)} ${if (bestErgebnis.valide) "✓" else "✗"} (gen $gen)")
+//                println(
+//                    "cache hit rate: ${(hits.get().toDouble() / accesses.get() * 100)}% ($hits/$accesses), current size=${knownStatesCompressed.size}",
+//                )
             }
         }
 
@@ -95,6 +99,9 @@ fun runCrappySimulatedAnnealing(
     }
     if (printProgress) {
         println()
+//        println(
+//            "cache hit rate: ${(hits.get().toDouble() / accesses.get() * 100)}% ($hits/$accesses), current size=${knownStatesCompressed.size}",
+//        )
     }
 
     return Triple(bestErgebnis, timeOfBestErgebnis - start, statesChecked.get())
@@ -144,7 +151,9 @@ fun mutateHeuristically(state: State): Pair<State, Int> {
             .random()
             .schwimmerId
 
-    return Pair(replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId), 1)
+    val candidate = replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId)
+    updateHitRate(candidate)
+    return Pair(candidate, 1)
 }
 
 fun mutateRandom(state: State): Pair<State, Int> {
@@ -165,7 +174,9 @@ fun mutateRandom(state: State): Pair<State, Int> {
             .random()
             .schwimmerId
 
-    return Pair(replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId), 1)
+    val candidate = replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId)
+    updateHitRate(candidate)
+    return Pair(candidate, 1)
 }
 
 fun mutateSmart(state: State): Pair<State, Int> {
@@ -191,6 +202,7 @@ fun mutateSmart(state: State): Pair<State, Int> {
                     best = candidate
                 }
                 tried++
+                updateHitRate(candidate)
             }
         }
     }
@@ -218,6 +230,7 @@ fun mutateVerySmart(state: State): Pair<State, Int> {
                             best = candidate
                         }
                         tried++
+                        updateHitRate(candidate)
                     }
                 }
             }
@@ -225,6 +238,18 @@ fun mutateVerySmart(state: State): Pair<State, Int> {
     }
 
     return Pair(best!!, tried)
+}
+
+private fun updateHitRate(state: State) {
+//    val compressed = state.compress()
+//    synchronized(knownStatesCompressed) {
+//        if (knownStatesCompressed.contains(compressed)) {
+//            hits.incrementAndGet()
+//        } else {
+//            knownStatesCompressed.add(compressed)
+//        }
+//        accesses.incrementAndGet()
+//    }
 }
 
 private fun replaceSchwimmer(
