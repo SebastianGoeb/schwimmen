@@ -3,18 +3,22 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/ts/index.ts",
+    "dev": "tsc && node src/ts/index.js",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.6.0",
     "@types/eslint__js": "^8.42.3",
+    "@types/lodash-es": "^4.17.12",
     "eslint": "^8.57.0",
     "prettier": "^3.3.2",
     "typescript": "^5.5.3",

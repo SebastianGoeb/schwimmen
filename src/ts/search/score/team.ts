@@ -58,7 +58,7 @@ export function teamScore(team: Team, konfiguration: Konfiguration): number {
 
   const anzahlSchwimmer = countSchwimmer(team, konfiguration);
   const minSchwimmerViolations = Math.max(konfiguration.minSchwimmerProTeam - anzahlSchwimmer, 0);
-  const maxSchwimmerViolations = Math.max(anzahlSchwimmer - konfiguration.minSchwimmerProTeam, 0);
+  const maxSchwimmerViolations = Math.max(anzahlSchwimmer - konfiguration.maxSchwimmerProTeam, 0);
   const { males, females } = countGeschlechter(team, konfiguration);
   const minMaleViolations = Math.max(konfiguration.minMaleProTeam - males, 0);
   const minFemaleViolations = Math.max(konfiguration.minFemaleProTeam - females, 0);

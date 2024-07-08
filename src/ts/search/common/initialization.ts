@@ -1,8 +1,9 @@
 import { StaffelBelegung, State, Team } from "../state/state";
 import { Konfiguration, StaffelX } from "../../eingabe/konfiguration";
+import times from "lodash/times";
 
 export function initialRandomAssignment(konfiguration: Konfiguration): State {
-  return { teams: Array(konfiguration.anzahlTeams).filter(() => generateTeam(konfiguration)) };
+  return { teams: times(konfiguration.anzahlTeams, () => generateTeam(konfiguration)) };
 }
 
 function generateTeam(konfiguration: Konfiguration): Team {
@@ -22,6 +23,6 @@ function generateStaffelBelegung(staffel: StaffelX, staffelId: number, konfigura
 
 function generateStartBelegung(disziplinId: number, konfiguration: Konfiguration): number {
   const schwimmerIdsZuDenenEsZeitenGibt = konfiguration.disziplinToSchwimmerZeiten[disziplinId];
-  const index = Math.random() * schwimmerIdsZuDenenEsZeitenGibt.length;
+  const index = Math.floor(Math.random() * schwimmerIdsZuDenenEsZeitenGibt.length);
   return schwimmerIdsZuDenenEsZeitenGibt[index].schwimmerId;
 }

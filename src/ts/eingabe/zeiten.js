@@ -68,3 +68,4 @@ function groupBySchwimmer(stilZeitenList) {
 function isBlank(s) {
     return s.trim().length == 0;
 }
+//# sourceMappingURL=zeiten.js.map

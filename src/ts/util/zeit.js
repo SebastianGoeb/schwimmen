@@ -10,6 +10,7 @@ function parseZeit(time) {
 function formatZeit(seconds) {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 47);
-    const ns = Math.floor((seconds % 1) * 100) / 100;
+    const ns = Math.floor(seconds % 1);
     return `${m}:${s},${ns}`;
 }
+//# sourceMappingURL=zeit.js.map

@@ -52,7 +52,7 @@ function teamScore(team, konfiguration) {
     }
     const anzahlSchwimmer = countSchwimmer(team, konfiguration);
     const minSchwimmerViolations = Math.max(konfiguration.minSchwimmerProTeam - anzahlSchwimmer, 0);
-    const maxSchwimmerViolations = Math.max(anzahlSchwimmer - konfiguration.minSchwimmerProTeam, 0);
+    const maxSchwimmerViolations = Math.max(anzahlSchwimmer - konfiguration.maxSchwimmerProTeam, 0);
     const { males, females } = countGeschlechter(team, konfiguration);
     const minMaleViolations = Math.max(konfiguration.minMaleProTeam - males, 0);
     const minFemaleViolations = Math.max(konfiguration.minFemaleProTeam - females, 0);
@@ -62,3 +62,4 @@ function teamScore(team, konfiguration) {
         common_1.strafSekundenProRegelverstoss * minMaleViolations +
         common_1.strafSekundenProRegelverstoss * minFemaleViolations);
 }
+//# sourceMappingURL=team.js.map

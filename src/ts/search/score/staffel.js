@@ -35,7 +35,7 @@ function minOneMaleViolations(staffelBelegung, konfiguration) {
             sum++;
         }
     }
-    return Math.max(1 - sum);
+    return Math.max(1 - sum, 0);
 }
 function minOneFemaleViolations(staffelBelegung, konfiguration) {
     let sum = 0;
@@ -44,7 +44,7 @@ function minOneFemaleViolations(staffelBelegung, konfiguration) {
             sum++;
         }
     }
-    return Math.max(1 - sum);
+    return Math.max(1 - sum, 0);
 }
 function staffelScore(staffelBelegung, konfiguration) {
     return (staffelGesamtzeit(staffelBelegung, konfiguration) +
@@ -52,3 +52,4 @@ function staffelScore(staffelBelegung, konfiguration) {
         common_1.strafSekundenProRegelverstoss * minOneMaleViolations(staffelBelegung, konfiguration) +
         common_1.strafSekundenProRegelverstoss * minOneFemaleViolations(staffelBelegung, konfiguration));
 }
+//# sourceMappingURL=staffel.js.map

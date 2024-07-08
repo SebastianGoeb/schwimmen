@@ -39,7 +39,7 @@ function minOneMaleViolations(staffelBelegung: StaffelBelegung, konfiguration: K
       sum++;
     }
   }
-  return Math.max(1 - sum);
+  return Math.max(1 - sum, 0);
 }
 
 function minOneFemaleViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
@@ -49,7 +49,7 @@ function minOneFemaleViolations(staffelBelegung: StaffelBelegung, konfiguration:
       sum++;
     }
   }
-  return Math.max(1 - sum);
+  return Math.max(1 - sum, 0);
 }
 
 export function staffelScore(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {

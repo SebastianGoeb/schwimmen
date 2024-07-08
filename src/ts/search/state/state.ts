@@ -1,3 +1,8 @@
+export interface StateAndScore {
+  state: State;
+  score: number;
+}
+
 export interface State {
   teams: Team[];
 }

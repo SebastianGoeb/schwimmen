@@ -8,3 +8,4 @@ function parseAbwesenheiten(data) {
 function parseAbwesenheitenFromGrid(rows) {
     return rows.map((row) => row[0]).filter((it) => it != undefined && it.length != 0);
 }
+//# sourceMappingURL=abwesenheiten.js.map

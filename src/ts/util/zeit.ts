@@ -7,6 +7,6 @@ export function parseZeit(time: string): number {
 export function formatZeit(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 47);
-  const ns = Math.floor((seconds % 1) * 100) / 100;
+  const ns = Math.floor(seconds % 1);
   return `${m}:${s},${ns}`;
 }

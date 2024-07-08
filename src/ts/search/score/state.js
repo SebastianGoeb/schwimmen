@@ -58,7 +58,7 @@ function calculateSchwimmerInMehrerenTeamsViolations(state, konfiguration) {
                     if (primaryTeamNumber[schwimmerId] == -1) {
                         primaryTeamNumber[schwimmerId] = teamId;
                     }
-                    else {
+                    else if (primaryTeamNumber[schwimmerId] != teamId) {
                         hasMultipleTeams[schwimmerId] = 1;
                     }
                 }
@@ -80,7 +80,7 @@ function calculateZeitspannePenaltySeconds(state, konfiguration) {
     let penalty = 0;
     for (let staffelId = 0; staffelId < konfiguration.staffeln.length; staffelId++) {
         let max = 0;
-        let min = 0;
+        let min = 9999999;
         for (const team of state.teams) {
             // TODO gesamtZeit not memoized due to lack of lazy {}
             const zeit = (0, staffel_1.staffelGesamtzeit)(team.staffelBelegungen[staffelId], konfiguration);
@@ -104,10 +104,13 @@ function stateScore(state, konfiguration) {
     const maxStartsProSchwimmerViolations = calculateMaxStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
     const alleMuessenSchwimmenViolations = calculateAlleMuessenSchwimmenViolations(startsProSchwimmer, konfiguration);
     const schwimmerInMehrerenTeamsViolations = calculateSchwimmerInMehrerenTeamsViolations(state, konfiguration);
-    return (teamsScore +
+    const zeitspannePenaltySeconds = calculateZeitspannePenaltySeconds(state, konfiguration);
+    const number = teamsScore +
         common_1.strafSekundenProRegelverstoss * minStartsProSchwimmerViolations +
         common_1.strafSekundenProRegelverstoss * maxStartsProSchwimmerViolations +
         common_1.strafSekundenProRegelverstoss * alleMuessenSchwimmenViolations +
         common_1.strafSekundenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
-        calculateZeitspannePenaltySeconds(state, konfiguration));
+        zeitspannePenaltySeconds;
+    return number;
 }
+//# sourceMappingURL=state.js.map

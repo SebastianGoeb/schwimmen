@@ -18,3 +18,4 @@ function parseMinMaxFromGrid(rows) {
         .filter((row) => row.length >= 2)
         .map((row) => [row[0], { min: maybeNumber(row[1]), max: maybeNumber(row[2]) }]));
 }
+//# sourceMappingURL=minmax.js.map

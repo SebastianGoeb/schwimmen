@@ -9,13 +9,13 @@ exports.getZeit = getZeit;
 //   }
 //   return result;
 // }
-// function buildDisziplinNameToId(disziplinen: string[]): Map<string, number> {
-//   const result = new Map<string, number>();
-//   for (let schimmerId = 0; schimmerId < disziplinen.length; schimmerId++) {
-//     result.set(disziplinen[schimmerId], schimmerId);
-//   }
-//   return result;
-// }
+function buildDisziplinNameToId(disziplinen) {
+    const result = new Map();
+    for (let schimmerId = 0; schimmerId < disziplinen.length; schimmerId++) {
+        result.set(disziplinen[schimmerId], schimmerId);
+    }
+    return result;
+}
 function buildDisziplinen(staffeln) {
     const result = new Set();
     for (const staffel of staffeln) {
@@ -55,14 +55,34 @@ function buildGeschlecht(konfigurationBuilder) {
 function buildDisziplinToSchwimmerToZeit(disziplinen, konfigurationBuilder) {
     return disziplinen.map((disziplin) => konfigurationBuilder.schwimmerList.map((schwimmer) => schwimmer.zeitenSeconds.get(disziplin)));
 }
+function buildDisziplinToSchwimmerZeiten(disziplinen, konfigurationBuilder) {
+    return disziplinen.map((disziplin) => konfigurationBuilder.schwimmerList
+        .map((schwimmer, schwimmerId) => ({
+        schwimmerId: schwimmerId,
+        zeit: schwimmer.zeitenSeconds.get(disziplin),
+    }))
+        .filter(hasZeit));
+}
+function hasZeit(argument) {
+    return argument.zeit !== undefined;
+}
+function buildStaffelX(staffel, disziplinNameToId) {
+    return {
+        name: staffel.name,
+        disziplinIds: staffel.disziplinen.map((disziplin) => disziplinNameToId.get(disziplin)),
+        team: staffel.team,
+    };
+}
 function buildKonfiguration(konfigurationBuilder) {
     const disziplinen = buildDisziplinen(konfigurationBuilder.staffeln);
-    // const disziplinNameToId = buildDisziplinNameToId(disziplinen);
+    const disziplinNameToId = buildDisziplinNameToId(disziplinen);
     // const schwimmerNameToId = buildSchwimmerNameToId(konfigurationBuilder.schwimmerList);
     const minStartsProSchwimmer = buildMinStartsProSchwimmer(konfigurationBuilder);
     const maxStartsProSchwimmer = buildMaxStartsProSchwimmer(konfigurationBuilder);
     const geschlecht = buildGeschlecht(konfigurationBuilder);
     const disziplinToSchwimmerToZeit = buildDisziplinToSchwimmerToZeit(disziplinen, konfigurationBuilder);
+    const staffeln = konfigurationBuilder.staffeln.map((staffel) => buildStaffelX(staffel, disziplinNameToId));
+    const disziplinToSchwimmerZeiten = buildDisziplinToSchwimmerZeiten(disziplinen, konfigurationBuilder);
     return {
         alleMuessenSchwimmen: konfigurationBuilder.alleMuessenSchwimmen,
         minSchwimmerProTeam: konfigurationBuilder.minSchwimmerProTeam,
@@ -73,10 +93,11 @@ function buildKonfiguration(konfigurationBuilder) {
         maxStartsProSchwimmer,
         anzahlTeams: konfigurationBuilder.anzahlTeams,
         maxZeitspanneProStaffelSeconds: konfigurationBuilder.maxZeitspanneProStaffelSeconds,
-        staffeln: konfigurationBuilder.staffeln,
+        staffeln,
         schwimmerList: konfigurationBuilder.schwimmerList,
         geschlecht,
         disziplinToSchwimmerToZeit,
+        disziplinToSchwimmerZeiten,
     };
 }
 function getZeit(konfiguration, disziplinId, schwimmerId) {
@@ -86,3 +107,4 @@ function getZeit(konfiguration, disziplinId, schwimmerId) {
     }
     return zeit;
 }
+//# sourceMappingURL=konfiguration.js.map

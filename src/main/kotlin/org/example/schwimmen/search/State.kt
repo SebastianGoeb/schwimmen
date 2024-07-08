@@ -91,12 +91,15 @@ data class State(
             zeitspannePenalty == Duration.ZERO
 
     val score: Duration =
-        teams.map { it.score }.reduce(Duration::plus) +
-            strafMinutenProRegelverstoss * maxStartsProSchwimmerViolations +
-            strafMinutenProRegelverstoss * minStartsProSchwimmerViolations +
-            strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
-            strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
-            zeitspannePenalty
+        run {
+            val teamsScore = teams.map { it.score }.reduce(Duration::plus)
+            teamsScore +
+                strafMinutenProRegelverstoss * maxStartsProSchwimmerViolations +
+                strafMinutenProRegelverstoss * minStartsProSchwimmerViolations +
+                strafMinutenProRegelverstoss * alleMuessenSchwimmenViolations +
+                strafMinutenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
+                zeitspannePenalty
+        }
 
     private fun calculateSchwimmerInMehrerenTeamsViolations(): Int {
         // TODO could track how many teams they are in
@@ -153,11 +156,14 @@ data class Team(
             minMaleViolations == 0 &&
             minFemaleViolations == 0
     val score =
-        staffelBelegungen.map { it.score }.reduce(Duration::plus) +
-            strafMinutenProRegelverstoss * minSchwimmerViolations +
-            strafMinutenProRegelverstoss * maxSchwimmerViolations +
-            strafMinutenProRegelverstoss * minMaleViolations +
-            strafMinutenProRegelverstoss * minFemaleViolations
+        run {
+            val staffelnScore = staffelBelegungen.map { it.score }.reduce(Duration::plus)
+            staffelnScore +
+                strafMinutenProRegelverstoss * minSchwimmerViolations +
+                strafMinutenProRegelverstoss * maxSchwimmerViolations +
+                strafMinutenProRegelverstoss * minMaleViolations +
+                strafMinutenProRegelverstoss * minFemaleViolations
+        }
 
     private fun countSchwimmer(): Int {
         val present = BooleanArray(konfiguration.schwimmerList.size)

@@ -37,3 +37,4 @@ function buildStaffel(staffelBuilder) {
         team: staffelBuilder.name.toLowerCase().includes("team"),
     };
 }
+//# sourceMappingURL=staffeln.js.map
