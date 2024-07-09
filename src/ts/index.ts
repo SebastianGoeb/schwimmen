@@ -46,5 +46,9 @@ const hyperparameters: Hyperparameters = {
   populationSize: 50,
 };
 
-const { state, duration, checked } = runCrappySimulatedAnnealing(konfiguration, hyperparameters);
-console.log(state, duration, checked);
+async function run() {
+  const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
+  console.log(state, duration, checked, `${Math.floor(checked / duration).toLocaleString()}/s`);
+  process.exit(0);
+}
+run();

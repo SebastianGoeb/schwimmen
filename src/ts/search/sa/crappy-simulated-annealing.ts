@@ -5,6 +5,7 @@ import minBy from "lodash/minBy";
 import times from "lodash/times";
 import { stateScore } from "../score/state";
 import { formatZeit } from "../../util/zeit";
+import { Pool, pool, worker } from "workerpool";
 
 export interface Hyperparameters {
   smartMutationRate: number;
@@ -17,12 +18,16 @@ export interface Hyperparameters {
   populationSize: number;
 }
 
-export function runCrappySimulatedAnnealing(
+export async function runCrappySimulatedAnnealing(
   konfiguration: Konfiguration,
   hyperparameters: Hyperparameters,
   printProgress: boolean = true,
-): { state: StateAndScore; duration: number; checked: number } {
+): Promise<{ state: StateAndScore; duration: number; checked: number }> {
   const start = new Date();
+
+  const script = __dirname + "/worker.js";
+  console.log(script);
+  const workerPool = pool(script);
 
   let states: StateAndScore[] = times(hyperparameters.populationSize, () =>
     andScore(initialRandomAssignment(konfiguration), konfiguration),
@@ -40,7 +45,7 @@ export function runCrappySimulatedAnnealing(
   }
 
   for (let gen = 0; gen < hyperparameters.maxGenerations; gen++) {
-    const { states: newStates, checked } = generateNewStates(states, konfiguration, hyperparameters);
+    const { states: newStates, checked } = await generateNewStates(states, konfiguration, hyperparameters, workerPool);
     statesChecked += checked;
 
     for (let i = 0; i < newStates.length; i++) {
@@ -86,25 +91,35 @@ export function runCrappySimulatedAnnealing(
   const end = new Date();
   return {
     state: bestState,
-    duration: end.getTime() - start.getTime(),
+    duration: (end.getTime() - start.getTime()) / 1000,
     checked: statesChecked,
   };
 }
 
-function generateNewStates(
+async function generateNewStates(
   states: StateAndScore[],
   konfiguration: Konfiguration,
   hyperparameters: Hyperparameters,
-): { states: StateAndScore[]; checked: number } {
+  workerpool: Pool,
+): Promise<{ states: StateAndScore[]; checked: number }> {
   const newStates: StateAndScore[] = [];
   let totalChecked = 0;
+
+  const promises: Promise<{ state: StateAndScore; checked: number }>[] = [];
+
   for (const oldState of states) {
-    const { state, checked } =
+    // noinspection ES6MissingAwait
+    const promise: Promise<{ state: StateAndScore; checked: number }> =
       Math.random() < hyperparameters.smartMutationRate
-        ? hyperparameters.smartMutation(oldState.state, konfiguration)
-        : hyperparameters.dumbMutation(oldState.state, konfiguration);
-    newStates.push(state);
-    totalChecked += checked;
+        ? workerpool.exec("mutateVerySmart", [oldState.state, konfiguration])
+        : (workerpool.exec("mutateRandom", [oldState.state, konfiguration]) as any);
+    promises.push(promise);
+  }
+
+  const results = await Promise.all(promises);
+  for (let result of results) {
+    newStates.push(result.state);
+    totalChecked += result.checked;
   }
 
   return { states: newStates, checked: totalChecked };

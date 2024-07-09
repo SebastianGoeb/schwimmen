@@ -57,7 +57,7 @@ export function mutateVerySmart(state: State, konfiguration: Konfiguration): { s
   }
   return {
     state: best!,
-    checked: 1,
+    checked,
   };
 }
 
