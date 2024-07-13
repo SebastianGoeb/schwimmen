@@ -20,16 +20,18 @@ for (let name of abwesenheiten) {
 }
 
 const konfiguration: Konfiguration = buildKonfiguration({
-  alleMuessenSchwimmen: true,
-  minSchwimmerProTeam: 7,
-  maxSchwimmerProTeam: 12,
-  minMaleProTeam: 2,
-  minFemaleProTeam: 2,
+  parameters: {
+    alleMuessenSchwimmen: true,
+    minSchwimmerProTeam: 7,
+    maxSchwimmerProTeam: 12,
+    minMaleProTeam: 2,
+    minFemaleProTeam: 2,
+    minStartsProSchwimmer: 0,
+    maxStartsProSchwimmer: 5,
+    maxZeitspanneProStaffelSeconds: 1,
+    anzahlTeams: Number(process.argv[3]),
+  },
   minMax,
-  minDefault: 0,
-  maxDefault: 5,
-  anzahlTeams: Number(process.argv[3]),
-  maxZeitspanneProStaffelSeconds: 1,
   staffeln,
   schwimmerList: zeiten.filter((it) => !abwesenheiten.includes(it.name)),
   geschlecht: geschlechter,

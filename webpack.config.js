@@ -1,10 +1,12 @@
 const path = require("path");
 const WorkerUrlPlugin = require("worker-url/plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: "development",
   entry: {
-    main: "./src/ts/web.ts",
+    web: "./src/ts/web.ts",
     worker: "./src/ts/search/sa/worker.ts",
   },
   output: {
@@ -27,5 +29,11 @@ module.exports = {
   plugins: [
     // add this
     new WorkerUrlPlugin(),
+    new HtmlWebpackPlugin({
+      chunks: ["web"],
+    }),
+    new CopyPlugin({
+      patterns: [{ from: "./src/main/resources/together2.tsv", to: "./assets/together.tsv" }],
+    }),
   ],
 };

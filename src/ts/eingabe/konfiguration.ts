@@ -15,10 +15,10 @@ export interface Konfiguration {
   maxSchwimmerProTeam: number;
   minMaleProTeam: number;
   minFemaleProTeam: number;
-  minStartsProSchwimmer: Int8Array;
-  maxStartsProSchwimmer: Int8Array;
   anzahlTeams: number;
   maxZeitspanneProStaffelSeconds: number;
+  minStartsProSchwimmer: Int8Array;
+  maxStartsProSchwimmer: Int8Array;
   staffeln: StaffelX[];
   schwimmerList: Schwimmer[];
   geschlecht: Geschlecht[];
@@ -26,29 +26,52 @@ export interface Konfiguration {
   disziplinToSchwimmerToZeit: (number | undefined)[][];
 }
 
-export interface KonfigurationBuilder {
+export interface Parameters {
   alleMuessenSchwimmen: boolean;
   minSchwimmerProTeam: number;
   maxSchwimmerProTeam: number;
   minMaleProTeam: number;
   minFemaleProTeam: number;
-  minMax: Map<string, MinMax>;
-  minDefault: number;
-  maxDefault: number;
+  minStartsProSchwimmer: number;
+  maxStartsProSchwimmer: number;
   anzahlTeams: number;
   maxZeitspanneProStaffelSeconds: number;
+}
+
+export interface KonfigurationBuilder {
+  parameters: Parameters;
+  minMax: Map<string, MinMax>;
   staffeln: Staffel[];
   schwimmerList: Schwimmer[];
   geschlecht: Map<string, Geschlecht>;
 }
 
-// function buildSchwimmerNameToId(schwimmerList: Schwimmer[]): Map<string, number> {
-//   const result = new Map<string, number>();
-//   for (let schimmerId = 0; schimmerId < schwimmerList.length; schimmerId++) {
-//     result.set(schwimmerList[schimmerId].name, schimmerId);
-//   }
-//   return result;
-// }
+export function parseParametersFromGrid(data: string[][]): Parameters {
+  // TODO error handling
+  return {
+    alleMuessenSchwimmen: jaNeinToBoolean(findValue("Alle müssen schwimmen", data)!),
+    minSchwimmerProTeam: Number(findValue("Min Schwimmer pro Team", data)),
+    maxSchwimmerProTeam: Number(findValue("Max Schwimmer pro Team", data)),
+    minMaleProTeam: Number(findValue("Min Jungen pro Team", data)),
+    minFemaleProTeam: Number(findValue("Min Mädchen pro Team", data)),
+    minStartsProSchwimmer: Number(findValue("Min Starts pro Schwimmer", data)),
+    maxStartsProSchwimmer: Number(findValue("Max Starts pro Schwimmer", data)),
+    anzahlTeams: Number(findValue("Anzahl Teams", data)),
+    maxZeitspanneProStaffelSeconds: Number(findValue("Max Zeitspanne pro Staffel", data)),
+  };
+}
+
+function findValue(key: string, data: string[][]): string | undefined {
+  const row = data.find((row) => row[0].toLowerCase() === key.toLowerCase());
+  if (row === undefined) {
+    return undefined;
+  }
+  return row[1];
+}
+
+function jaNeinToBoolean(data: string): boolean {
+  return data.trim().toLowerCase() === "ja";
+}
 
 function buildDisziplinNameToId(disziplinen: string[]): Map<string, number> {
   const result = new Map<string, number>();
@@ -73,7 +96,7 @@ function buildMinStartsProSchwimmer(konfigurationBuilder: KonfigurationBuilder):
   for (let schwimmerId = 0; schwimmerId < konfigurationBuilder.schwimmerList.length; schwimmerId++) {
     result[schwimmerId] =
       konfigurationBuilder.minMax.get(konfigurationBuilder.schwimmerList[schwimmerId].name)?.min ??
-      konfigurationBuilder.minDefault;
+      konfigurationBuilder.parameters.minStartsProSchwimmer;
   }
   return result;
 }
@@ -83,7 +106,7 @@ function buildMaxStartsProSchwimmer(konfigurationBuilder: KonfigurationBuilder):
   for (let schwimmerId = 0; schwimmerId < konfigurationBuilder.schwimmerList.length; schwimmerId++) {
     result[schwimmerId] =
       konfigurationBuilder.minMax.get(konfigurationBuilder.schwimmerList[schwimmerId].name)?.max ??
-      konfigurationBuilder.maxDefault;
+      konfigurationBuilder.parameters.maxStartsProSchwimmer;
   }
   return result;
 }
@@ -148,15 +171,15 @@ export function buildKonfiguration(konfigurationBuilder: KonfigurationBuilder): 
   const disziplinToSchwimmerZeiten = buildDisziplinToSchwimmerZeiten(disziplinen, konfigurationBuilder);
 
   return {
-    alleMuessenSchwimmen: konfigurationBuilder.alleMuessenSchwimmen,
-    minSchwimmerProTeam: konfigurationBuilder.minSchwimmerProTeam,
-    maxSchwimmerProTeam: konfigurationBuilder.maxSchwimmerProTeam,
-    minMaleProTeam: konfigurationBuilder.minMaleProTeam,
-    minFemaleProTeam: konfigurationBuilder.minFemaleProTeam,
+    alleMuessenSchwimmen: konfigurationBuilder.parameters.alleMuessenSchwimmen,
+    minSchwimmerProTeam: konfigurationBuilder.parameters.minSchwimmerProTeam,
+    maxSchwimmerProTeam: konfigurationBuilder.parameters.maxSchwimmerProTeam,
+    minMaleProTeam: konfigurationBuilder.parameters.minMaleProTeam,
+    minFemaleProTeam: konfigurationBuilder.parameters.minFemaleProTeam,
     minStartsProSchwimmer,
     maxStartsProSchwimmer,
-    anzahlTeams: konfigurationBuilder.anzahlTeams,
-    maxZeitspanneProStaffelSeconds: konfigurationBuilder.maxZeitspanneProStaffelSeconds,
+    anzahlTeams: konfigurationBuilder.parameters.anzahlTeams,
+    maxZeitspanneProStaffelSeconds: konfigurationBuilder.parameters.maxZeitspanneProStaffelSeconds,
     staffeln,
     schwimmerList: konfigurationBuilder.schwimmerList,
     geschlecht,

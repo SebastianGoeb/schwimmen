@@ -16,12 +16,14 @@ export function parseStaffelnFromGrid(rows: string[][]): Staffel[] {
       if (staffelBuilder) {
         result.push(buildStaffel(staffelBuilder));
       }
-      staffelBuilder = { name: row[1], startsDisziplinen: [] };
-    } else if (row[0].trim().length != 0) {
+      staffelBuilder = { name: row[0], startsDisziplinen: [] };
+    }
+
+    if (row[1].trim().length != 0) {
       if (!staffelBuilder) {
         throw Error("Konfigurationsformat falsch. Header 'Staffel' nicht gefunden.");
       }
-      staffelBuilder.startsDisziplinen.push({ starts: Number(row[0]), disziplin: row[1] });
+      staffelBuilder.startsDisziplinen.push({ starts: Number(row[1]), disziplin: row[2] });
     }
   }
 
@@ -33,7 +35,7 @@ export function parseStaffelnFromGrid(rows: string[][]): Staffel[] {
 }
 
 function isHeader(row: string[]): boolean {
-  return row[0].trim() === "Staffel";
+  return row[0].trim().length > 0;
 }
 
 interface StaffelBuilder {
