@@ -17,11 +17,15 @@ interface SchwimmerZeit {
 
 export function parseStilZeiten(data: string): Schwimmer[] {
   const rows = data.split("\n").map((row) => row.split("\t"));
-  const zeitenByStil = parseStilZeitenFromGrid(rows);
+  return parseStilZeitenFromGrid(rows);
+}
+
+export function parseStilZeitenFromGrid(rows: string[][]): Schwimmer[] {
+  const zeitenByStil = parseStilZeitenRaw(rows);
   return groupBySchwimmer(zeitenByStil);
 }
 
-function parseStilZeitenFromGrid(rows: string[][]): StilZeiten[] {
+export function parseStilZeitenRaw(rows: string[][]): StilZeiten[] {
   const rowGroups: StilZeiten[] = [];
 
   let group: StilZeiten | undefined = undefined;

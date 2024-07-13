@@ -6,6 +6,7 @@ import times from "lodash/times";
 import { stateScore } from "../score/state";
 import { formatZeit } from "../../util/zeit";
 import { Pool, pool, worker } from "workerpool";
+import { WorkerUrl } from "worker-url";
 
 export interface Hyperparameters {
   smartMutationRate: number;
@@ -25,9 +26,10 @@ export async function runCrappySimulatedAnnealing(
 ): Promise<{ state: StateAndScore; duration: number; checked: number }> {
   const start = new Date();
 
-  const script = __dirname + "/worker.js";
-  console.log(script);
-  const workerPool = pool(script);
+  // @ts-ignore
+  const WorkerURL = new WorkerUrl(new URL("../../../../dist/worker.js", import.meta.url));
+  // const script = __dirname + "/worker.js";
+  const workerPool = pool(WorkerURL.toString());
 
   let states: StateAndScore[] = times(hyperparameters.populationSize, () =>
     andScore(initialRandomAssignment(konfiguration), konfiguration),

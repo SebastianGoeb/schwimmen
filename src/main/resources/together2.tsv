@@ -1,0 +1,198 @@
+Zeiten					Abwesenheiten		Geschlechter			Min/Max Starts				Staffeln				Konfiguration
+Disziplin	Name	Jahrgang	Zeit		Name		Name	Geschlecht		Name	Min Starts	Max Starts		Name	Starts	Disziplin		Parameter	Wert	Notiz
+25m Rücken					Nea Louise Benner		Luisa Reimann	w		Alexander Graiche		2						Alle müssen schwimmen	ja	ja/nein
+	Luisa Reimann	2016	00:22,5		Niklas Martin Berberich		Oskar Henri Knaier	m		Bastian Lutz	3			4 x 25 Kraul	4	25m Kraul		Min Schwimmer pro Team	7
+	Oskar Henri Knaier	2016	00:22,5				Jakob Schwabe	m		Bendix Bundt	3							Max Schwimmer pro Team	12
+	Jakob Schwabe	2016	00:24,5				Nico Philipp Kronenberger	m		Jakob Schwabe	2			4 x 25 Brust A Kr Beine	4	25m BrAr/KrBei		Min Jungen pro Team	2
+	Nico Philipp Kronenberger	2016	00:26,0				Will Unger	m		Jana Nagel	3							Min Mädchen pro Team	2
+	Will Unger	2016	00:27,0				Alexander Graiche	m		Lius Wolf		2		4 x 25 Brust	4	25m Brust		Min Starts pro Schwimmer	0	falls nicht individuell konfiguriert
+	Alexander Graiche	2016	00:28,1				Sophie Kliem	w		Luisa Reimann	3							Max Starts pro Schwimmer	5	falls nicht individuell konfiguriert
+	Sophie Kliem	2016	00:28,2				Melina Papapetrou	w		Marwan Mikkawi		4		6 x 25 LG Beine	2	25m Rücken Beine		Anzahl Teams	2
+	Melina Papapetrou	2016	00:27,7				Helena Condic	w		Melina Papapetrou		2			2	25m Brust Beine		Max Zeitspanne pro Staffel	1	in Sekunden
+	Helena Condic	2016	00:30,5				Samuel Grube	m		Moritz Heitmann	3				2	25m Kraul Beine
+	Samuel Grube	2016	00:32,6				Nea Louise Benner	w		Nico Philipp Kronenberger	2
+	Nea Louise Benner	2016	00:33,5				Bendix Bundt	m		Niklas Martin Berberich	3			4 x 25 Rücken	4	25m Rücken
+	Bendix Bundt	2015	00:21,5				Jana Nagel	w		Nina Höhn	2
+	Jana Nagel	2015	00:22,0				Bastian Lutz	m		Oskar Henri Knaier	3			200 Team	4	200m Team
+	Bastian Lutz	2015	00:22,5				Siri Engelbrecht	w		Samuel Grube		2
+	Siri Engelbrecht	2015	00:22,9				Smilla Engelbrecht	w		Siri Engelbrecht	3			6 x 25 LG	2	25m Rücken
+	Smilla Engelbrecht	2015	00:22,9				Niklas Martin Berberich	m		Smilla Engelbrecht	3				2	25m Brust
+	Moritz Heitmann	2015	00:23,4				Nina Höhn	w		Sophie Kliem		2			2	25m Kraul
+	Niklas Martin Berberich	2015	00:23,5				Marwan Mikkawi	m		Thia Markov		2
+	Nina Höhn	2015	00:23,5				Lius Wolf	m		Will Unger	2
+	Marwan Mikkawi	2015	00:24,0				Thia Markov	w
+	Lius Wolf	2015	00:25,0				Dalia Pepeljak	w
+	Thia Markov	2015	00:25,5
+	Dalia Pepeljak	2015	00:26,0
+
+25m Rücken Beine
+	Luisa Reimann	2016	00:30,4
+	Oskar Henri Knaier	2016	00:30,2
+	Jakob Schwabe	2016	00:30,0
+	Nico Philipp Kronenberger	2016	00:30,5
+	Will Unger	2016	00:31,8
+	Alexander Graiche	2016	00:35,7
+	Sophie Kliem	2016	00:36,3
+	Melina Papapetrou	2016	00:36,0
+	Helena Condic	2016	00:35,1
+	Samuel Grube	2016	00:35,2
+	Nea Louise Benner	2016	00:39,3
+	Bendix Bundt	2015	00:25,9
+	Jana Nagel	2015	00:26,3
+	Bastian Lutz	2015	00:29,1
+	Siri Engelbrecht	2015	00:31,1
+	Smilla Engelbrecht	2015	00:27,0
+	Moritz Heitmann	2015	00:30,3
+	Niklas Martin Berberich	2015	00:33,1
+	Nina Höhn	2015	00:33,2
+	Marwan Mikkawi	2015	00:36,4
+	Lius Wolf	2015	00:35,7
+	Thia Markov	2015	00:30,9
+	Dalia Pepeljak	2015	00:28,9
+25m Brust
+	Melina Papapetrou	2016	00:28,4
+	Samuel Grube	2016	00:31,0
+	Nea Louise Benner	2016	00:29,0
+	Jakob Schwabe	2016	00:29,5
+	Alexander Graiche	2016	00:32,5
+	Oskar Henri Knaier	2016	00:24,0
+	Luisa Reimann	2016	00:26,0
+	Will Unger	2016	00:28,0
+	Nico Philipp Kronenberger	2016	00:29,0
+	Sophie Kliem	2016	00:29,5
+	Helena Condic	2016	00:34,0
+	Siri Engelbrecht	2015	00:23,8
+	Bendix Bundt	2015	00:24,8
+	Niklas Martin Berberich	2015	00:25,5
+	Moritz Heitmann	2015	00:25,5
+	Smilla Engelbrecht	2015	00:25,8
+	Marwan Mikkawi	2015	00:26,3
+	Jana Nagel	2015	00:26,5
+	Nina Höhn	2015	00:26,8
+	Lius Wolf	2015	00:27,0
+	Bastian Lutz	2015	00:27,6
+	Dalia Pepeljak	2015	00:28,0
+	Thia Markov	2015	00:29,9
+
+25m Brust Beine
+	Luisa Reimann	2016	00:33,3
+	Oskar Henri Knaier	2016	00:29,4
+	Jakob Schwabe	2016	00:36,2
+	Nico Philipp Kronenberger	2016	00:39,6
+	Will Unger	2016	00:39,2
+	Alexander Graiche	2016	00:32,0
+	Sophie Kliem	2016	00:34,6
+	Melina Papapetrou	2016	00:34,4
+	Helena Condic	2016	00:38,0
+	Samuel Grube	2016	00:39,6
+	Nea Louise Benner	2016	00:34,5
+	Bendix Bundt	2015	00:29,4
+	Jana Nagel	2015	00:32,7
+	Bastian Lutz	2015	00:33,8
+	Siri Engelbrecht	2015	00:32,0
+	Smilla Engelbrecht	2015	00:32,0
+	Moritz Heitmann	2015	00:29,3
+	Niklas Martin Berberich	2015	00:29,5
+	Nina Höhn	2015	00:34,8
+	Marwan Mikkawi	2015	00:31,3
+	Lius Wolf	2015	00:36,1
+	Thia Markov	2015	00:34,3
+	Dalia Pepeljak	2015	00:33,5
+
+25m Kraul
+	Smilla Engelbrecht	2015	00:17,5
+	Bendix Bundt	2015	00:17,0
+	Jana Nagel	2015	00:18,5
+	Moritz Heitmann	2015	00:19,0
+	Marwan Mikkawi	2015	00:19,5
+	Niklas Martin Berberich	2015	00:19,5
+	Siri Engelbrecht	2015	00:20,0
+	Lius Wolf	2015	00:20,0
+	Bastian Lutz	2015	00:19,5
+	Nina Höhn	2015	00:20,5
+	Dalia Pepeljak	2015	00:23,0
+	Thia Markov	2015	00:24,0
+	Luisa Reimann	2016	00:18,5
+	Oskar Henri Knaier	2016	00:18,5
+	Jakob Schwabe	2016	00:20,0
+	Nico Philipp Kronenberger	2016	00:22,5
+	Will Unger	2016	00:23,5
+	Sophie Kliem	2016	00:24,5
+	Samuel Grube	2016	00:26,0
+	Alexander Graiche	2016	00:26,0
+	Melina Papapetrou	2016	00:23,7
+	Helena Condic	2016	00:32,0
+	Nea Louise Benner	2016	00:33,0
+
+25m Kraul Beine	Smilla Engelbrecht	2015	00:25,5
+	Bendix Bundt	2015	00:25,3
+	Jana Nagel	2015	00:25,4
+	Moritz Heitmann	2015	00:26,4
+	Marwan Mikkawi	2015	00:26,8
+	Niklas Martin Berberich	2015	00:26,8
+	Siri Engelbrecht	2015	00:25,5
+	Lius Wolf	2015	00:30,0
+	Bastian Lutz	2015	00:26,5
+	Nina Höhn	2015	00:30,0
+	Dalia Pepeljak	2015	00:24,9
+	Thia Markov	2015	00:27,3
+	Luisa Reimann	2016	00:23,0
+	Oskar Henri Knaier	2016	00:25,0
+	Jakob Schwabe	2016	00:25,3
+	Nico Philipp Kronenberger	2016	00:25,5
+	Will Unger	2016	00:25,8
+	Sophie Kliem	2016	00:29,0
+	Samuel Grube	2016	00:27,6
+	Alexander Graiche	2016	00:27,0
+	Melina Papapetrou	2016	00:26,9
+	Helena Condic	2016	00:29,7
+	Nea Louise Benner	2016	00:30,0
+
+200m Team
+	Bendix Bundt	2015	03:16,5
+	Smilla Engelbrecht	2015	03:24,0
+	Jana Nagel	2015	03:24,3
+	Moritz Heitmann	2015	03:33,7
+	Nina Höhn	2015	03:49,3
+	Lius Wolf	2015	03:40,0
+	Siri Engelbrecht	2015	03:45,0
+	Marwan Mikkawi	2015	03:30,0
+	Niklas Martin Berberich	2015	03:29,0
+	Bastian Lutz	2015	03:28,0
+	Dalia Pepeljak	2015	04:15,0
+	Thia Markov	2015	04:18,0
+	Luisa Reimann	2016	03:28,0
+	Oskar Henri Knaier	2016	03:20,0
+	Jakob Schwabe	2016	03:35,0
+	Nico Philipp Kronenberger	2016	04:16,0
+	Will Unger	2016	04:00,0
+	Sophie Kliem	2016	04:15,0
+	Samuel Grube	2016	04:35,0
+	Alexander Graiche	2016	05:00,0
+	Melina Papapetrou	2016	04:20,0
+	Helena Condic	2016	05:20,0
+	Nea Louise Benner	2016	05:30,0
+
+25m BrAr/KrBei	Bendix Bundt	2015	00:26,7
+	Smilla Engelbrecht	2015	00:26,5
+	Jana Nagel	2015	00:26,8
+	Moritz Heitmann	2015	00:30,4
+	Nina Höhn	2015	00:30,9
+	Lius Wolf	2015	00:31,6
+	Siri Engelbrecht	2015	00:28,9
+	Marwan Mikkawi	2015	00:29,9
+	Niklas Martin Berberich	2015	00:30,7
+	Bastian Lutz	2015	00:29,5
+	Dalia Pepeljak	2015	00:28,1
+	Thia Markov	2015	00:27,7
+	Luisa Reimann	2016	00:28,9
+	Oskar Henri Knaier	2016	00:30,6
+	Jakob Schwabe	2016	00:30,4
+	Nico Philipp Kronenberger	2016	00:31,1
+	Will Unger	2016	00:31,0
+	Sophie Kliem	2016	00:33,4
+	Samuel Grube	2016	00:34,0
+	Alexander Graiche	2016	00:35,3
+	Melina Papapetrou	2016	00:36,8
+	Helena Condic	2016	00:34,8
+	Nea Louise Benner	2016	00:36,5
