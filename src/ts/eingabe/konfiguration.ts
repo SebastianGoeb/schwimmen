@@ -6,6 +6,7 @@ import { Staffel } from "./staffeln";
 export interface StaffelX {
   name: string;
   disziplinIds: number[];
+  disziplinNames: string[];
   team: boolean;
 }
 
@@ -151,10 +152,11 @@ function hasZeit(argument: {
   return argument.zeit !== undefined;
 }
 
-function buildStaffelX(staffel: Staffel, disziplinNameToId: Map<string, number>) {
+function buildStaffelX(staffel: Staffel, disziplinNameToId: Map<string, number>): StaffelX {
   return {
     name: staffel.name,
     disziplinIds: staffel.disziplinen.map((disziplin) => disziplinNameToId.get(disziplin)!),
+    disziplinNames: staffel.disziplinen,
     team: staffel.team,
   };
 }

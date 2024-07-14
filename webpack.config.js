@@ -14,7 +14,13 @@ module.exports = {
     path: __dirname + "/dist",
   },
   module: {
-    rules: [{ test: /\.ts$/, use: "ts-loader" }],
+    rules: [
+      { test: /\.ts$/i, use: "ts-loader" },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+    ],
   },
   resolve: {
     extensions: [".js", ".jsx", ".ts", ".tsx"],
@@ -31,6 +37,7 @@ module.exports = {
     new WorkerUrlPlugin(),
     new HtmlWebpackPlugin({
       chunks: ["web"],
+      // template: "./src/ts/index.html",
     }),
     new CopyPlugin({
       patterns: [{ from: "./src/main/resources/together2.tsv", to: "./assets/together.tsv" }],

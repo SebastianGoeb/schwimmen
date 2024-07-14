@@ -58,10 +58,10 @@ export function parseSheet(data: string[][]): SheetKonfiguration | Error {
     smartMutation: mutateVerySmart,
     dumbMutation: mutateRandom,
     acceptanceProbability: 0.1,
-    globalGenerationLimit: 100,
-    restartGenerationLimit: 50,
+    globalGenerationLimit: 50,
+    restartGenerationLimit: 20,
     maxGenerations: 1_000_000,
-    populationSize: 50,
+    populationSize: 10,
   };
 
   return { konfiguration, hyperparameters };

@@ -7,6 +7,10 @@ export function parseZeit(time: string): number {
 export function formatZeit(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
-  const ns = Math.floor((seconds % 1) * 10);
-  return `${m}:${s},${ns}`;
+  const ns = Math.round((seconds % 1) * 10);
+  return `${padZeros(m, 2)}:${padZeros(s, 2)},${ns}`;
+}
+
+function padZeros(n: number, width: number): string {
+  return String(n).padStart(width, "0");
 }
