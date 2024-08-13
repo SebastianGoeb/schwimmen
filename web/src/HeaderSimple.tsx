@@ -1,7 +1,6 @@
-import { Burger, Container, Group } from "@mantine/core";
+import { Burger, Container, Group, Image } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import classes from "./HeaderSimple.module.css";
-import { IconBrandMantine } from "@tabler/icons-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const links = [
@@ -34,7 +33,7 @@ export function HeaderSimple() {
   return (
     <header className={classes.header}>
       <Container size="md" className={classes.inner}>
-        <IconBrandMantine size={28} />
+        <Image src={"/icon128.png"} h={32} />
         <Group gap={5} visibleFrom="xs">
           {items}
         </Group>
