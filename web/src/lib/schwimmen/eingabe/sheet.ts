@@ -7,7 +7,7 @@ import { parseGeschlechterFromGrid } from "./geschlecht";
 import { parseMinMaxFromGrid } from "./minmax";
 import { parseStaffelnFromGrid } from "./staffeln";
 import { mutateRandom, mutateVerySmart } from "../search/sa/mutation";
-import { max } from "lodash";
+import max from "lodash/max";
 
 export interface SheetKonfiguration {
   konfiguration: Konfiguration;

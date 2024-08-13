@@ -1,7 +1,7 @@
 import { runCrappySimulatedAnnealing } from "./search/sa/crappy-simulated-annealing";
 import { parseSheet } from "./eingabe/sheet";
 import { isError } from "./util/error";
-import { formatSheet, renderStaffeln, renderTeam } from "./ausgabe/sheet";
+import { formatSheet } from "./ausgabe/sheet";
 import styles from "./index.css";
 
 function sliceSheet(sheet: string[][], startCol: string, endCol: string) {
