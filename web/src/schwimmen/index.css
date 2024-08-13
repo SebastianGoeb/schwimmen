@@ -1,0 +1,12 @@
+* {
+    font-family: sans-serif;
+}
+
+table, th, tr, td {
+    border-collapse: collapse;
+    border: 1px solid lightgrey;
+    min-width: 1.5rem;
+    height: 1rem;
+    padding: 0.2rem 0.6rem;
+    text-wrap: nowrap;
+}
