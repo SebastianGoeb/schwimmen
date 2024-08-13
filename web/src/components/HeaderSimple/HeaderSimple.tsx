@@ -15,20 +15,23 @@ export function HeaderSimple() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const items = links.map((link) => (
-    <a
-      key={link.label}
-      href={`/tabs/${link.link}`}
-      className={classes.link}
-      data-active={location.pathname === `/tabs/${link.link}` || undefined}
-      onClick={(event) => {
-        event.preventDefault();
-        navigate(`/tabs/${link.link}`);
-      }}
-    >
-      {link.label}
-    </a>
-  ));
+  const items = links.map((link) => {
+    const href = `/${link.link}`;
+    return (
+      <a
+        key={link.label}
+        href={href}
+        className={classes.link}
+        data-active={location.pathname === href || undefined}
+        onClick={(event) => {
+          event.preventDefault();
+          navigate(href);
+        }}
+      >
+        {link.label}
+      </a>
+    );
+  });
 
   return (
     <header className={classes.header}>
