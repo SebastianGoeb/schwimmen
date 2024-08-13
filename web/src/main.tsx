@@ -15,10 +15,6 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-  },
-  {
-    path: "/tabs",
-    element: <App />,
     children: [
       {
         path: "optimieren",
