@@ -1,6 +1,6 @@
 import "./Importieren.module.css";
 import { Button, Container, Group, Paper, SimpleGrid, Space, TableData, Tabs } from "@mantine/core";
-import { IconCheck, IconClipboardData } from "@tabler/icons-react";
+import { IconClipboardData } from "@tabler/icons-react";
 import TableView from "../TableView/TableView.tsx";
 import { useState } from "react";
 import { Konfiguration } from "../schwimmen/eingabe/konfiguration.ts";
@@ -44,12 +44,12 @@ export default function Importieren() {
   return (
     <Container size="md">
       <Group justify={"space-between"}>
-        <h2>Importieren</h2>
+        <h1>Importieren</h1>
         <Group>
           <Button rightSection={<IconClipboardData />} onClick={importFromClipboard}>
             Aus Zwischenablage importieren
           </Button>
-          <Button rightSection={<IconCheck />}>Übernehmen</Button>
+          {/*<Button rightSection={<IconCheck />}>Übernehmen</Button>*/}
         </Group>
       </Group>
 
