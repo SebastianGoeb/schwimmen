@@ -64,7 +64,6 @@ export default function Importieren() {
 
         <Tabs.Panel value="zeiten">
           <SimpleGrid cols={2}>
-            {/*<Stack gap={28}>*/}
             {(data === undefined ? [placeholderTableData, placeholderTableData] : schwimmerListToTableData(data)).map(
               (t) => (
                 <Paper shadow="sm" withBorder p="xl">
@@ -72,14 +71,17 @@ export default function Importieren() {
                 </Paper>
               ),
             )}
-            {/*</Stack>*/}
           </SimpleGrid>
         </Tabs.Panel>
         <Tabs.Panel value="schwimmer">
-          <Paper shadow="md" withBorder p="xl"></Paper>
+          <Paper shadow="md" withBorder p="xl">
+            <TableView tableData={{ head: ["Name", "Geschlecht", "Max Starts", "Min Starts"], body: [] }} />
+          </Paper>
         </Tabs.Panel>
         <Tabs.Panel value="staffeln">
-          <Paper shadow="md" withBorder p="xl"></Paper>
+          <Paper shadow="md" withBorder p="xl">
+            <TableView tableData={{ head: ["Name", "Disziplin", "Starts"], body: [] }} />
+          </Paper>
         </Tabs.Panel>
       </Tabs>
     </Container>
