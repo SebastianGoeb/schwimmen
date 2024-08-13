@@ -4,10 +4,10 @@ import App from "./App.tsx";
 import "./index.css";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Importieren from "./importieren/Importieren.tsx";
-import Staffeln from "./staffeln/Staffeln.tsx";
-import Optimieren from "./optimieren/Optimieren.tsx";
-import Schwimmer from "./schwimmer/Schwimmer.tsx";
+import Importieren from "./pages/Importieren/Importieren.tsx";
+import Staffeln from "./pages/Staffeln/Staffeln.tsx";
+import Optimieren from "./pages/Optimieren/Optimieren.tsx";
+import Schwimmer from "./pages/Schwimmer/Schwimmer.tsx";
 
 const theme = createTheme({});
 

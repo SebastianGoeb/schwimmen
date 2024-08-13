@@ -1,13 +1,13 @@
 import "./Importieren.module.css";
 import { Button, Container, Group, Paper, SimpleGrid, Space, TableData, Tabs } from "@mantine/core";
 import { IconClipboardData } from "@tabler/icons-react";
-import TableView from "../TableView/TableView.tsx";
+import TableView from "../../components/TableView/TableView.tsx";
 import { useState } from "react";
-import { Konfiguration } from "../schwimmen/eingabe/konfiguration.ts";
-import { parseSheet } from "../schwimmen/eingabe/sheet.ts";
-import { isError } from "../schwimmen/util/error.ts";
+import { Konfiguration } from "../../lib/schwimmen/eingabe/konfiguration.ts";
+import { parseSheet } from "../../lib/schwimmen/eingabe/sheet.ts";
+import { isError } from "../../lib/schwimmen/util/error.ts";
 import { sortBy } from "lodash-es";
-import { formatZeit } from "../schwimmen/util/zeit.ts";
+import { formatZeit } from "../../lib/schwimmen/util/zeit.ts";
 
 const placeholderTableData: TableData = {
   head: ["Disziplin", "Zeit"],
