@@ -11,5 +11,5 @@ fun parseZeit(time: String): Duration {
 
 fun formatZeit(time: Duration): String =
     time.toComponents { minutes, seconds, nanoseconds ->
-        "$minutes:$seconds,${nanoseconds / 1_000_000_000}"
+        "${"%02d:%02d".format(minutes, seconds)},${nanoseconds / 1_000_000_000}"
     }
