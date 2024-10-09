@@ -32,7 +32,7 @@ val CSA_HYPERPARAMETERS =
         smartMutation = ::mutateVerySmart,
         dumbMutation = ::mutateHeuristically,
         acceptanceProbability = 0.1,
-        globalGenerationLimit = 100,
+        globalGenerationLimit = 200,
         restartGenerationLimit = 50,
         maxGenerations = 1_000_000,
         20,
@@ -50,7 +50,7 @@ val GA_HYPERPARAMETERS =
         100,
     )
 
-val maxZeitspanneProStaffel = 1.seconds
+val maxZeitspanneProStaffel = 5.seconds
 
 private fun loadFJugend(): Konfiguration {
     val abwesenheiten = parseAbwesenheiten(File("src/main/resources/abwesenheiten_f.tsv").readText())
@@ -74,7 +74,7 @@ private fun loadFJugend(): Konfiguration {
 private fun loadEJugend(): Konfiguration {
     val abwesenheiten = parseAbwesenheiten(File("src/main/resources/abwesenheiten_e.tsv").readText())
     return Konfiguration(
-        alleMuessenSchwimmen = true,
+        alleMuessenSchwimmen = false,
         minSchwimmerProTeam = 7,
         maxSchwimmerProTeam = 12,
         minMaleProTeam = 2,
@@ -82,7 +82,7 @@ private fun loadEJugend(): Konfiguration {
         minMax = parseMinMax(File("src/main/resources/min_max.tsv").readText()),
         minDefault = 0,
         maxDefault = 5,
-        anzahlTeams = 2,
+        anzahlTeams = 1,
         maxZeitspanneProStaffel = maxZeitspanneProStaffel,
         staffeln = staffeln(),
         schwimmerList = zeiten("src/main/resources/e_jugend/zeiten.tsv").filter { !abwesenheiten.contains(it.name) },
