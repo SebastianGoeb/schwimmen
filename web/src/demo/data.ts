@@ -23,9 +23,8 @@ export const demoData1: Data = {
       gender: Gender.M,
       present: true,
       disciplineToSeconds: new Map([
-        [0, 5],
-        [1, 15],
-        [2, 25],
+        [0, 5.5],
+        [2, 25.5],
       ]),
     },
     {

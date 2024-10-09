@@ -12,7 +12,13 @@ interface State {
 }
 
 export const useStore = create<State>()((set) => ({
-  disciplines: new Map(),
+  disciplines: new Map(
+    [
+      { id: 0, name: "Disziplin 1" },
+      { id: 1, name: "Disziplin 2" },
+      { id: 2, name: "Disziplin 3" },
+    ].map((it) => [it.id, it]),
+  ),
   swimmers: new Map(),
   updateEverything: (data: Data) => set((state) => updateEverything(state, data)),
   updateDiscipline: (discipline: Discipline) => set((state) => updateDiscipline(state, discipline)),
