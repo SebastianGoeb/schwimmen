@@ -1,5 +1,16 @@
 import "./Schwimmer.module.css";
-import { Button, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Table } from "@mantine/core";
+import {
+  Button,
+  Checkbox,
+  Container,
+  Group,
+  NativeSelect,
+  NumberInput,
+  Paper,
+  Space,
+  Table,
+  Text,
+} from "@mantine/core";
 import React from "react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
@@ -7,6 +18,8 @@ import { Swimmer } from "../../model/swimmer.ts";
 import { Gender } from "../../model/gender.ts";
 import { IconPresentation } from "@tabler/icons-react";
 import { demoData1 } from "../../demo/data.ts";
+import SwimmerRemoveButton from "../../components/SwimmerRemoveButton/SwimmerRemoveButton.tsx";
+import SwimmerAddButton from "../../components/SwimmerAddButton/SwimmerAddButton.tsx";
 
 function numberify(sn: string | number): number | undefined {
   if (typeof sn === "string") {
@@ -23,18 +36,20 @@ export default function Schwimmer() {
   function renderRow(swimmer: Swimmer): React.ReactNode[] {
     //   TODO min/max dynamic
     return [
-      swimmer.name,
+      <Text style={{ minWidth: "10rem" }}>{swimmer.name}</Text>,
       <Checkbox
         color="gray"
         checked={swimmer.present}
         onChange={(evt) => updateSwimmer({ ...swimmer, present: evt.currentTarget.checked })}
       />,
       <NativeSelect
+        style={{ width: "8rem" }}
         data={[Gender.M, Gender.W]}
         value={swimmer.gender}
         onChange={(evt) => updateSwimmer({ ...swimmer, gender: evt.currentTarget.value as Gender })}
       />,
       <NumberInput
+        style={{ width: "8rem" }}
         min={0}
         max={5}
         placeholder="0-5"
@@ -43,6 +58,7 @@ export default function Schwimmer() {
         onChange={(value) => updateSwimmer({ ...swimmer, minStarts: numberify(value) })}
       />,
       <NumberInput
+        style={{ width: "8rem" }}
         min={0}
         max={5}
         placeholder="0-5"
@@ -50,6 +66,7 @@ export default function Schwimmer() {
         value={swimmer.maxStarts}
         onChange={(value) => updateSwimmer({ ...swimmer, maxStarts: numberify(value) })}
       />,
+      <SwimmerRemoveButton id={swimmer.id} />,
     ];
   }
 
@@ -69,6 +86,11 @@ export default function Schwimmer() {
             body: Array.from(swimmers.values()).map(renderRow),
           }}
         ></Table>
+
+        <Space h="md" />
+        <Group justify="flex-end">
+          <SwimmerAddButton />
+        </Group>
       </Paper>
     </Container>
   );
