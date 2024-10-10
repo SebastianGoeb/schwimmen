@@ -1,31 +1,36 @@
 import "./ZeitenDisciplinesView.module.css";
-import { Paper, SimpleGrid } from "@mantine/core";
-import TableView from "../TableView/TableView.tsx";
+import { Paper, SimpleGrid, Table } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Discipline } from "../../model/discipline.ts";
-import { formatZeit } from "../../lib/schwimmen/util/zeit.ts";
 import React from "react";
+import { Swimmer } from "../../model/swimmer.ts";
+import ZeitenCell from "../ZeitenCell/ZeitenCell.tsx";
 
 export default function ZeitenDisciplinesView() {
   const [disciplines, swimmers] = useStore(useShallow((state) => [state.disciplines, state.swimmers]));
 
-  function paper(discipline: Discipline): React.ReactNode {
+  function renderDiscipline(discipline: Discipline): React.ReactNode {
     return (
       <Paper shadow="md" withBorder p="xl">
         <h2>{discipline.name}</h2>
-        <TableView
-          tableData={{
+        <Table
+          data={{
             head: ["Name", "Zeit"],
-            body: Array.from(swimmers.values()).map((swimmer) => {
-              const seconds = swimmer.disciplineToSeconds.get(discipline.id);
-              return [swimmer.name, seconds === undefined ? undefined : formatZeit(seconds)];
-            }),
+            body: Array.from(swimmers.values()).map((swimmer) => renderRow(swimmer, discipline)),
           }}
         />
       </Paper>
     );
   }
 
-  return <SimpleGrid cols={2}>{Array.from(disciplines.values()).map((discipline) => paper(discipline))}</SimpleGrid>;
+  function renderRow(swimmer: Swimmer, discipline: Discipline): React.ReactNode[] {
+    return [swimmer.name, <ZeitenCell swimmer={swimmer} disciplineId={discipline.id} />];
+  }
+
+  return (
+    <SimpleGrid cols={2}>
+      {Array.from(disciplines.values()).map((discipline) => renderDiscipline(discipline))}
+    </SimpleGrid>
+  );
 }

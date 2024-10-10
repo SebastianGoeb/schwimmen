@@ -9,6 +9,7 @@ interface State {
   updateEverything: (data: Data) => void;
   updateDiscipline: (discipline: Discipline) => void;
   updateSwimmer: (swimmer: Swimmer) => void;
+  updateLapTimeEnabled: (swimmer: Swimmer, disciplineId: number, enabled: boolean) => void;
 }
 
 export const useStore = create<State>()((set) => ({
@@ -20,9 +21,11 @@ export const useStore = create<State>()((set) => ({
     ].map((it) => [it.id, it]),
   ),
   swimmers: new Map(),
-  updateEverything: (data: Data) => set((state) => updateEverything(state, data)),
-  updateDiscipline: (discipline: Discipline) => set((state) => updateDiscipline(state, discipline)),
-  updateSwimmer: (swimmer: Swimmer) => set((state) => updateSwimmer(state, swimmer)),
+  updateEverything: (data) => set((state) => updateEverything(state, data)),
+  updateDiscipline: (discipline) => set((state) => updateDiscipline(state, discipline)),
+  updateSwimmer: (swimmer) => set((state) => updateSwimmer(state, swimmer)),
+  updateLapTimeEnabled: (swimmer, disciplineId, enabled) =>
+    set((state) => updateLapTimeEnabled(state, swimmer, disciplineId, enabled)),
 }));
 
 function updateEverything(_state: State, data: Data): Partial<State> {
@@ -38,4 +41,12 @@ function updateDiscipline(state: State, discipline: Discipline): Partial<State> 
 
 function updateSwimmer(state: State, swimmer: Swimmer): Partial<State> {
   return { swimmers: new Map(state.swimmers).set(swimmer.id, swimmer) };
+}
+
+function updateLapTimeEnabled(state: State, swimmer: Swimmer, disciplineId: number, enabled: boolean) {
+  const lapTime = swimmer.lapTimes.get(disciplineId)!;
+  const newLapTime = { ...lapTime, enabled };
+  const newLapTimes = new Map(swimmer.lapTimes).set(disciplineId, newLapTime);
+  const newSwimmer: Swimmer = { ...swimmer, lapTimes: newLapTimes };
+  return { swimmers: new Map(state.swimmers).set(swimmer.id, newSwimmer) };
 }

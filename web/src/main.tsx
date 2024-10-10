@@ -10,7 +10,9 @@ import Optimieren from "./pages/Optimieren/Optimieren.tsx";
 import Schwimmer from "./pages/Schwimmer/Schwimmer.tsx";
 import Zeiten from "./pages/Zeiten/Zeiten.tsx";
 
-const theme = createTheme({});
+const theme = createTheme({
+  cursorType: "pointer",
+});
 
 const router = createBrowserRouter([
   {

@@ -22,9 +22,9 @@ export const demoData1: Data = {
       name: "Max Mustermann",
       gender: Gender.M,
       present: true,
-      disciplineToSeconds: new Map([
-        [0, 5.5],
-        [2, 25.5],
+      lapTimes: new Map([
+        [0, { seconds: 5.5, enabled: true }],
+        [2, { seconds: 25.5, enabled: true }],
       ]),
     },
     {
@@ -34,10 +34,10 @@ export const demoData1: Data = {
       present: false,
       minStarts: 1,
       maxStarts: 2,
-      disciplineToSeconds: new Map([
-        [0, 23],
-        [1, 13],
-        [2, 3],
+      lapTimes: new Map([
+        [0, { seconds: 23, enabled: false }],
+        [1, { seconds: 13, enabled: true }],
+        [2, { seconds: 3, enabled: true }],
       ]),
     },
   ],

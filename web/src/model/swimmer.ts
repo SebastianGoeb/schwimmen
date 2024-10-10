@@ -7,5 +7,10 @@ export interface Swimmer {
   gender: Gender;
   minStarts?: number;
   maxStarts?: number;
-  disciplineToSeconds: Map<number, number>;
+  lapTimes: Map<number, LapTime>;
+}
+
+export interface LapTime {
+  seconds: number;
+  enabled: boolean;
 }

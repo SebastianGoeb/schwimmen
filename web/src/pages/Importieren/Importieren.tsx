@@ -1,7 +1,6 @@
 import "./Importieren.module.css";
-import { Button, Container, Group, Paper, SimpleGrid, Space, TableData, Tabs } from "@mantine/core";
+import { Button, Container, Group, Paper, SimpleGrid, Space, Table, TableData, Tabs } from "@mantine/core";
 import { IconClipboardData } from "@tabler/icons-react";
-import TableView from "../../components/TableView/TableView.tsx";
 import { useState } from "react";
 import { Konfiguration } from "../../lib/schwimmen/eingabe/konfiguration.ts";
 import { parseSheet } from "../../lib/schwimmen/eingabe/sheet.ts";
@@ -67,7 +66,7 @@ export default function Importieren() {
             {(data === undefined ? [placeholderTableData, placeholderTableData] : schwimmerListToTableData(data)).map(
               (t) => (
                 <Paper shadow="sm" withBorder p="xl">
-                  <TableView tableData={t} />
+                  <Table data={t} />
                 </Paper>
               ),
             )}
@@ -75,12 +74,12 @@ export default function Importieren() {
         </Tabs.Panel>
         <Tabs.Panel value="schwimmer">
           <Paper shadow="md" withBorder p="xl">
-            <TableView tableData={{ head: ["Name", "Geschlecht", "Max Starts", "Min Starts"], body: [] }} />
+            <Table data={{ head: ["Name", "Geschlecht", "Max Starts", "Min Starts"], body: [] }} />
           </Paper>
         </Tabs.Panel>
         <Tabs.Panel value="staffeln">
           <Paper shadow="md" withBorder p="xl">
-            <TableView tableData={{ head: ["Name", "Disziplin", "Starts"], body: [] }} />
+            <Table data={{ head: ["Name", "Disziplin", "Starts"], body: [] }} />
           </Paper>
         </Tabs.Panel>
       </Tabs>
