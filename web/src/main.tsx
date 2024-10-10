@@ -8,30 +8,22 @@ import Importieren from "./pages/Importieren/Importieren.tsx";
 import Staffeln from "./pages/Staffeln/Staffeln.tsx";
 import Optimieren from "./pages/Optimieren/Optimieren.tsx";
 import Schwimmer from "./pages/Schwimmer/Schwimmer.tsx";
+import Zeiten from "./pages/Zeiten/Zeiten.tsx";
 
-const theme = createTheme({});
+const theme = createTheme({
+  cursorType: "pointer",
+});
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      {
-        path: "optimieren",
-        element: <Optimieren />,
-      },
-      {
-        path: "schwimmer",
-        element: <Schwimmer />,
-      },
-      {
-        path: "staffeln",
-        element: <Staffeln />,
-      },
-      {
-        path: "importieren",
-        element: <Importieren />,
-      },
+      { path: "zeiten", element: <Zeiten /> },
+      { path: "optimieren", element: <Optimieren /> },
+      { path: "schwimmer", element: <Schwimmer /> },
+      { path: "staffeln", element: <Staffeln /> },
+      { path: "importieren", element: <Importieren /> },
     ],
   },
 ]);
