@@ -18,10 +18,6 @@ export default function Zeiten() {
 
   const [view, setView] = useState<string>(View.Grid);
 
-  function importDemoData() {
-    updateEverything(demoData1);
-  }
-
   return (
     <Container size="md">
       <Group justify="space-between">
@@ -29,7 +25,7 @@ export default function Zeiten() {
         <Group>
           Ansicht
           <SegmentedControl onChange={setView} data={[View.Grid, View.Disciplines]} />
-          <Button rightSection={<IconPresentation />} onClick={importDemoData}>
+          <Button rightSection={<IconPresentation />} onClick={() => updateEverything(demoData1)}>
             Demodaten nutzen
           </Button>
         </Group>

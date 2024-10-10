@@ -19,10 +19,10 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
-      { path: "zeiten", element: <Zeiten /> },
-      { path: "optimieren", element: <Optimieren /> },
       { path: "schwimmer", element: <Schwimmer /> },
+      { path: "zeiten", element: <Zeiten /> },
       { path: "staffeln", element: <Staffeln /> },
+      { path: "optimieren", element: <Optimieren /> },
       { path: "importieren", element: <Importieren /> },
     ],
   },

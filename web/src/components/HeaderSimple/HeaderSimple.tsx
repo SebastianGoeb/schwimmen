@@ -4,10 +4,10 @@ import classes from "./HeaderSimple.module.css";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const links = [
-  { link: "zeiten", label: "Zeiten" },
-  { link: "optimieren", label: "Optimieren" },
   { link: "schwimmer", label: "Schwimmer" },
+  { link: "zeiten", label: "Zeiten" },
   { link: "staffeln", label: "Staffeln" },
+  { link: "optimieren", label: "Optimieren" },
   { link: "importieren", label: "Importieren" },
 ];
 
