@@ -1,16 +1,5 @@
 import "./Schwimmer.module.css";
-import {
-  Button,
-  Checkbox,
-  Container,
-  Group,
-  NativeSelect,
-  NumberInput,
-  Paper,
-  Space,
-  Table,
-  Text,
-} from "@mantine/core";
+import { Button, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Space, Table } from "@mantine/core";
 import React from "react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
@@ -20,6 +9,7 @@ import { IconPresentation } from "@tabler/icons-react";
 import { demoData1 } from "../../demo/data.ts";
 import SwimmerRemoveButton from "../../components/SwimmerRemoveButton/SwimmerRemoveButton.tsx";
 import SwimmerAddButton from "../../components/SwimmerAddButton/SwimmerAddButton.tsx";
+import SwimmerNameInput from "../../components/SwimmerNameInput/SwimmerNameInput.tsx";
 
 function numberify(sn: string | number): number | undefined {
   if (typeof sn === "string") {
@@ -36,7 +26,7 @@ export default function Schwimmer() {
   function renderRow(swimmer: Swimmer): React.ReactNode[] {
     //   TODO min/max dynamic
     return [
-      <Text style={{ minWidth: "10rem" }}>{swimmer.name}</Text>,
+      <SwimmerNameInput swimmer={swimmer} />,
       <Checkbox
         color="gray"
         checked={swimmer.present}

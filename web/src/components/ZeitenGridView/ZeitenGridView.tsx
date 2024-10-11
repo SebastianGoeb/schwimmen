@@ -8,6 +8,7 @@ import React from "react";
 import ZeitenCell from "../ZeitenCell/ZeitenCell.tsx";
 import SwimmerAddButton from "../SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerRemoveButton from "../SwimmerRemoveButton/SwimmerRemoveButton.tsx";
+import SwimmerNameInput from "../SwimmerNameInput/SwimmerNameInput.tsx";
 
 export default function ZeitenGridView() {
   const [disciplines, swimmers] = useStore(useShallow((state) => [state.disciplines, state.swimmers]));
@@ -16,7 +17,7 @@ export default function ZeitenGridView() {
     const cells = Array.from(disciplines.keys()).map((disciplineId) => (
       <ZeitenCell swimmer={swimmer} disciplineId={disciplineId} />
     ));
-    return [swimmer.name, ...cells, <SwimmerRemoveButton id={swimmer.id} />];
+    return [<SwimmerNameInput swimmer={swimmer} />, ...cells, <SwimmerRemoveButton id={swimmer.id} />];
   }
 
   return (

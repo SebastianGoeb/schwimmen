@@ -8,6 +8,7 @@ import { Swimmer } from "../../model/swimmer.ts";
 import ZeitenCell from "../ZeitenCell/ZeitenCell.tsx";
 import SwimmerAddButton from "../SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerRemoveButton from "../SwimmerRemoveButton/SwimmerRemoveButton.tsx";
+import SwimmerNameInput from "../SwimmerNameInput/SwimmerNameInput.tsx";
 
 export default function ZeitenDisciplinesView() {
   const [disciplines, swimmers] = useStore(useShallow((state) => [state.disciplines, state.swimmers]));
@@ -32,7 +33,7 @@ export default function ZeitenDisciplinesView() {
 
   function renderRow(swimmer: Swimmer, discipline: Discipline): React.ReactNode[] {
     return [
-      swimmer.name,
+      <SwimmerNameInput swimmer={swimmer} />,
       <ZeitenCell swimmer={swimmer} disciplineId={discipline.id} />,
       <SwimmerRemoveButton id={swimmer.id} />,
     ];
