@@ -1,0 +1,33 @@
+name: PR
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - run: cd web
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+#      - name: Test
+#        run: npm test
+
+#      - name: Check Formatting
+#        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
