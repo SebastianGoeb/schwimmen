@@ -1,4 +1,3 @@
-// @ts-ignore
 import { Checkbox, Group, Input } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
