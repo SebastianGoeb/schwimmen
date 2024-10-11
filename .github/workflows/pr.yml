@@ -15,10 +15,15 @@ jobs:
         with:
           node-version: lts/*
 
-      - run: cd web
+      - run: |
+          pwd
+          cd web
+          pwd
 
       - name: Install NPM Dependencies
-        run: npm ci
+        run: |
+          pwd
+          npm ci
 
 #      - name: Test
 #        run: npm test
