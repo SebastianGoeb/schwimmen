@@ -1,14 +1,14 @@
-import { Burger, Container, Group, Image } from "@mantine/core";
+import { Burger, Button, Container, Group, Image } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import classes from "./HeaderSimple.module.css";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const links = [
-  { link: "schwimmer", label: "Schwimmer" },
-  { link: "zeiten", label: "Zeiten" },
-  { link: "staffeln", label: "Staffeln" },
-  { link: "optimieren", label: "Optimieren" },
-  { link: "importieren", label: "Importieren" },
+  { link: "schwimmer", label: "Schwimmer", disabled: false },
+  { link: "zeiten", label: "Zeiten", disabled: false },
+  { link: "staffeln", label: "Staffeln", disabled: true },
+  { link: "optimieren", label: "Optimieren", disabled: true },
+  { link: "importieren", label: "Importieren", disabled: true },
 ];
 
 export function HeaderSimple() {
@@ -19,9 +19,9 @@ export function HeaderSimple() {
   const items = links.map((link) => {
     const href = `/${link.link}`;
     return (
-      <a
+      <Button
+        disabled={link.disabled}
         key={link.label}
-        href={href}
         className={classes.link}
         data-active={location.pathname === href || undefined}
         onClick={(event) => {
@@ -30,7 +30,7 @@ export function HeaderSimple() {
         }}
       >
         {link.label}
-      </a>
+      </Button>
     );
   });
 
