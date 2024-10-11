@@ -11,7 +11,6 @@ export default function ZeitenCell({ swimmer, disciplineId }: { swimmer: Swimmer
 
   return (
     <Group wrap="nowrap" justify="flex-start">
-      {/*<Text c={lapTime.enabled ? undefined : "dimmed"}>{formatZeit(lapTime.seconds)}</Text>*/}
       <Input
         style={{ width: "3.5rem" }}
         variant="unstyled"
