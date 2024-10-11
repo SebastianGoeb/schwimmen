@@ -2,7 +2,7 @@ import { Discipline } from "../model/discipline.ts";
 import { LapTime, Swimmer } from "../model/swimmer.ts";
 import { create } from "zustand";
 import { Data } from "../model/data.ts";
-import max from "lodash/max";
+import { max } from "lodash-es";
 import { Gender } from "../model/gender.ts";
 
 interface State {

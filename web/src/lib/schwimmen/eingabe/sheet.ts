@@ -7,7 +7,7 @@ import { parseGeschlechterFromGrid } from "./geschlecht";
 import { parseMinMaxFromGrid } from "./minmax";
 import { parseStaffelnFromGrid } from "./staffeln";
 import { mutateRandom, mutateVerySmart } from "../search/sa/mutation";
-import max from "lodash/max";
+import { max } from "lodash-es";
 
 export interface SheetKonfiguration {
   konfiguration: Konfiguration;
@@ -77,7 +77,7 @@ function parse<T>(header: string, columns: number, data: string[][], parseFn: (d
   return parseFn(slice);
 }
 
-function findHeader(header: String, data: string[][]): Coordinate | undefined {
+function findHeader(header: string, data: string[][]): Coordinate | undefined {
   for (let row = 0; row < data.length; row++) {
     for (let col = 0; col < data[row].length; col++) {
       if (data[row][col].toLowerCase() === header.toLowerCase()) {

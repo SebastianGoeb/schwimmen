@@ -5,7 +5,7 @@ import { parseMinMax } from "./eingabe/minmax";
 import { parseGeschlechter } from "./eingabe/geschlecht";
 import { parseAbwesenheiten } from "./eingabe/abwesenheiten";
 import { Hyperparameters, runCrappySimulatedAnnealing } from "./search/sa/crappy-simulated-annealing";
-import { buildKonfiguration, Konfiguration, KonfigurationBuilder } from "./eingabe/konfiguration";
+import { buildKonfiguration, Konfiguration } from "./eingabe/konfiguration";
 import { mutateRandom, mutateVerySmart } from "./search/sa/mutation";
 
 const dir = process.argv[2];
@@ -15,7 +15,7 @@ const minMax = parseMinMax(fs.readFileSync(`src/main/resources/min_max.tsv`).toS
 const geschlechter = parseGeschlechter(fs.readFileSync(`src/main/resources/geschlecht_${dir}.tsv`).toString());
 const abwesenheiten = parseAbwesenheiten(fs.readFileSync(`src/main/resources/abwesenheiten_${dir}.tsv`).toString());
 
-for (let name of abwesenheiten) {
+for (const name of abwesenheiten) {
   geschlechter.delete(name);
 }
 

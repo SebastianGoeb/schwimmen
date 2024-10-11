@@ -42,7 +42,7 @@ export function parseStilZeitenRaw(rows: string[][]): StilZeiten[] {
 
     // process zeit
     if (group !== undefined) {
-      const schwimmerZeit = parseSchwimmerZeitRow(group.stil, row);
+      const schwimmerZeit = parseSchwimmerZeitRow(row);
       if (schwimmerZeit) {
         group.zeiten.push(schwimmerZeit);
       }
@@ -63,7 +63,7 @@ function isHeaderRow(row: string[]) {
   return !isBlank(row[0]);
 }
 
-function parseSchwimmerZeitRow(stil: string, row: string[]): SchwimmerZeit | undefined {
+function parseSchwimmerZeitRow(row: string[]): SchwimmerZeit | undefined {
   const nameCell = row[1] ?? "";
   if (isBlank(nameCell)) {
     return undefined;
