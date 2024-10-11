@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Checkbox, Group, Input } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
@@ -15,16 +16,20 @@ export default function ZeitenCell({ swimmer, disciplineId }: { swimmer: Swimmer
         style={{ width: "3.5rem" }}
         variant="unstyled"
         component={IMaskInput}
-        mask="S0:S0,0"
-        blocks={{
-          S: {
-            mask: IMask.MaskedRange,
-            from: 0,
-            to: 5,
-          },
-        }}
-        placeholderChar="_"
-        lazy={false}
+        mask={
+          new IMask.MaskedPattern({
+            mask: "S0:S0,0",
+            blocks: {
+              S: {
+                mask: IMask.MaskedRange,
+                from: 0,
+                to: 5,
+              },
+            },
+            placeholderChar: "_",
+            lazy: false,
+          })
+        }
         value={lapTime?.seconds}
         onAccept={(value: string) => {
           if (value === "" || value === "__:__,_") {

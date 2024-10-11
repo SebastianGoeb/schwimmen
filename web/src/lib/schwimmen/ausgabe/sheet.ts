@@ -5,9 +5,9 @@ import { formatZeit } from "../util/zeit";
 export function formatSheet(
   konfiguration: Konfiguration,
   state: StateAndScore,
-  duration: number,
-  checked: number,
-  messages: string[],
+  _duration: number,
+  _checked: number,
+  _messages: string[],
   staffelnPerRow: number,
 ): (string | undefined)[][] {
   const grid = [[undefined]];
@@ -46,7 +46,7 @@ function renderTeamRow(konfiguration: Konfiguration, staffelBelegungen: StaffelB
   const grid = [[undefined]];
 
   let colIdx = 0;
-  for (let staffelBelegung of staffelBelegungen) {
+  for (const staffelBelegung of staffelBelegungen) {
     const staffelGrid = renderStaffeln(konfiguration, staffelBelegung);
     place(grid, staffelGrid, 0, colIdx);
     colIdx += gridWidth(staffelGrid) + 1;
@@ -54,7 +54,7 @@ function renderTeamRow(konfiguration: Konfiguration, staffelBelegungen: StaffelB
   return grid;
 }
 
-function gridToString(data: (any | undefined)[][]): (string | undefined)[][] {
+function gridToString(data: (string | undefined)[][]): (string | undefined)[][] {
   return data.map((row) => row.map((cell) => cell?.toString()));
 }
 
@@ -86,11 +86,11 @@ export function renderStaffeln(
 function renderStaffelHeaders(staffelBelegung: StaffelBelegung, staffel: StaffelX, wider: boolean) {
   return wider
     ? [
-        [staffelBelegung.staffelId + 1, undefined, undefined],
+        [String(staffelBelegung.staffelId + 1), undefined, undefined],
         [staffel.name, undefined, undefined],
       ]
     : [
-        [staffelBelegung.staffelId + 1, undefined],
+        [String(staffelBelegung.staffelId + 1), undefined],
         [staffel.name, undefined],
       ];
 }

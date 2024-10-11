@@ -7,6 +7,7 @@ import { stateScore } from "../score/state";
 import { formatZeit } from "../../util/zeit";
 import * as workerpool from "workerpool";
 import type { Pool } from "workerpool";
+// @ts-ignore
 import WorkerURL from "./worker?url&worker";
 // import { WorkerUrl } from "worker-url";
 
@@ -35,13 +36,12 @@ export async function runCrappySimulatedAnnealing(
   let states: StateAndScore[] = times(hyperparameters.populationSize, () =>
     andScore(initialRandomAssignment(konfiguration), konfiguration),
   );
-  let bestStates: StateAndScore[] = states;
+  const bestStates: StateAndScore[] = states;
   const bestGenerations: number[] = Array(hyperparameters.populationSize).fill(0);
 
   let statesChecked = 0;
   let bestState = minBy(states, (it) => it.score)!;
   let genOfBestState = 0;
-  let timeOfBestState = new Date();
 
   if (printProgress) {
     console.log("Score progress");
@@ -74,7 +74,6 @@ export async function runCrappySimulatedAnnealing(
     if (newBestState.score < bestState.score) {
       bestState = newBestState;
       genOfBestState = gen;
-      timeOfBestState = new Date();
       if (printProgress) {
         /*if (bestErgebnis.valide) "✓" else "✗"*/
         console.log(`${formatZeit(bestState.score)} ? (gen ${gen})`);
@@ -120,7 +119,7 @@ async function generateNewStates(
   }
 
   const results = await Promise.all(promises);
-  for (let result of results) {
+  for (const result of results) {
     newStates.push(result.state);
     totalChecked += result.checked;
   }
