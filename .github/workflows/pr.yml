@@ -15,24 +15,22 @@ jobs:
         with:
           node-version: lts/*
 
-      - run: |
-          pwd
-          cd web
-          pwd
-
       - name: Install NPM Dependencies
-        run: |
-          pwd
-          npm ci
+        working-directory: web
+        run: npm ci
 
 #      - name: Test
+#        working-directory: web
 #        run: npm test
 
 #      - name: Check Formatting
+#        working-directory: web
 #        run: npm run format:check
 
       - name: Lint
+        working-directory: web
         run: npm run lint
 
       - name: Build
+        working-directory: web
         run: npm run build
