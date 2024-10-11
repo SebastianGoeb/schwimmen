@@ -84,7 +84,7 @@ function replaceSchwimmer(
   return { teams: neueTeams };
 }
 
-function randomIndex(array: any[]): number {
+function randomIndex(array: unknown[]): number {
   return Math.floor(Math.random() * array.length);
 }
 
