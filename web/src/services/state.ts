@@ -1,5 +1,5 @@
 import { Discipline } from "../model/discipline.ts";
-import { Swimmer } from "../model/swimmer.ts";
+import { LapTime, Swimmer } from "../model/swimmer.ts";
 import { create } from "zustand";
 import { Data } from "../model/data.ts";
 import max from "lodash/max";
@@ -13,7 +13,8 @@ interface State {
   addSwimmer: () => void;
   removeSwimmer: (swimmerId: number) => void;
   updateSwimmer: (swimmer: Swimmer) => void;
-  updateLapTimeEnabled: (swimmer: Swimmer, disciplineId: number, enabled: boolean) => void;
+  removeLapTime: (swimmer: Swimmer, disciplineId: number) => void;
+  updateLapTime: (swimmer: Swimmer, disciplineId: number, lapTime: LapTime) => void;
 }
 
 export const useStore = create<State>()((set) => ({
@@ -30,8 +31,9 @@ export const useStore = create<State>()((set) => ({
   addSwimmer: () => set((state) => addSwimmer(state)),
   removeSwimmer: (swimmerId) => set((state) => removeSwimmer(state, swimmerId)),
   updateSwimmer: (swimmer) => set((state) => updateSwimmer(state, swimmer)),
-  updateLapTimeEnabled: (swimmer, disciplineId, enabled) =>
-    set((state) => updateLapTimeEnabled(state, swimmer, disciplineId, enabled)),
+  removeLapTime: (swimmer, disciplineId) => set((state) => removeLapTime(state, swimmer, disciplineId)),
+  updateLapTime: (swimmer, disciplineId, lapTime) =>
+    set((state) => updateLapTime(state, swimmer, disciplineId, lapTime)),
 }));
 
 function updateEverything(_state: State, data: Data): Partial<State> {
@@ -67,10 +69,15 @@ function updateSwimmer(state: State, swimmer: Swimmer): Partial<State> {
   return { swimmers: new Map(state.swimmers).set(swimmer.id, swimmer) };
 }
 
-function updateLapTimeEnabled(state: State, swimmer: Swimmer, disciplineId: number, enabled: boolean) {
-  const lapTime = swimmer.lapTimes.get(disciplineId)!;
-  const newLapTime = { ...lapTime, enabled };
-  const newLapTimes = new Map(swimmer.lapTimes).set(disciplineId, newLapTime);
+function removeLapTime(state: State, swimmer: Swimmer, disciplineId: number) {
+  const newLapTimes = new Map(swimmer.lapTimes);
+  newLapTimes.delete(disciplineId);
+  const newSwimmer: Swimmer = { ...swimmer, lapTimes: newLapTimes };
+  return { swimmers: new Map(state.swimmers).set(swimmer.id, newSwimmer) };
+}
+
+function updateLapTime(state: State, swimmer: Swimmer, disciplineId: number, lapTime: LapTime) {
+  const newLapTimes = new Map(swimmer.lapTimes).set(disciplineId, lapTime);
   const newSwimmer: Swimmer = { ...swimmer, lapTimes: newLapTimes };
   return { swimmers: new Map(state.swimmers).set(swimmer.id, newSwimmer) };
 }

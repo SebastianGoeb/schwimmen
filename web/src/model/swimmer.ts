@@ -11,6 +11,6 @@ export interface Swimmer {
 }
 
 export interface LapTime {
-  seconds: number;
+  seconds: string;
   enabled: boolean;
 }

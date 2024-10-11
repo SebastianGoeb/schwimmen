@@ -23,8 +23,9 @@ export const demoData1: Data = {
       gender: Gender.M,
       present: true,
       lapTimes: new Map([
-        [0, { seconds: 5.5, enabled: true }],
-        [2, { seconds: 25.5, enabled: true }],
+        [0, { seconds: "00055", enabled: true }],
+        // [1, { seconds: "00055", enabled: true }],
+        [2, { seconds: "00255", enabled: true }],
       ]),
     },
     {
@@ -35,9 +36,9 @@ export const demoData1: Data = {
       minStarts: 1,
       maxStarts: 2,
       lapTimes: new Map([
-        [0, { seconds: 23, enabled: false }],
-        [1, { seconds: 13, enabled: true }],
-        [2, { seconds: 3, enabled: true }],
+        [0, { seconds: "00230", enabled: false }],
+        [1, { seconds: "00130", enabled: true }],
+        [2, { seconds: "00030", enabled: true }],
       ]),
     },
   ],
