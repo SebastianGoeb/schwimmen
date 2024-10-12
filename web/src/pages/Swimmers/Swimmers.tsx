@@ -1,4 +1,3 @@
-import "./Schwimmer.module.css";
 import { Button, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Space, Table } from "@mantine/core";
 import React from "react";
 import { useStore } from "../../services/state.ts";
@@ -18,7 +17,7 @@ function numberify(sn: string | number): number | undefined {
   return sn;
 }
 
-export default function Schwimmer() {
+export default function Swimmers() {
   const [swimmers, updateEverything, updateSwimmer] = useStore(
     useShallow((state) => [state.swimmers, state.updateEverything, state.updateSwimmer]),
   );

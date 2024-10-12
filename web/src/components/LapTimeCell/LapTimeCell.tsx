@@ -4,7 +4,7 @@ import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
 import { IMask, IMaskInput } from "react-imask";
 
-export default function ZeitenCell({ swimmer, disciplineId }: { swimmer: Swimmer; disciplineId: number }) {
+export default function LapTimeCell({ swimmer, disciplineId }: { swimmer: Swimmer; disciplineId: number }) {
   const [updateLapTime, removeLapTime] = useStore(useShallow((state) => [state.updateLapTime, state.removeLapTime]));
 
   const lapTime = swimmer.lapTimes.get(disciplineId);

@@ -1,16 +1,15 @@
-import "./ZeitenDisciplinesView.module.css";
 import { Group, Paper, SimpleGrid, Space, Table } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Discipline } from "../../model/discipline.ts";
 import React from "react";
 import { Swimmer } from "../../model/swimmer.ts";
-import ZeitenCell from "../ZeitenCell/ZeitenCell.tsx";
+import LapTimeCell from "../LapTimeCell/LapTimeCell.tsx";
 import SwimmerAddButton from "../SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerRemoveButton from "../SwimmerRemoveButton/SwimmerRemoveButton.tsx";
 import SwimmerNameInput from "../SwimmerNameInput/SwimmerNameInput.tsx";
 
-export default function ZeitenDisciplinesView() {
+export default function LapTimeDisciplinesView() {
   const [disciplines, swimmers] = useStore(useShallow((state) => [state.disciplines, state.swimmers]));
 
   function renderDiscipline(discipline: Discipline): React.ReactNode {
@@ -34,7 +33,7 @@ export default function ZeitenDisciplinesView() {
   function renderRow(swimmer: Swimmer, discipline: Discipline): React.ReactNode[] {
     return [
       <SwimmerNameInput swimmer={swimmer} />,
-      <ZeitenCell swimmer={swimmer} disciplineId={discipline.id} />,
+      <LapTimeCell swimmer={swimmer} disciplineId={discipline.id} />,
       <SwimmerRemoveButton id={swimmer.id} />,
     ];
   }

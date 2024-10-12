@@ -1,21 +1,20 @@
-import "./ZeitenGridView.module.css";
 import { Group, Paper, Space, Table } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
 import { Discipline } from "../../model/discipline.ts";
 import React from "react";
-import ZeitenCell from "../ZeitenCell/ZeitenCell.tsx";
+import LapTimeCell from "../LapTimeCell/LapTimeCell.tsx";
 import SwimmerAddButton from "../SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerRemoveButton from "../SwimmerRemoveButton/SwimmerRemoveButton.tsx";
 import SwimmerNameInput from "../SwimmerNameInput/SwimmerNameInput.tsx";
 
-export default function ZeitenGridView() {
+export default function LapTimeGridView() {
   const [disciplines, swimmers] = useStore(useShallow((state) => [state.disciplines, state.swimmers]));
 
   function renderRow(swimmer: Swimmer, disciplines: Map<number, Discipline>): React.ReactNode[] {
     const cells = Array.from(disciplines.keys()).map((disciplineId) => (
-      <ZeitenCell swimmer={swimmer} disciplineId={disciplineId} />
+      <LapTimeCell swimmer={swimmer} disciplineId={disciplineId} />
     ));
     return [<SwimmerNameInput swimmer={swimmer} />, ...cells, <SwimmerRemoveButton id={swimmer.id} />];
   }
