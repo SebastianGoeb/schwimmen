@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 const links = [
   { link: "schwimmer", label: "Schwimmer", disabled: false },
   { link: "zeiten", label: "Zeiten", disabled: false },
-  { link: "staffeln", label: "Staffeln", disabled: true },
+  { link: "staffeln", label: "Staffeln", disabled: false },
   { link: "optimieren", label: "Optimieren", disabled: true },
   { link: "importieren", label: "Importieren", disabled: true },
 ];
