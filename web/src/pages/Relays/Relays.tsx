@@ -1,11 +1,13 @@
-import { Button, Container, Group, Paper } from "@mantine/core";
+import { Button, Container, Group, Paper, Stack } from "@mantine/core";
 import { IconPresentation } from "@tabler/icons-react";
 import { demoData1 } from "../../demo/data.ts";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 
 export default function Relays() {
-  const [updateEverything] = useStore(useShallow((state) => [state.updateEverything]));
+  const [relays, disciplines, updateEverything] = useStore(
+    useShallow((state) => [state.relays, state.disciplines, state.updateEverything]),
+  );
 
   return (
     <Container size="md">
@@ -16,9 +18,20 @@ export default function Relays() {
         </Button>
       </Group>
 
-      <Paper shadow="md" withBorder p="xl">
-        <p>Hier kommt bald was.</p>
-      </Paper>
+      <Stack gap={"1rem"}>
+        {Array.from(relays.values()).map((relay) => (
+          <Paper shadow="md" withBorder p="xl">
+            <h2>{relay.name}</h2>
+            <ul>
+              {Array.from(relay.disciplines.entries()).map(([disciplineId, times]) => (
+                <li>
+                  {times}x {disciplines.get(disciplineId)?.name}
+                </li>
+              ))}
+            </ul>
+          </Paper>
+        ))}
+      </Stack>
     </Container>
   );
 }
