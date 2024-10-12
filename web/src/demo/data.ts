@@ -41,4 +41,30 @@ export const demoData1: Data = {
       ]),
     },
   ],
+  relays: [
+    {
+      id: 0,
+      name: "Brust",
+      disciplines: new Map([[0, 4]]),
+    },
+    {
+      id: 1,
+      name: "Kraul",
+      disciplines: new Map([[1, 4]]),
+    },
+    {
+      id: 2,
+      name: "Rücken",
+      disciplines: new Map([[2, 4]]),
+    },
+    {
+      id: 3,
+      name: "Lagen",
+      disciplines: new Map([
+        [0, 2],
+        [1, 2],
+        [2, 2],
+      ]),
+    },
+  ],
 };

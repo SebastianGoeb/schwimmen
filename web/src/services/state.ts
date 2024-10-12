@@ -4,10 +4,12 @@ import { create } from "zustand";
 import { Data } from "../model/data.ts";
 import { max } from "lodash-es";
 import { Gender } from "../model/gender.ts";
+import { Relay } from "../model/relay.ts";
 
 interface State {
   disciplines: Map<number, Discipline>;
   swimmers: Map<number, Swimmer>;
+  relays: Map<number, Relay>;
   updateEverything: (data: Data) => void;
   updateDiscipline: (discipline: Discipline) => void;
   addSwimmer: () => void;
@@ -26,6 +28,7 @@ export const useStore = create<State>()((set) => ({
     ].map((it) => [it.id, it]),
   ),
   swimmers: new Map(),
+  relays: new Map(),
   updateEverything: (data) => set((state) => updateEverything(state, data)),
   updateDiscipline: (discipline) => set((state) => updateDiscipline(state, discipline)),
   addSwimmer: () => set((state) => addSwimmer(state)),
@@ -40,6 +43,7 @@ function updateEverything(_state: State, data: Data): Partial<State> {
   return {
     disciplines: new Map(data.disciplines.map((discipline: Discipline) => [discipline.id, discipline])),
     swimmers: new Map(data.swimmers.map((swimmer: Swimmer) => [swimmer.id, swimmer])),
+    relays: new Map(data.relays.map((relay: Relay) => [relay.id, relay])),
   };
 }
 
