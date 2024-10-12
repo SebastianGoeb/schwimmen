@@ -20,10 +20,9 @@ export function HeaderSimple() {
     const href = `/${link.link}`;
     return (
       <Button
+        variant={location.pathname === href || undefined ? "outline" : "subtle"}
         disabled={link.disabled}
         key={link.label}
-        className={classes.link}
-        data-active={location.pathname === href || undefined}
         onClick={(event) => {
           event.preventDefault();
           navigate(href);
