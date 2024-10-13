@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { createTheme, MantineProvider } from "@mantine/core";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, replace, RouterProvider } from "react-router-dom";
 import Importieren from "./pages/Importieren/Importieren.tsx";
 import Relays from "./pages/Relays/Relays.tsx";
 import Optimieren from "./pages/Optimieren/Optimieren.tsx";
@@ -21,6 +21,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
+      { index: true, loader: async () => replace("/schwimmer") },
       { path: "schwimmer", element: <Swimmers /> },
       { path: "zeiten", element: <LapTimes /> },
       { path: "staffeln", element: <Relays /> },

@@ -1,4 +1,4 @@
-import { Button, Container, Group, SegmentedControl } from "@mantine/core";
+import { Alert, Button, Container, Group, SegmentedControl, Space } from "@mantine/core";
 import { IconPresentation } from "@tabler/icons-react";
 import { useStore } from "../../services/state.ts";
 import { demoData1 } from "../../demo/data.ts";
@@ -18,7 +18,7 @@ export default function LapTimes() {
   const [view, setView] = useState<string>(View.Grid);
 
   return (
-    <Container size="md">
+    <Container size="xl">
       <Group justify="space-between">
         <h1>Zeiten</h1>
         <Group>
@@ -29,6 +29,12 @@ export default function LapTimes() {
           </Button>
         </Group>
       </Group>
+
+      <Alert variant="light" color="orange" title="Achtung">
+        Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten
+        eingeben, da diese verloren gehen.
+      </Alert>
+      <Space h="md"></Space>
 
       {view === View.Grid ? <LapTimeGridView /> : <LapTimeDisciplinesView />}
     </Container>

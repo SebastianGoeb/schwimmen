@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Alert,
   Box,
   Button,
   Container,
@@ -106,6 +107,12 @@ export default function Relays() {
           Demodaten nutzen
         </Button>
       </Group>
+
+      <Alert variant="light" color="orange" title="Achtung">
+        Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten
+        eingeben, da diese verloren gehen.
+      </Alert>
+      <Space h="md"></Space>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {Array.from(relays.values()).map((relay) => (
