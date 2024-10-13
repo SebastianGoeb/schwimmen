@@ -7,8 +7,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Importieren from "./pages/Importieren/Importieren.tsx";
 import Staffeln from "./pages/Staffeln/Staffeln.tsx";
 import Optimieren from "./pages/Optimieren/Optimieren.tsx";
-import Schwimmer from "./pages/Schwimmer/Schwimmer.tsx";
-import Zeiten from "./pages/Zeiten/Zeiten.tsx";
+import Swimmers from "./pages/Swimmers/Swimmers.tsx";
+import LapTimes from "./pages/LapTimes/LapTimes.tsx";
 
 const theme = createTheme({
   cursorType: "pointer",
@@ -19,8 +19,8 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
-      { path: "schwimmer", element: <Schwimmer /> },
-      { path: "zeiten", element: <Zeiten /> },
+      { path: "schwimmer", element: <Swimmers /> },
+      { path: "zeiten", element: <LapTimes /> },
       { path: "staffeln", element: <Staffeln /> },
       { path: "optimieren", element: <Optimieren /> },
       { path: "importieren", element: <Importieren /> },

@@ -1,19 +1,18 @@
-import "./Zeiten.module.css";
 import { Button, Container, Group, SegmentedControl } from "@mantine/core";
 import { IconPresentation } from "@tabler/icons-react";
 import { useStore } from "../../services/state.ts";
 import { demoData1 } from "../../demo/data.ts";
 import { useShallow } from "zustand/react/shallow";
-import ZeitenGridView from "../../components/ZeitenGridView/ZeitenGridView.tsx";
+import LapTimeGridView from "../../components/LapTimeGridView/LapTimeGridView.tsx";
 import { useState } from "react";
-import ZeitenDisciplinesView from "../../components/ZeitenDisciplinesView/ZeitenDisciplinesView.tsx";
+import LapTimeDisciplinesView from "../../components/LapTimeDisciplinesView/LapTimeDisciplinesView.tsx";
 
 enum View {
   Grid = "Raster",
   Disciplines = "Disziplinen",
 }
 
-export default function Zeiten() {
+export default function LapTimes() {
   const [updateEverything] = useStore(useShallow((state) => [state.updateEverything]));
 
   const [view, setView] = useState<string>(View.Grid);
@@ -31,7 +30,7 @@ export default function Zeiten() {
         </Group>
       </Group>
 
-      {view === View.Grid ? <ZeitenGridView /> : <ZeitenDisciplinesView />}
+      {view === View.Grid ? <LapTimeGridView /> : <LapTimeDisciplinesView />}
     </Container>
   );
 }
