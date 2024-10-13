@@ -20,6 +20,7 @@ export const demoData1: Data = {
     {
       id: 0,
       name: "Max Mustermann",
+      yearOfBirth: 2020,
       gender: Gender.M,
       present: true,
       lapTimes: new Map([
@@ -30,6 +31,7 @@ export const demoData1: Data = {
     {
       id: 1,
       name: "Erika Mustermann",
+      yearOfBirth: 2017,
       gender: Gender.W,
       present: false,
       minStarts: 1,

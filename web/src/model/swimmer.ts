@@ -5,6 +5,7 @@ export interface Swimmer {
   name: string;
   present: boolean;
   gender: Gender;
+  yearOfBirth: number;
   minStarts?: number;
   maxStarts?: number;
   lapTimes: Map<number, LapTime>;

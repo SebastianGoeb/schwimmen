@@ -92,6 +92,7 @@ function addSwimmer(state: State): Partial<State> {
   const swimmer: Swimmer = {
     id: (max(ids) ?? 0) + 1,
     name: "",
+    yearOfBirth: new Date().getFullYear(),
     gender: Gender.M,
     present: true,
     lapTimes: new Map(),
