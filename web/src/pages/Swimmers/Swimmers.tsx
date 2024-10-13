@@ -33,14 +33,18 @@ export default function Swimmers() {
     useShallow((state) => [state.swimmers, state.updateEverything, state.updateSwimmer]),
   );
 
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from(Array(18).keys(), (yearsOld) => String(currentYear - yearsOld));
+
   function renderRow(swimmer: Swimmer): React.ReactNode[] {
     //   TODO min/max dynamic
     return [
       <SwimmerNameInput swimmer={swimmer} />,
-      <Checkbox
-        color="gray"
-        checked={swimmer.present}
-        onChange={(evt) => updateSwimmer({ ...swimmer, present: evt.currentTarget.checked })}
+      <NativeSelect
+        style={{ width: "8rem" }}
+        data={yearOptions}
+        value={swimmer.yearOfBirth}
+        onChange={(evt) => updateSwimmer({ ...swimmer, yearOfBirth: Number(evt.currentTarget.value) })}
       />,
       <NativeSelect
         style={{ width: "8rem" }}
@@ -66,6 +70,11 @@ export default function Swimmers() {
         value={swimmer.maxStarts}
         onChange={(value) => updateSwimmer({ ...swimmer, maxStarts: numberify(value) })}
       />,
+      <Checkbox
+        color="gray"
+        checked={swimmer.present}
+        onChange={(evt) => updateSwimmer({ ...swimmer, present: evt.currentTarget.checked })}
+      />,
       <SwimmerRemoveButton id={swimmer.id} />,
     ];
   }
@@ -88,7 +97,7 @@ export default function Swimmers() {
       <Paper shadow="md" withBorder p="xl">
         <Table
           data={{
-            head: ["Name", "Anwesend", "Geschlecht", "Min Starts", "Max Starts"],
+            head: ["Name", "Jahrgang", "Geschlecht", "Min Starts", "Max Starts", "Anwesend"],
             body: Array.from(swimmers.values()).map(renderRow),
           }}
         ></Table>
