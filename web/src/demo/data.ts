@@ -41,4 +41,30 @@ export const demoData1: Data = {
       ]),
     },
   ],
+  relays: [
+    {
+      id: 0,
+      name: "Brust",
+      legs: [{ disciplineId: 0, times: 4 }],
+    },
+    {
+      id: 1,
+      name: "Kraul",
+      legs: [{ disciplineId: 1, times: 4 }],
+    },
+    {
+      id: 2,
+      name: "Rücken",
+      legs: [{ disciplineId: 2, times: 4 }],
+    },
+    {
+      id: 3,
+      name: "Lagen",
+      legs: [
+        { disciplineId: 0, times: 2 },
+        { disciplineId: 1, times: 2 },
+        { disciplineId: 2, times: 2 },
+      ],
+    },
+  ],
 };
