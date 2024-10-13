@@ -1,25 +1,13 @@
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Container,
-  Group,
-  NativeSelect,
-  NumberInput,
-  Paper,
-  Space,
-  Table,
-} from "@mantine/core";
+import { Alert, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Space, Table } from "@mantine/core";
 import React from "react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
 import { Gender } from "../../model/gender.ts";
-import { IconPresentation } from "@tabler/icons-react";
-import { demoData1 } from "../../demo/data.ts";
 import SwimmerRemoveButton from "../../components/SwimmerRemoveButton/SwimmerRemoveButton.tsx";
 import SwimmerAddButton from "../../components/SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerNameInput from "../../components/SwimmerNameInput/SwimmerNameInput.tsx";
+import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 
 function numberify(sn: string | number): number | undefined {
   if (typeof sn === "string") {
@@ -29,9 +17,7 @@ function numberify(sn: string | number): number | undefined {
 }
 
 export default function Swimmers() {
-  const [swimmers, updateEverything, updateSwimmer] = useStore(
-    useShallow((state) => [state.swimmers, state.updateEverything, state.updateSwimmer]),
-  );
+  const [swimmers, updateSwimmer] = useStore(useShallow((state) => [state.swimmers, state.updateSwimmer]));
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from(Array(18).keys(), (yearsOld) => String(currentYear - yearsOld));
@@ -83,9 +69,7 @@ export default function Swimmers() {
     <Container size="xl">
       <Group justify="space-between">
         <h1>Schwimmer</h1>
-        <Button rightSection={<IconPresentation />} onClick={() => updateEverything(demoData1)}>
-          Demodaten nutzen
-        </Button>
+        <DemoDataButton />
       </Group>
 
       <Alert variant="light" color="orange" title="Achtung">

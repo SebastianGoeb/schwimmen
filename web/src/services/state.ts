@@ -6,6 +6,7 @@ import { max } from "lodash-es";
 import { Gender } from "../model/gender.ts";
 import { Relay, RelayLeg } from "../model/relay.ts";
 import { showProgrammingErrorNotification } from "../utils/notifications.ts";
+import { demoData1 } from "../demo/data.ts";
 
 interface State {
   disciplines: Map<number, Discipline>;
@@ -33,15 +34,9 @@ interface State {
 }
 
 export const useStore = create<State>()((set) => ({
-  disciplines: new Map(
-    [
-      { id: 0, name: "Disziplin 1" },
-      { id: 1, name: "Disziplin 2" },
-      { id: 2, name: "Disziplin 3" },
-    ].map((it) => [it.id, it]),
-  ),
-  swimmers: new Map(),
-  relays: new Map(),
+  disciplines: new Map(demoData1.disciplines.map((d) => [d.id, d])),
+  swimmers: new Map(demoData1.swimmers.map((s) => [s.id, s])),
+  relays: new Map(demoData1.relays.map((r) => [r.id, r])),
   // demo
   updateEverything: (data) => set((state) => updateEverything(state, data)),
 

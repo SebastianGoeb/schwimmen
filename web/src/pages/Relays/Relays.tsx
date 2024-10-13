@@ -15,39 +15,29 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IconPlus, IconPresentation, IconTrashX } from "@tabler/icons-react";
-import { demoData1 } from "../../demo/data.ts";
+import { IconPlus, IconTrashX } from "@tabler/icons-react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
 import { useDisclosure } from "@mantine/hooks";
 import { showProgrammingErrorNotification } from "../../utils/notifications.ts";
+import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 
 export default function Relays() {
-  const [
-    relays,
-    disciplines,
-    updateEverything,
-    addRelay,
-    removeRelay,
-    updateRelay,
-    addRelayLeg,
-    removeRelayLeg,
-    updateRelayLeg,
-  ] = useStore(
-    useShallow((state) => [
-      state.relays,
-      state.disciplines,
-      state.updateEverything,
-      state.addRelay,
-      state.removeRelay,
-      state.updateRelay,
-      state.addRelayLeg,
-      state.removeRelayLeg,
-      state.updateRelayLeg,
-    ]),
-  );
+  const [relays, disciplines, addRelay, removeRelay, updateRelay, addRelayLeg, removeRelayLeg, updateRelayLeg] =
+    useStore(
+      useShallow((state) => [
+        state.relays,
+        state.disciplines,
+        state.addRelay,
+        state.removeRelay,
+        state.updateRelay,
+        state.addRelayLeg,
+        state.removeRelayLeg,
+        state.updateRelayLeg,
+      ]),
+    );
 
   const [relayPendingRemoval, setRelayPendingRemoval] = useState<Relay | undefined>(undefined);
   const [removeModalOpened, { open: openRemoveModal, close: closeRemoveModal }] = useDisclosure(false);
@@ -103,9 +93,7 @@ export default function Relays() {
     <Container size="xl">
       <Group justify="space-between">
         <h1>Staffeln</h1>
-        <Button rightSection={<IconPresentation />} onClick={() => updateEverything(demoData1)}>
-          Demodaten nutzen
-        </Button>
+        <DemoDataButton />
       </Group>
 
       <Alert variant="light" color="orange" title="Achtung">
