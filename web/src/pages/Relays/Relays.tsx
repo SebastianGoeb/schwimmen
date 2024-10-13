@@ -21,6 +21,7 @@ import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
 import { useDisclosure } from "@mantine/hooks";
+import { showProgrammingErrorNotification } from "../../utils/notifications.ts";
 
 export default function Relays() {
   const [
@@ -55,18 +56,27 @@ export default function Relays() {
   }
 
   function renderRow(relay: Relay, relayLeg: RelayLeg, index: number): React.ReactNode {
+    const discipline = disciplines.get(relayLeg.disciplineId);
+
+    if (discipline === undefined) {
+      return undefined;
+    }
+
     return (
       <Group wrap="nowrap">
         <Select
           style={{ flexShrink: 1, flexGrow: 1 }}
           placeholder="Disziplin..."
-          // TODO no !
-          value={disciplines.get(relayLeg.disciplineId)!.name}
+          value={discipline.name}
           data={Array.from(disciplines.values()).map((discipline) => discipline.name)}
           onChange={(value) => {
             if (value !== null) {
-              // TODO no !
-              updateRelayLeg(relay.id, { ...relayLeg, disciplineId: findDisciplineId(value)! }, index);
+              const disciplineId = findDisciplineId(value);
+              if (disciplineId === undefined) {
+                showProgrammingErrorNotification();
+                return;
+              }
+              updateRelayLeg(relay.id, { ...relayLeg, disciplineId }, index);
             }
           }}
         />
@@ -77,7 +87,6 @@ export default function Relays() {
           value={relayLeg.times}
           onChange={(value) => {
             if (typeof value === "number") {
-              // TODO no !
               updateRelayLeg(relay.id, { ...relayLeg, times: value }, index);
             }
           }}
@@ -135,8 +144,12 @@ export default function Relays() {
                     value={""}
                     onChange={(value) => {
                       if (value !== null) {
-                        // TODO no !
-                        addRelayLeg(relay.id, { disciplineId: findDisciplineId(value)!, times: 1 });
+                        const disciplineId = findDisciplineId(value);
+                        if (disciplineId === undefined) {
+                          showProgrammingErrorNotification();
+                          return;
+                        }
+                        addRelayLeg(relay.id, { disciplineId, times: 1 });
                       }
                     }}
                   />

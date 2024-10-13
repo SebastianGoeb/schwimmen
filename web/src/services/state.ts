@@ -5,6 +5,7 @@ import { Data } from "../model/data.ts";
 import { max } from "lodash-es";
 import { Gender } from "../model/gender.ts";
 import { Relay, RelayLeg } from "../model/relay.ts";
+import { showProgrammingErrorNotification } from "../utils/notifications.ts";
 
 interface State {
   disciplines: Map<number, Discipline>;
@@ -148,21 +149,33 @@ function updateRelay(state: State, relay: Relay): Partial<State> {
 // ==== relay leg ====
 
 function addRelayLeg(state: State, relayId: number, relayLeg: RelayLeg): Partial<State> {
-  // TODO no !
-  const relay = state.relays.get(relayId)!;
+  const relay = state.relays.get(relayId);
+  if (relay === undefined) {
+    showProgrammingErrorNotification();
+    return {};
+  }
   const newLegs = Array.from(relay.legs);
   newLegs.push(relayLeg);
   const newRelay: Relay = { ...relay, legs: newLegs };
+
+  // set default relay name if a name hasn't already been chosen
   if (newRelay.name === "") {
-    // TODO no !
-    newRelay.name = state.disciplines.get(relayLeg.disciplineId)!.name;
+    const discipline = state.disciplines.get(relayLeg.disciplineId);
+    if (discipline === undefined) {
+      showProgrammingErrorNotification();
+      return {};
+    }
+    newRelay.name = discipline.name;
   }
   return { relays: new Map(state.relays).set(relayId, newRelay) };
 }
 
 function removeRelayLeg(state: State, relayId: number, index: number): Partial<State> {
-  // TODO no !
-  const relay = state.relays.get(relayId)!;
+  const relay = state.relays.get(relayId);
+  if (relay === undefined) {
+    showProgrammingErrorNotification();
+    return {};
+  }
   const newLegs = Array.from(relay.legs);
   newLegs.splice(index, 1);
   const newRelay: Relay = { ...relay, legs: newLegs };
@@ -170,8 +183,11 @@ function removeRelayLeg(state: State, relayId: number, index: number): Partial<S
 }
 
 function updateRelayLeg(state: State, relayId: number, relayLeg: RelayLeg, index: number): Partial<State> {
-  // TODO no !
-  const relay = state.relays.get(relayId)!;
+  const relay = state.relays.get(relayId);
+  if (relay === undefined) {
+    showProgrammingErrorNotification();
+    return {};
+  }
   const newLegs = Array.from(relay.legs);
   newLegs[index] = relayLeg;
   const newRelay: Relay = { ...relay, legs: newLegs };
