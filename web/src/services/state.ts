@@ -153,6 +153,10 @@ function addRelayLeg(state: State, relayId: number, relayLeg: RelayLeg): Partial
   const newLegs = Array.from(relay.legs);
   newLegs.push(relayLeg);
   const newRelay: Relay = { ...relay, legs: newLegs };
+  if (newRelay.name === "") {
+    // TODO no !
+    newRelay.name = state.disciplines.get(relayLeg.disciplineId)!.name;
+  }
   return { relays: new Map(state.relays).set(relayId, newRelay) };
 }
 
