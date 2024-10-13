@@ -5,19 +5,22 @@ import {
   Container,
   Group,
   Input,
+  Modal,
   NumberInput,
   Paper,
   Select,
   SimpleGrid,
   Space,
   Stack,
+  Text,
 } from "@mantine/core";
 import { IconPlus, IconPresentation, IconTrashX } from "@tabler/icons-react";
 import { demoData1 } from "../../demo/data.ts";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
-import React from "react";
+import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
+import { useDisclosure } from "@mantine/hooks";
 
 export default function Relays() {
   const [
@@ -43,6 +46,9 @@ export default function Relays() {
       state.updateRelayLeg,
     ]),
   );
+
+  const [relayPendingRemoval, setRelayPendingRemoval] = useState<Relay | undefined>(undefined);
+  const [removeModalOpened, { open: openRemoveModal, close: closeRemoveModal }] = useDisclosure(false);
 
   function findDisciplineId(disciplineName: string): number | undefined {
     return Array.from(disciplines.values()).find((d) => d.name === disciplineName)?.id;
@@ -146,7 +152,10 @@ export default function Relays() {
                 variant="subtle"
                 color="black"
                 style={{ alignSelf: "flex-end" }}
-                onClick={() => removeRelay(relay.id)}
+                onClick={() => {
+                  setRelayPendingRemoval(relay);
+                  openRemoveModal();
+                }}
               >
                 Staffel löschen
               </Button>
@@ -167,6 +176,26 @@ export default function Relays() {
           </Button>
         </Box>
       </SimpleGrid>
+
+      <Modal centered opened={removeModalOpened} onClose={closeRemoveModal} title="Staffel Löschen">
+        <Stack>
+          <Text>Möchten Sie die Staffel "{relayPendingRemoval?.name}" komplett entfernen?</Text>
+          <Group justify="flex-end">
+            <Button variant="outline" color="black" onClick={closeRemoveModal}>
+              Abbrechen
+            </Button>
+            <Button
+              color="red"
+              onClick={async () => {
+                closeRemoveModal();
+                removeRelay(relayPendingRemoval!.id);
+              }}
+            >
+              Löschen
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 }
