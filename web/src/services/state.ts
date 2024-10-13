@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { Data } from "../model/data.ts";
 import { max } from "lodash-es";
 import { Gender } from "../model/gender.ts";
-import { Relay } from "../model/relay.ts";
+import { Relay, RelayLeg } from "../model/relay.ts";
 
 interface State {
   disciplines: Map<number, Discipline>;
@@ -25,6 +25,10 @@ interface State {
   addRelay: () => void;
   removeRelay: (relayId: number) => void;
   updateRelay: (relay: Relay) => void;
+  // relay legs
+  addRelayLeg: (relayId: number, relayLeg: RelayLeg) => void;
+  removeRelayLeg: (relayId: number, index: number) => void;
+  updateRelayLeg: (relayId: number, relayLeg: RelayLeg, index: number) => void;
 }
 
 export const useStore = create<State>()((set) => ({
@@ -57,6 +61,11 @@ export const useStore = create<State>()((set) => ({
   addRelay: () => set((state) => addRelay(state)),
   removeRelay: (relayId) => set((state) => removeRelay(state, relayId)),
   updateRelay: (relay) => set((state) => updateRelay(state, relay)),
+
+  // relay leg
+  addRelayLeg: (relayId, relayLeg) => set((state) => addRelayLeg(state, relayId, relayLeg)),
+  removeRelayLeg: (relayId, index) => set((state) => removeRelayLeg(state, relayId, index)),
+  updateRelayLeg: (relayId, relayLeg, index) => set((state) => updateRelayLeg(state, relayId, relayLeg, index)),
 }));
 
 // ==== demo ====
@@ -121,7 +130,7 @@ function addRelay(state: State): Partial<State> {
   const relay: Relay = {
     id: (max(ids) ?? 0) + 1,
     name: "",
-    disciplines: new Map(),
+    legs: [],
   };
   return { relays: new Map(state.relays).set(relay.id, relay) };
 }
@@ -134,4 +143,33 @@ function removeRelay(state: State, relayId: number): Partial<State> {
 
 function updateRelay(state: State, relay: Relay): Partial<State> {
   return { relays: new Map(state.relays).set(relay.id, relay) };
+}
+
+// ==== relay leg ====
+
+function addRelayLeg(state: State, relayId: number, relayLeg: RelayLeg): Partial<State> {
+  // TODO no !
+  const relay = state.relays.get(relayId)!;
+  const newLegs = Array.from(relay.legs);
+  newLegs.push(relayLeg);
+  const newRelay: Relay = { ...relay, legs: newLegs };
+  return { relays: new Map(state.relays).set(relayId, newRelay) };
+}
+
+function removeRelayLeg(state: State, relayId: number, index: number): Partial<State> {
+  // TODO no !
+  const relay = state.relays.get(relayId)!;
+  const newLegs = Array.from(relay.legs);
+  newLegs.splice(index, 1);
+  const newRelay: Relay = { ...relay, legs: newLegs };
+  return { relays: new Map(state.relays).set(relayId, newRelay) };
+}
+
+function updateRelayLeg(state: State, relayId: number, relayLeg: RelayLeg, index: number): Partial<State> {
+  // TODO no !
+  const relay = state.relays.get(relayId)!;
+  const newLegs = Array.from(relay.legs);
+  newLegs[index] = relayLeg;
+  const newRelay: Relay = { ...relay, legs: newLegs };
+  return { relays: new Map(state.relays).set(relayId, newRelay) };
 }

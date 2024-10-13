@@ -17,31 +17,66 @@ import { demoData1 } from "../../demo/data.ts";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import React from "react";
+import { Relay, RelayLeg } from "../../model/relay.ts";
 
 export default function Relays() {
-  const [relays, disciplines, updateEverything, addRelay, updateRelay, removeRelay] = useStore(
+  const [
+    relays,
+    disciplines,
+    updateEverything,
+    addRelay,
+    removeRelay,
+    updateRelay,
+    addRelayLeg,
+    removeRelayLeg,
+    updateRelayLeg,
+  ] = useStore(
     useShallow((state) => [
       state.relays,
       state.disciplines,
       state.updateEverything,
       state.addRelay,
-      state.updateRelay,
       state.removeRelay,
+      state.updateRelay,
+      state.addRelayLeg,
+      state.removeRelayLeg,
+      state.updateRelayLeg,
     ]),
   );
 
-  function renderRow(disciplineId: number, times: number): React.ReactNode {
+  function findDisciplineId(disciplineName: string): number | undefined {
+    return Array.from(disciplines.values()).find((d) => d.name === disciplineName)?.id;
+  }
+
+  function renderRow(relay: Relay, relayLeg: RelayLeg, index: number): React.ReactNode {
     return (
       <Group wrap="nowrap">
         <Select
           style={{ flexShrink: 1, flexGrow: 1 }}
           placeholder="Disziplin..."
           // TODO no !
-          value={disciplines.get(disciplineId)!.name}
+          value={disciplines.get(relayLeg.disciplineId)!.name}
           data={Array.from(disciplines.values()).map((discipline) => discipline.name)}
+          onChange={(value) => {
+            if (value !== null) {
+              // TODO no !
+              updateRelayLeg(relay.id, { ...relayLeg, disciplineId: findDisciplineId(value)! }, index);
+            }
+          }}
         />
-        <NumberInput min={1} placeholder="1..." value={times} style={{ flexShrink: 2, flexGrow: 1 }} />
-        <ActionIcon variant="subtle" color="red">
+        <NumberInput
+          style={{ flexShrink: 2, flexGrow: 1 }}
+          min={1}
+          placeholder="1..."
+          value={relayLeg.times}
+          onChange={(value) => {
+            if (typeof value === "number") {
+              // TODO no !
+              updateRelayLeg(relay.id, { ...relayLeg, times: value }, index);
+            }
+          }}
+        />
+        <ActionIcon variant="subtle" color="red" onClick={() => removeRelayLeg(relay.id, index)}>
           <IconTrashX />
         </ActionIcon>
       </Group>
@@ -82,15 +117,22 @@ export default function Relays() {
                   }}
                 ></Input>
 
-                {/* existing entries */}
-                {Array.from(relay.disciplines.entries(), ([disciplineId, times]) => renderRow(disciplineId, times))}
+                {/* existing legs */}
+                {relay.legs.map((relayLeg, index) => renderRow(relay, relayLeg, index))}
 
-                {/* new entry */}
+                {/* new leg */}
                 <Group wrap="nowrap">
                   <Select
                     style={{ flexShrink: 1, flexGrow: 1 }}
                     placeholder="Disziplin..."
                     data={Array.from(disciplines.values(), (discipline) => discipline.name)}
+                    value={""}
+                    onChange={(value) => {
+                      if (value !== null) {
+                        // TODO no !
+                        addRelayLeg(relay.id, { disciplineId: findDisciplineId(value)!, times: 1 });
+                      }
+                    }}
                   />
                   <NumberInput disabled min={1} placeholder="1..." style={{ flexShrink: 2, flexGrow: 1 }} />
                   {/* no idea, why we can't access --ai-size-md (ActionIcon medium size) */}
@@ -98,9 +140,8 @@ export default function Relays() {
                 </Group>
               </Stack>
 
-              <Space h="1rem" />
-
               {/* bottom buttons */}
+              <Space h="1rem" />
               <Button
                 variant="subtle"
                 color="black"
