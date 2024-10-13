@@ -1,11 +1,8 @@
-import { Alert, Button, Container, Group, SegmentedControl, Space } from "@mantine/core";
-import { IconPresentation } from "@tabler/icons-react";
-import { useStore } from "../../services/state.ts";
-import { demoData1 } from "../../demo/data.ts";
-import { useShallow } from "zustand/react/shallow";
+import { Alert, Container, Group, SegmentedControl, Space } from "@mantine/core";
 import LapTimeGridView from "../../components/LapTimeGridView/LapTimeGridView.tsx";
 import { useState } from "react";
 import LapTimeDisciplinesView from "../../components/LapTimeDisciplinesView/LapTimeDisciplinesView.tsx";
+import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 
 enum View {
   Grid = "Raster",
@@ -13,8 +10,6 @@ enum View {
 }
 
 export default function LapTimes() {
-  const [updateEverything] = useStore(useShallow((state) => [state.updateEverything]));
-
   const [view, setView] = useState<string>(View.Grid);
 
   return (
@@ -24,9 +19,7 @@ export default function LapTimes() {
         <Group>
           Ansicht
           <SegmentedControl onChange={setView} data={[View.Grid, View.Disciplines]} />
-          <Button rightSection={<IconPresentation />} onClick={() => updateEverything(demoData1)}>
-            Demodaten nutzen
-          </Button>
+          <DemoDataButton />
         </Group>
       </Group>
 
