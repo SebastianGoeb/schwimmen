@@ -1,4 +1,15 @@
-import { Button, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Space, Table } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Container,
+  Group,
+  NativeSelect,
+  NumberInput,
+  Paper,
+  Space,
+  Table,
+} from "@mantine/core";
 import React from "react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
@@ -60,13 +71,19 @@ export default function Swimmers() {
   }
 
   return (
-    <Container size="md">
+    <Container size="xl">
       <Group justify="space-between">
         <h1>Schwimmer</h1>
         <Button rightSection={<IconPresentation />} onClick={() => updateEverything(demoData1)}>
           Demodaten nutzen
         </Button>
       </Group>
+
+      <Alert variant="light" color="orange" title="Achtung">
+        Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten
+        eingeben, da diese verloren gehen.
+      </Alert>
+      <Space h="md"></Space>
 
       <Paper shadow="md" withBorder p="xl">
         <Table
