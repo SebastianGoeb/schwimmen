@@ -1,5 +1,5 @@
 import { Alert, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Space, Table } from "@mantine/core";
-import React from "react";
+import React, { useState } from "react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
@@ -16,8 +16,28 @@ function numberify(sn: string | number): number | undefined {
   return sn;
 }
 
+function byYearThenGenderThenLastname(a: Swimmer, b: Swimmer): number {
+  if (a.yearOfBirth !== b.yearOfBirth) {
+    return a.yearOfBirth - b.yearOfBirth;
+  }
+
+  if (a.gender !== b.gender) {
+    // W dann M https://github.com/SebastianGoeb/schwimmen/issues/24
+    return b.gender.localeCompare(a.gender);
+  }
+
+  const aLastname = a.name.split(" ").reverse()[0] ?? "";
+  const bLastname = b.name.split(" ").reverse()[0] ?? "";
+  return aLastname.localeCompare(bLastname);
+}
+
+function determineOrder(swimmers: Swimmer[]): number[] {
+  return [...swimmers].sort(byYearThenGenderThenLastname).map((s) => s.id);
+}
+
 export default function Swimmers() {
   const [swimmers, updateSwimmer] = useStore(useShallow((state) => [state.swimmers, state.updateSwimmer]));
+  const [order, setOrder] = useState<number[]>(determineOrder(Array.from(swimmers.values())));
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from(Array(18).keys(), (yearsOld) => String(currentYear - yearsOld));
@@ -25,7 +45,12 @@ export default function Swimmers() {
   function renderRow(swimmer: Swimmer): React.ReactNode[] {
     //   TODO min/max dynamic
     return [
-      <SwimmerNameInput swimmer={swimmer} />,
+      <SwimmerNameInput
+        swimmer={swimmer}
+        onBlur={() => {
+          setOrder(determineOrder(Array.from(swimmers.values())));
+        }}
+      />,
       <NativeSelect
         style={{ width: "8rem" }}
         data={yearOptions}
@@ -65,6 +90,9 @@ export default function Swimmers() {
     ];
   }
 
+  const swimmersSorted = order.map((o) => swimmers.get(o)!);
+  // swimmersSorted.sort(byYearThenGenderThenLastname);
+
   return (
     <Container size="xl">
       <Group justify="space-between">
@@ -82,7 +110,7 @@ export default function Swimmers() {
         <Table
           data={{
             head: ["Name", "Jahrgang", "Geschlecht", "Min Starts", "Max Starts", "Anwesend"],
-            body: Array.from(swimmers.values()).map(renderRow),
+            body: swimmersSorted.map(renderRow),
           }}
         ></Table>
 
@@ -90,6 +118,8 @@ export default function Swimmers() {
         <Group justify="flex-end">
           <SwimmerAddButton />
         </Group>
+
+        <pre>{JSON.stringify(swimmersSorted, null, 2)}</pre>
       </Paper>
     </Container>
   );
