@@ -19,6 +19,8 @@ function numberify(sn: string | number): number | undefined {
 export default function Swimmers() {
   const [swimmers, updateSwimmer] = useStore(useShallow((state) => [state.swimmers, state.updateSwimmer]));
 
+  const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
+
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from(Array(18).keys(), (yearsOld) => String(currentYear - yearsOld));
 
@@ -80,8 +82,6 @@ export default function Swimmers() {
       </Table.Tr>
     );
   }
-
-  const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
 
   return (
     <Container size="xl">
