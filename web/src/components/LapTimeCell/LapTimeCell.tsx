@@ -12,12 +12,12 @@ export default function LapTimeCell({ swimmer, disciplineId }: { swimmer: Swimme
   return (
     <Group wrap="nowrap" justify="flex-start">
       <Input
-        style={{ width: "3.5rem" }}
+        style={{ width: "4rem" }}
         variant="unstyled"
         component={IMaskInput}
         mask={
           new IMask.MaskedPattern({
-            mask: "S0:S0,0",
+            mask: "S0:S0,00",
             blocks: {
               S: {
                 mask: IMask.MaskedRange,
@@ -31,7 +31,7 @@ export default function LapTimeCell({ swimmer, disciplineId }: { swimmer: Swimme
         }
         value={lapTime?.seconds}
         onAccept={(value: string) => {
-          if (value === "" || value === "__:__,_") {
+          if (value === "" || value === "__:__,__") {
             removeLapTime(swimmer, disciplineId);
           } else {
             updateLapTime(swimmer, disciplineId, { enabled: lapTime?.enabled ?? true, seconds: value });
