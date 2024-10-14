@@ -2,22 +2,23 @@ import { TextInput } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
+import { useState } from "react";
 
 export interface SwimmerNameInputProps {
   swimmer: Swimmer;
-  onBlur?: () => void;
 }
 
-export default function SwimmerNameInput({ swimmer, onBlur }: SwimmerNameInputProps) {
+export default function SwimmerNameInput({ swimmer }: SwimmerNameInputProps) {
   const [updateSwimmer] = useStore(useShallow((state) => [state.updateSwimmer]));
+  const [value, setValue] = useState(swimmer.name);
 
   return (
     <TextInput
       variant="unstyled"
       placeholder="ich heiße..."
-      value={swimmer.name}
-      onChange={(evt) => updateSwimmer({ ...swimmer, name: evt.currentTarget.value })}
-      onBlur={onBlur}
+      value={value}
+      onChange={(evt) => setValue(evt.target.value)}
+      onBlur={() => updateSwimmer({ ...swimmer, name: value })}
     ></TextInput>
   );
 }
