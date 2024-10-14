@@ -21,8 +21,8 @@ export default function LapTimeDisciplinesView() {
         <Table>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th> Name</Table.Th>
-              <Table.Th> Zeit</Table.Th>
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Zeit</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer, discipline))}</Table.Tbody>

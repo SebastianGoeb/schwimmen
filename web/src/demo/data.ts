@@ -31,8 +31,8 @@ export const demoData1: Data = {
     {
       id: 1,
       name: "Erika Mustermann",
-      yearOfBirth: 2020,
-      gender: Gender.M,
+      yearOfBirth: 2017,
+      gender: Gender.W,
       present: false,
       minStarts: 1,
       maxStarts: 2,

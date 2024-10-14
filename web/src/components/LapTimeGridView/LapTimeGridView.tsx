@@ -15,21 +15,20 @@ export default function LapTimeGridView() {
   const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
 
   function renderRow(swimmer: Swimmer, disciplines: Map<number, Discipline>): React.ReactNode {
-    const cells = Array.from(disciplines.keys()).map((disciplineId) => (
-      <Table.Td key={`discipline-${disciplineId}`}>
-        <LapTimeCell swimmer={swimmer} disciplineId={disciplineId} />
-      </Table.Td>
-    ));
-    const allCells = [
+    const cells = [
       <Table.Td key="name">
         <SwimmerNameInput swimmer={swimmer} />
       </Table.Td>,
-      ...cells,
+      ...Array.from(disciplines.keys()).map((disciplineId) => (
+        <Table.Td key={`discipline-${disciplineId}`}>
+          <LapTimeCell swimmer={swimmer} disciplineId={disciplineId} />
+        </Table.Td>
+      )),
       <Table.Td key="remove">
         <SwimmerRemoveButton id={swimmer.id} />
       </Table.Td>,
     ];
-    return <Table.Tr key={swimmer.id}>{allCells}</Table.Tr>;
+    return <Table.Tr key={swimmer.id}>{cells}</Table.Tr>;
   }
 
   return (
