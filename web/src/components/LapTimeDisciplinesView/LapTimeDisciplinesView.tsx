@@ -1,4 +1,4 @@
-import { Group, Paper, SimpleGrid, Space, Table } from "@mantine/core";
+import { Group, Paper, ScrollArea, SimpleGrid, Space, Table } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Discipline } from "../../model/discipline.ts";
@@ -17,20 +17,22 @@ export default function LapTimeDisciplinesView() {
   function renderDiscipline(discipline: Discipline): React.ReactNode {
     return (
       <Paper shadow="md" withBorder p="xl" key={discipline.id}>
-        <h2>{discipline.name}</h2>
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Zeit</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer, discipline))}</Table.Tbody>
-        </Table>
-        <Space h="md" />
-        <Group justify="flex-end">
-          <SwimmerAddButton />
-        </Group>
+        <ScrollArea>
+          <h2>{discipline.name}</h2>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Name</Table.Th>
+                <Table.Th>Zeit</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer, discipline))}</Table.Tbody>
+          </Table>
+          <Space h="md" />
+          <Group justify="flex-end">
+            <SwimmerAddButton />
+          </Group>
+        </ScrollArea>
       </Paper>
     );
   }
@@ -52,7 +54,7 @@ export default function LapTimeDisciplinesView() {
   }
 
   return (
-    <SimpleGrid cols={2}>
+    <SimpleGrid cols={{ base: 1, md: 2 }}>
       {Array.from(disciplines.values()).map((discipline) => renderDiscipline(discipline))}
     </SimpleGrid>
   );
