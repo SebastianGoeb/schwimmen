@@ -2,7 +2,6 @@ import { Alert, Container, Group, Paper, Stack } from "@mantine/core";
 import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
-import React from "react";
 
 export default function Developer() {
   const [disziplinen, swimmers, relays] = useStore(

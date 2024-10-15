@@ -1,6 +1,6 @@
 import { IconRestore } from "@tabler/icons-react";
 import { demoData1 } from "../../demo/data.ts";
-import { Button, Text } from "@mantine/core";
+import { Button } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 
 export default function DemoDataButton() {
