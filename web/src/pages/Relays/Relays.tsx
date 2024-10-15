@@ -159,7 +159,10 @@ export default function Relays() {
               style={{ flexGrow: 1 }}
               placeholder="Disziplin..."
               onBlur={(evt) => {
-                addDiscipline({ name: evt.currentTarget.value });
+                const value = evt.currentTarget.value;
+                if (value.trim() !== "") {
+                  addDiscipline({ name: value });
+                }
                 evt.currentTarget.value = "";
               }}
               onKeyUp={(evt) => {
@@ -168,9 +171,6 @@ export default function Relays() {
                 }
               }}
             ></Input>
-            {/* TODO remove? */}
-            {/* 3x28 (icons) + 2x16 (gaps) */}
-            {/*<Space w="116px" />*/}
           </Group>
         </Stack>
       </Paper>
