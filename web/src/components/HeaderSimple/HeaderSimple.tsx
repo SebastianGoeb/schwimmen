@@ -9,6 +9,7 @@ const links = [
   { link: "staffeln", label: "Staffeln", disabled: false },
   { link: "optimieren", label: "Optimieren", disabled: true },
   { link: "importieren", label: "Importieren", disabled: true },
+  { link: "dev", label: "Entwicklerbereich", disabled: false },
 ];
 
 export function HeaderSimple() {

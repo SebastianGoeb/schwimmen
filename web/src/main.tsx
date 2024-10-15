@@ -11,6 +11,7 @@ import Optimieren from "./pages/Optimieren/Optimieren.tsx";
 import Swimmers from "./pages/Swimmers/Swimmers.tsx";
 import LapTimes from "./pages/LapTimes/LapTimes.tsx";
 import { Notifications } from "@mantine/notifications";
+import Developer from "./pages/Developer/Developer.tsx";
 
 const theme = createTheme({
   cursorType: "pointer",
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: "staffeln", element: <Relays /> },
       { path: "optimieren", element: <Optimieren /> },
       { path: "importieren", element: <Importieren /> },
+      { path: "dev", element: <Developer /> },
     ],
   },
 ]);
