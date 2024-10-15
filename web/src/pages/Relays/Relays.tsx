@@ -15,7 +15,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IconPlus, IconTrashX } from "@tabler/icons-react";
+import { IconArrowDown, IconArrowUp, IconPlus, IconTrashX } from "@tabler/icons-react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
@@ -23,6 +23,7 @@ import { Relay, RelayLeg } from "../../model/relay.ts";
 import { useDisclosure } from "@mantine/hooks";
 import { showProgrammingErrorNotification } from "../../utils/notifications.ts";
 import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
+import { Discipline } from "../../model/discipline.ts";
 
 export default function Relays() {
   const [relays, disciplines, addRelay, removeRelay, updateRelay, addRelayLeg, removeRelayLeg, updateRelayLeg] =
@@ -46,7 +47,38 @@ export default function Relays() {
     return Array.from(disciplines.values()).find((d) => d.name === disciplineName)?.id;
   }
 
-  function renderRow(relay: Relay, relayLeg: RelayLeg, index: number): React.ReactNode {
+  function renderDiscipline(discipline: Discipline, index: number): React.ReactNode {
+    return (
+      <Group wrap="nowrap" justify={"space-between"} style={{ borderBottom: "1px solid #ccc" }} p="xs">
+        <Input variant="unstyled" value={discipline.name} style={{ flexGrow: 1 }}></Input>
+        <Group>
+          {index !== 0 ? (
+            <ActionIcon variant="subtle" color="black">
+              <IconArrowUp style={{ width: "70%", height: "70%" }} />
+            </ActionIcon>
+          ) : (
+            // no idea, why we can't access --ai-size-md (ActionIcon medium size)
+            <Space w="28px" />
+          )}
+
+          {index < disciplines.size - 1 ? (
+            <ActionIcon variant="subtle" color="black">
+              <IconArrowDown style={{ width: "70%", height: "70%" }} />
+            </ActionIcon>
+          ) : (
+            // no idea, why we can't access --ai-size-md (ActionIcon medium size)
+            <Space w="28px" />
+          )}
+
+          <ActionIcon variant="subtle" color="red">
+            <IconTrashX />
+          </ActionIcon>
+        </Group>
+      </Group>
+    );
+  }
+
+  function renderRelayLeg(relay: Relay, relayLeg: RelayLeg, index: number): React.ReactNode {
     const discipline = disciplines.get(relayLeg.disciplineId);
 
     if (discipline === undefined) {
@@ -92,7 +124,7 @@ export default function Relays() {
   return (
     <Container size="xl">
       <Group justify="space-between">
-        <h1>Staffeln</h1>
+        <h1>Disziplinen</h1>
         <DemoDataButton />
       </Group>
 
@@ -101,6 +133,25 @@ export default function Relays() {
         eingeben, da diese verloren gehen.
       </Alert>
       <Space h="md"></Space>
+
+      <Paper shadow="md" withBorder p="xl">
+        <Stack gap={0}>
+          {Array.from(disciplines.values()).map(renderDiscipline)}
+
+          <Group wrap="nowrap" justify={"space-between"} p="xs">
+            <Input variant="unstyled" style={{ flexGrow: 1 }} placeholder="Disziplin..."></Input>
+            {/* TODO remove? */}
+            {/* 3x28 (icons) + 2x16 (gaps) */}
+            {/*<Space w="116px" />*/}
+          </Group>
+        </Stack>
+      </Paper>
+
+      <Space h="xl"></Space>
+
+      <Group justify="space-between">
+        <h1>Staffeln</h1>
+      </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {Array.from(relays.values()).map((relay) => (
@@ -128,7 +179,7 @@ export default function Relays() {
                 ></Input>
 
                 {/* existing legs */}
-                {relay.legs.map((relayLeg, index) => renderRow(relay, relayLeg, index))}
+                {relay.legs.map((relayLeg, index) => renderRelayLeg(relay, relayLeg, index))}
 
                 {/* new leg */}
                 <Group wrap="nowrap">
