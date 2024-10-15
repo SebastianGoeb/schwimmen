@@ -15,6 +15,8 @@ interface State {
   // demo
   updateEverything: (data: Data) => void;
   // discipline
+  addDiscipline: (discipline: Omit<Discipline, "id">) => void;
+  removeDiscipline: (disciplineId: number) => void;
   updateDiscipline: (discipline: Discipline) => void;
   // swimmer
   addSwimmer: () => void;
@@ -41,6 +43,8 @@ export const useStore = create<State>()((set) => ({
   updateEverything: (data) => set((state) => updateEverything(state, data)),
 
   // discipline
+  addDiscipline: (discipline) => set((state) => addDiscipline(state, discipline)),
+  removeDiscipline: (disciplineId) => set((state) => removeDiscipline(state, disciplineId)),
   updateDiscipline: (discipline) => set((state) => updateDiscipline(state, discipline)),
 
   // swimmer
@@ -75,6 +79,18 @@ function updateEverything(_state: State, data: Data): Partial<State> {
 }
 
 // ==== discipline ====
+
+function addDiscipline(state: State, discipline: Omit<Discipline, "id">): Partial<State> {
+  const ids = Array.from(state.disciplines.keys());
+  const newId = (max(ids) ?? 0) + 1;
+  return { disciplines: new Map(state.disciplines).set(newId, { ...discipline, id: newId }) };
+}
+
+function removeDiscipline(state: State, disciplineId: number): Partial<State> {
+  const newDisciplines = new Map(state.disciplines);
+  newDisciplines.delete(disciplineId);
+  return { disciplines: newDisciplines };
+}
 
 function updateDiscipline(state: State, discipline: Discipline): Partial<State> {
   return { disciplines: new Map(state.disciplines).set(discipline.id, discipline) };

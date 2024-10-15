@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  ComboboxItem,
   Container,
   Group,
   Input,
@@ -21,36 +22,55 @@ import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
 import { useDisclosure } from "@mantine/hooks";
-import { showProgrammingErrorNotification } from "../../utils/notifications.ts";
 import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 import { Discipline } from "../../model/discipline.ts";
 
 export default function Relays() {
-  const [relays, disciplines, addRelay, removeRelay, updateRelay, addRelayLeg, removeRelayLeg, updateRelayLeg] =
-    useStore(
-      useShallow((state) => [
-        state.relays,
-        state.disciplines,
-        state.addRelay,
-        state.removeRelay,
-        state.updateRelay,
-        state.addRelayLeg,
-        state.removeRelayLeg,
-        state.updateRelayLeg,
-      ]),
-    );
+  const [
+    relays,
+    disciplines,
+    addDiscipline,
+    removeDiscipline,
+    updateDiscipline,
+    addRelay,
+    removeRelay,
+    updateRelay,
+    addRelayLeg,
+    removeRelayLeg,
+    updateRelayLeg,
+  ] = useStore(
+    useShallow((state) => [
+      state.relays,
+      state.disciplines,
+      state.addDiscipline,
+      state.removeDiscipline,
+      state.updateDiscipline,
+      state.addRelay,
+      state.removeRelay,
+      state.updateRelay,
+      state.addRelayLeg,
+      state.removeRelayLeg,
+      state.updateRelayLeg,
+    ]),
+  );
 
   const [relayPendingRemoval, setRelayPendingRemoval] = useState<Relay | undefined>(undefined);
   const [removeModalOpened, { open: openRemoveModal, close: closeRemoveModal }] = useDisclosure(false);
 
-  function findDisciplineId(disciplineName: string): number | undefined {
-    return Array.from(disciplines.values()).find((d) => d.name === disciplineName)?.id;
-  }
+  const disciplineOptions: ComboboxItem[] = Array.from(disciplines.values(), (discipline) => ({
+    value: String(discipline.id),
+    label: discipline.name,
+  }));
 
   function renderDiscipline(discipline: Discipline, index: number): React.ReactNode {
     return (
       <Group wrap="nowrap" justify={"space-between"} style={{ borderBottom: "1px solid #ccc" }} p="xs">
-        <Input variant="unstyled" value={discipline.name} style={{ flexGrow: 1 }}></Input>
+        <Input
+          variant="unstyled"
+          value={discipline.name}
+          onChange={(evt) => updateDiscipline({ ...discipline, name: evt.currentTarget.value })}
+          style={{ flexGrow: 1 }}
+        ></Input>
         <Group>
           {index !== 0 ? (
             <ActionIcon variant="subtle" color="black">
@@ -70,7 +90,7 @@ export default function Relays() {
             <Space w="28px" />
           )}
 
-          <ActionIcon variant="subtle" color="red">
+          <ActionIcon variant="subtle" color="red" onClick={() => removeDiscipline(discipline.id)}>
             <IconTrashX />
           </ActionIcon>
         </Group>
@@ -91,15 +111,10 @@ export default function Relays() {
           style={{ flexShrink: 1, flexGrow: 1 }}
           placeholder="Disziplin..."
           value={discipline.name}
-          data={Array.from(disciplines.values()).map((discipline) => discipline.name)}
+          data={disciplineOptions}
           onChange={(value) => {
             if (value !== null) {
-              const disciplineId = findDisciplineId(value);
-              if (disciplineId === undefined) {
-                showProgrammingErrorNotification();
-                return;
-              }
-              updateRelayLeg(relay.id, { ...relayLeg, disciplineId }, index);
+              updateRelayLeg(relay.id, { ...relayLeg, disciplineId: Number(value) }, index);
             }
           }}
         />
@@ -139,7 +154,20 @@ export default function Relays() {
           {Array.from(disciplines.values()).map(renderDiscipline)}
 
           <Group wrap="nowrap" justify={"space-between"} p="xs">
-            <Input variant="unstyled" style={{ flexGrow: 1 }} placeholder="Disziplin..."></Input>
+            <Input
+              variant="unstyled"
+              style={{ flexGrow: 1 }}
+              placeholder="Disziplin..."
+              onBlur={(evt) => {
+                addDiscipline({ name: evt.currentTarget.value });
+                evt.currentTarget.value = "";
+              }}
+              onKeyUp={(evt) => {
+                if (evt.key === "Enter") {
+                  evt.currentTarget.blur();
+                }
+              }}
+            ></Input>
             {/* TODO remove? */}
             {/* 3x28 (icons) + 2x16 (gaps) */}
             {/*<Space w="116px" />*/}
@@ -186,16 +214,11 @@ export default function Relays() {
                   <Select
                     style={{ flexShrink: 1, flexGrow: 1 }}
                     placeholder="Disziplin..."
-                    data={Array.from(disciplines.values(), (discipline) => discipline.name)}
-                    value={""}
+                    data={disciplineOptions}
+                    value=""
                     onChange={(value) => {
                       if (value !== null) {
-                        const disciplineId = findDisciplineId(value);
-                        if (disciplineId === undefined) {
-                          showProgrammingErrorNotification();
-                          return;
-                        }
-                        addRelayLeg(relay.id, { disciplineId, times: 1 });
+                        addRelayLeg(relay.id, { disciplineId: Number(value), times: 1 });
                       }
                     }}
                   />
