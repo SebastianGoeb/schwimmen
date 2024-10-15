@@ -7,11 +7,15 @@ import { Gender } from "../model/gender.ts";
 import { Relay, RelayLeg } from "../model/relay.ts";
 import { showProgrammingErrorNotification } from "../utils/notifications.ts";
 import { demoData1 } from "../demo/data.ts";
+import { TeamSettings } from "../model/team-settings.ts";
+import { SimulatedAnnealingSettings } from "../model/simulated-annealing-settings.ts";
 
 interface State {
   disciplines: Discipline[];
   swimmers: Map<number, Swimmer>;
   relays: Map<number, Relay>;
+  teamSettings: TeamSettings;
+  simulatedAnnealingSettings: SimulatedAnnealingSettings;
   // demo
   updateEverything: (data: Data) => void;
   // discipline
@@ -34,12 +38,16 @@ interface State {
   addRelayLeg: (relayId: number, relayLeg: RelayLeg) => void;
   removeRelayLeg: (relayId: number, index: number) => void;
   updateRelayLeg: (relayId: number, relayLeg: RelayLeg, index: number) => void;
+  // team settings
+  updateTeamSettings: (teamSettings: Partial<TeamSettings>) => void;
 }
 
 export const useStore = create<State>()((set) => ({
   disciplines: [...demoData1.disciplines],
   swimmers: new Map(demoData1.swimmers.map((s) => [s.id, s])),
   relays: new Map(demoData1.relays.map((r) => [r.id, r])),
+  teamSettings: demoData1.teamSettings,
+  simulatedAnnealingSettings: demoData1.simulatedAnnealingSettings,
   // demo
   updateEverything: (data) => set((state) => updateEverything(state, data)),
 
@@ -68,6 +76,10 @@ export const useStore = create<State>()((set) => ({
   addRelayLeg: (relayId, relayLeg) => set((state) => addRelayLeg(state, relayId, relayLeg)),
   removeRelayLeg: (relayId, index) => set((state) => removeRelayLeg(state, relayId, index)),
   updateRelayLeg: (relayId, relayLeg, index) => set((state) => updateRelayLeg(state, relayId, relayLeg, index)),
+
+  // team settings
+  updateTeamSettings: (teamSettings: Partial<TeamSettings>) =>
+    set((state) => ({ teamSettings: { ...state.teamSettings, ...teamSettings } })),
 }));
 
 // ==== demo ====

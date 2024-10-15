@@ -1,5 +1,6 @@
 import { Gender } from "../model/gender.ts";
 import { Data } from "../model/data.ts";
+import { mutateRandom, mutateVerySmart } from "../lib/schwimmen/search/sa/mutation.ts";
 
 export const demoData1: Data = {
   disciplines: [
@@ -69,4 +70,25 @@ export const demoData1: Data = {
       ],
     },
   ],
+  teamSettings: {
+    alleMuessenSchwimmen: false,
+    minSchwimmerProTeam: 7,
+    maxSchwimmerProTeam: 12,
+    minMaleProTeam: 2,
+    minFemaleProTeam: 2,
+    minStartsProSchwimmer: 0,
+    maxStartsProSchwimmer: 5,
+    anzahlTeams: 1,
+    maxZeitspanneProStaffelSeconds: "00:10,00",
+  },
+  simulatedAnnealingSettings: {
+    smartMutationRate: 0.85,
+    smartMutation: mutateVerySmart,
+    dumbMutation: mutateRandom,
+    acceptanceProbability: 0.1,
+    globalGenerationLimit: 200,
+    restartGenerationLimit: 50,
+    maxGenerations: 1_000_000,
+    populationSize: 20,
+  },
 };
