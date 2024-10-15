@@ -66,7 +66,12 @@ export default function Relays() {
 
   function renderDiscipline(discipline: Discipline, index: number): React.ReactNode {
     return (
-      <Group wrap="nowrap" justify={"space-between"} style={{ borderBottom: "1px solid #ccc" }} p="xs">
+      <Group
+        wrap="nowrap"
+        justify={"space-between"}
+        style={{ borderBottom: "1px solid var(--mantine-color-gray-3)" }}
+        p="xs"
+      >
         <Input
           variant="unstyled"
           value={discipline.name}
