@@ -9,13 +9,16 @@ import { showProgrammingErrorNotification } from "../utils/notifications.ts";
 import { demoData1 } from "../demo/data.ts";
 
 interface State {
-  disciplines: Map<number, Discipline>;
+  disciplines: Discipline[];
   swimmers: Map<number, Swimmer>;
   relays: Map<number, Relay>;
   // demo
   updateEverything: (data: Data) => void;
   // discipline
+  addDiscipline: (discipline: Omit<Discipline, "id">) => void;
+  removeDiscipline: (disciplineId: number) => void;
   updateDiscipline: (discipline: Discipline) => void;
+  swapDisciplines: (indexDown: number) => void;
   // swimmer
   addSwimmer: () => void;
   removeSwimmer: (swimmerId: number) => void;
@@ -34,14 +37,17 @@ interface State {
 }
 
 export const useStore = create<State>()((set) => ({
-  disciplines: new Map(demoData1.disciplines.map((d) => [d.id, d])),
+  disciplines: [...demoData1.disciplines],
   swimmers: new Map(demoData1.swimmers.map((s) => [s.id, s])),
   relays: new Map(demoData1.relays.map((r) => [r.id, r])),
   // demo
   updateEverything: (data) => set((state) => updateEverything(state, data)),
 
   // discipline
+  addDiscipline: (discipline) => set((state) => addDiscipline(state, discipline)),
+  removeDiscipline: (disciplineId) => set((state) => removeDiscipline(state, disciplineId)),
   updateDiscipline: (discipline) => set((state) => updateDiscipline(state, discipline)),
+  swapDisciplines: (indexDown) => set((state) => swapDiscipline(state, indexDown)),
 
   // swimmer
   addSwimmer: () => set((state) => addSwimmer(state)),
@@ -68,7 +74,7 @@ export const useStore = create<State>()((set) => ({
 
 function updateEverything(_state: State, data: Data): Partial<State> {
   return {
-    disciplines: new Map(data.disciplines.map((discipline: Discipline) => [discipline.id, discipline])),
+    disciplines: [...data.disciplines],
     swimmers: new Map(data.swimmers.map((swimmer: Swimmer) => [swimmer.id, swimmer])),
     relays: new Map(data.relays.map((relay: Relay) => [relay.id, relay])),
   };
@@ -76,8 +82,39 @@ function updateEverything(_state: State, data: Data): Partial<State> {
 
 // ==== discipline ====
 
+function addDiscipline(state: State, discipline: Omit<Discipline, "id">): Partial<State> {
+  const ids = Array.from(state.disciplines.keys());
+  const newId = (max(ids) ?? 0) + 1;
+  const newDisciplines = [...state.disciplines];
+  newDisciplines.push({ ...discipline, id: newId });
+  return { disciplines: newDisciplines };
+}
+
+function removeDiscipline(state: State, disciplineId: number): Partial<State> {
+  const newDisciplines = [...state.disciplines];
+  const index = newDisciplines.findIndex((d) => d.id === disciplineId);
+  newDisciplines.splice(index, 1);
+  return { disciplines: newDisciplines };
+}
+
 function updateDiscipline(state: State, discipline: Discipline): Partial<State> {
-  return { disciplines: new Map(state.disciplines).set(discipline.id, discipline) };
+  const newDisciplines = [...state.disciplines];
+  const index = newDisciplines.findIndex((d) => d.id === discipline.id);
+  newDisciplines[index] = discipline;
+  return { disciplines: newDisciplines };
+}
+
+function swapDiscipline(state: State, indexDown: number): Partial<State> {
+  if (indexDown < 0 || indexDown >= state.disciplines.length - 1) {
+    showProgrammingErrorNotification();
+    return {};
+  }
+
+  const newDisciplines = [...state.disciplines];
+  const temp = newDisciplines[indexDown];
+  newDisciplines[indexDown] = newDisciplines[indexDown + 1];
+  newDisciplines[indexDown + 1] = temp;
+  return { disciplines: newDisciplines };
 }
 
 // ==== swimmer ====
@@ -156,7 +193,7 @@ function addRelayLeg(state: State, relayId: number, relayLeg: RelayLeg): Partial
 
   // set default relay name if a name hasn't already been chosen
   if (newRelay.name === "") {
-    const discipline = state.disciplines.get(relayLeg.disciplineId);
+    const discipline = state.disciplines.find((d) => d.id === relayLeg.disciplineId);
     if (discipline === undefined) {
       showProgrammingErrorNotification();
       return {};

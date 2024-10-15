@@ -2,7 +2,6 @@ import { Group, Paper, Space, Table } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
-import { Discipline } from "../../model/discipline.ts";
 import React from "react";
 import LapTimeCell from "../LapTimeCell/LapTimeCell.tsx";
 import SwimmerAddButton from "../SwimmerAddButton/SwimmerAddButton.tsx";
@@ -14,14 +13,14 @@ export default function LapTimeGridView() {
 
   const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
 
-  function renderRow(swimmer: Swimmer, disciplines: Map<number, Discipline>): React.ReactNode {
+  function renderRow(swimmer: Swimmer): React.ReactNode {
     const cells = [
       <Table.Td key="name">
         <SwimmerNameInput swimmer={swimmer} />
       </Table.Td>,
-      ...Array.from(disciplines.keys()).map((disciplineId) => (
-        <Table.Td key={`discipline-${disciplineId}`}>
-          <LapTimeCell swimmer={swimmer} disciplineId={disciplineId} />
+      ...disciplines.map((discipline) => (
+        <Table.Td key={`discipline-${discipline.id}`}>
+          <LapTimeCell swimmer={swimmer} disciplineId={discipline.id} />
         </Table.Td>
       )),
       <Table.Td key="remove">
@@ -36,12 +35,12 @@ export default function LapTimeGridView() {
       <Table>
         <Table.Thead>
           <Table.Tr>
-            {["Name", ...Array.from(disciplines.values()).map((it) => it.name)].map((header) => (
+            {["Name", ...disciplines.map((it) => it.name)].map((header) => (
               <Table.Th key={header}>{header}</Table.Th>
             ))}
           </Table.Tr>
         </Table.Thead>
-        <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer, disciplines))}</Table.Tbody>
+        <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer))}</Table.Tbody>
       </Table>
       <Space h="md" />
       <Group justify="flex-end">
