@@ -78,29 +78,27 @@ export default function Relays() {
           onChange={(evt) => updateDiscipline({ ...discipline, name: evt.currentTarget.value })}
           style={{ flexGrow: 1 }}
         ></Input>
-        <Group>
-          {index !== 0 ? (
-            <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index - 1)}>
-              <IconArrowUp style={{ width: "70%", height: "70%" }} />
-            </ActionIcon>
-          ) : (
-            // no idea, why we can't access --ai-size-md (ActionIcon medium size)
-            <Space w="28px" />
-          )}
-
-          {index < disciplines.length - 1 ? (
-            <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index)}>
-              <IconArrowDown style={{ width: "70%", height: "70%" }} />
-            </ActionIcon>
-          ) : (
-            // no idea, why we can't access --ai-size-md (ActionIcon medium size)
-            <Space w="28px" />
-          )}
-
-          <ActionIcon variant="subtle" color="red" onClick={() => removeDiscipline(discipline.id)}>
-            <IconTrashX />
+        {index !== 0 ? (
+          <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index - 1)}>
+            <IconArrowUp style={{ width: "70%", height: "70%" }} />
           </ActionIcon>
-        </Group>
+        ) : (
+          // no idea, why we can't access --ai-size-md (ActionIcon medium size)
+          <Space w="28px" />
+        )}
+
+        {index < disciplines.length - 1 ? (
+          <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index)}>
+            <IconArrowDown style={{ width: "70%", height: "70%" }} />
+          </ActionIcon>
+        ) : (
+          // no idea, why we can't access --ai-size-md (ActionIcon medium size)
+          <Space w="28px" />
+        )}
+
+        <ActionIcon variant="subtle" color="red" onClick={() => removeDiscipline(discipline.id)}>
+          <IconTrashX />
+        </ActionIcon>
       </Group>
     );
   }
@@ -117,7 +115,7 @@ export default function Relays() {
         <Select
           style={{ flexShrink: 1, flexGrow: 1 }}
           placeholder="Disziplin..."
-          value={discipline.name}
+          value={String(discipline.id)}
           data={disciplineOptions}
           onChange={(value) => {
             if (value !== null) {
