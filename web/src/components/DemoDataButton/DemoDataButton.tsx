@@ -1,6 +1,6 @@
 import { IconPresentation } from "@tabler/icons-react";
 import { demoData1 } from "../../demo/data.ts";
-import { Button } from "@mantine/core";
+import { Button, Text } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 
 export default function DemoDataButton() {
@@ -8,7 +8,8 @@ export default function DemoDataButton() {
 
   return (
     <Button rightSection={<IconPresentation />} onClick={() => updateEverything(demoData1)}>
-      Auf Demodaten zurücksetzen
+      <Text visibleFrom="sm">Auf Demodaten zurücksetzen</Text>
+      <Text hiddenFrom="sm">Demodaten</Text>
     </Button>
   );
 }
