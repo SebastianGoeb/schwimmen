@@ -1,4 +1,4 @@
-import { Group, Paper, Space, Table } from "@mantine/core";
+import { Group, Paper, ScrollArea, Space, Table } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
@@ -32,20 +32,22 @@ export default function LapTimeGridView() {
 
   return (
     <Paper shadow="md" withBorder p="xl">
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            {["Name", ...disciplines.map((it) => it.name)].map((header) => (
-              <Table.Th key={header}>{header}</Table.Th>
-            ))}
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer))}</Table.Tbody>
-      </Table>
-      <Space h="md" />
-      <Group justify="flex-end">
-        <SwimmerAddButton />
-      </Group>
+      <ScrollArea>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              {["Name", ...disciplines.map((it) => it.name)].map((header) => (
+                <Table.Th key={header}>{header}</Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>{swimmersSorted.map((swimmer) => renderRow(swimmer))}</Table.Tbody>
+        </Table>
+        <Space h="md" />
+        <Group justify="flex-end">
+          <SwimmerAddButton />
+        </Group>
+      </ScrollArea>
     </Paper>
   );
 }

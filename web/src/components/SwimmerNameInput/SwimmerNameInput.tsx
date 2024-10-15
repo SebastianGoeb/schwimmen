@@ -14,6 +14,7 @@ export default function SwimmerNameInput({ swimmer }: SwimmerNameInputProps) {
 
   return (
     <TextInput
+      style={{ minWidth: "8rem" }}
       variant="unstyled"
       placeholder="ich heiße..."
       value={value}

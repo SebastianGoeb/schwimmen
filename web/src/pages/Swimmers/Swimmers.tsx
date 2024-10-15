@@ -1,4 +1,15 @@
-import { Alert, Checkbox, Container, Group, NativeSelect, NumberInput, Paper, Space, Table } from "@mantine/core";
+import {
+  Alert,
+  Checkbox,
+  Container,
+  Group,
+  NativeSelect,
+  NumberInput,
+  Paper,
+  ScrollArea,
+  Space,
+  Table,
+} from "@mantine/core";
 import React from "react";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
@@ -97,21 +108,23 @@ export default function Swimmers() {
       <Space h="md"></Space>
 
       <Paper shadow="md" withBorder p="xl">
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              {["Name", "Jahrgang", "Geschlecht", "Min Starts", "Max Starts", "Anwesend"].map((header) => (
-                <Table.Th key={header}>{header}</Table.Th>
-              ))}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{swimmersSorted.map(renderRow)}</Table.Tbody>
-        </Table>
+        <ScrollArea>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                {["Name", "Jahrgang", "Geschlecht", "Min Starts", "Max Starts", "Anwesend"].map((header) => (
+                  <Table.Th key={header}>{header}</Table.Th>
+                ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{swimmersSorted.map(renderRow)}</Table.Tbody>
+          </Table>
 
-        <Space h="md" />
-        <Group justify="flex-end">
-          <SwimmerAddButton />
-        </Group>
+          <Space h="md" />
+          <Group justify="flex-end">
+            <SwimmerAddButton />
+          </Group>
+        </ScrollArea>
       </Paper>
     </Container>
   );
