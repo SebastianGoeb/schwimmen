@@ -79,7 +79,7 @@ export default function Relays() {
           style={{ flexGrow: 1 }}
         ></Input>
         {index !== 0 ? (
-          <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index - 1)}>
+          <ActionIcon variant="subtle" color="var(--mantine-color-text)" onClick={() => swapDisciplines(index - 1)}>
             <IconArrowUp style={{ width: "70%", height: "70%" }} />
           </ActionIcon>
         ) : (
@@ -88,7 +88,7 @@ export default function Relays() {
         )}
 
         {index < disciplines.length - 1 ? (
-          <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index)}>
+          <ActionIcon variant="subtle" color="var(--mantine-color-text)" onClick={() => swapDisciplines(index)}>
             <IconArrowDown style={{ width: "70%", height: "70%" }} />
           </ActionIcon>
         ) : (
@@ -237,7 +237,7 @@ export default function Relays() {
               <Space h="1rem" />
               <Button
                 variant="subtle"
-                color="black"
+                color="var(--mantine-color-text)"
                 style={{ alignSelf: "flex-end" }}
                 onClick={() => {
                   setRelayPendingRemoval(relay);
@@ -268,7 +268,7 @@ export default function Relays() {
         <Stack>
           <Text>Möchten Sie die Staffel "{relayPendingRemoval?.name}" komplett entfernen?</Text>
           <Group justify="flex-end">
-            <Button variant="outline" color="black" onClick={closeRemoveModal}>
+            <Button variant="outline" color="var(--mantine-color-text)" onClick={closeRemoveModal}>
               Abbrechen
             </Button>
             <Button

@@ -17,7 +17,7 @@ export default function SwimmerRemoveButton({ id }: { id: number }) {
         <Stack>
           <Text>Möchten Sie den Schwimmer, sowie alle seine Zeiten und Einstellungen komplett entfernen?</Text>
           <Group justify="flex-end">
-            <Button variant="outline" color="black" onClick={close}>
+            <Button variant="outline" color="var(--mantine-color-text)" onClick={close}>
               Abbrechen
             </Button>
             <Button

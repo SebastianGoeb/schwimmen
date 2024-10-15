@@ -39,7 +39,7 @@ export default function LapTimeCell({ swimmer, disciplineId }: { swimmer: Swimme
         }}
       ></Input>
       <Checkbox
-        color="gray"
+        color="dimmed"
         disabled={lapTime === undefined}
         onChange={(evt) =>
           updateLapTime(swimmer, disciplineId, { seconds: lapTime?.seconds ?? "", enabled: evt.currentTarget.checked })

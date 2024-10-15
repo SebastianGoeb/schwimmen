@@ -71,7 +71,7 @@ export default function Swimmers() {
         </Table.Td>
         <Table.Td>
           <Checkbox
-            color="gray"
+            color="dimmed"
             checked={swimmer.present}
             onChange={(evt) => updateSwimmer({ ...swimmer, present: evt.currentTarget.checked })}
           />
