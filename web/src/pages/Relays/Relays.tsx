@@ -31,6 +31,7 @@ export default function Relays() {
     disciplines,
     addDiscipline,
     removeDiscipline,
+    swapDisciplines,
     updateDiscipline,
     addRelay,
     removeRelay,
@@ -44,6 +45,7 @@ export default function Relays() {
       state.disciplines,
       state.addDiscipline,
       state.removeDiscipline,
+      state.swapDisciplines,
       state.updateDiscipline,
       state.addRelay,
       state.removeRelay,
@@ -73,7 +75,7 @@ export default function Relays() {
         ></Input>
         <Group>
           {index !== 0 ? (
-            <ActionIcon variant="subtle" color="black">
+            <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index - 1)}>
               <IconArrowUp style={{ width: "70%", height: "70%" }} />
             </ActionIcon>
           ) : (
@@ -81,8 +83,8 @@ export default function Relays() {
             <Space w="28px" />
           )}
 
-          {index < disciplines.size - 1 ? (
-            <ActionIcon variant="subtle" color="black">
+          {index < disciplines.length - 1 ? (
+            <ActionIcon variant="subtle" color="black" onClick={() => swapDisciplines(index)}>
               <IconArrowDown style={{ width: "70%", height: "70%" }} />
             </ActionIcon>
           ) : (
@@ -99,7 +101,7 @@ export default function Relays() {
   }
 
   function renderRelayLeg(relay: Relay, relayLeg: RelayLeg, index: number): React.ReactNode {
-    const discipline = disciplines.get(relayLeg.disciplineId);
+    const discipline = disciplines.find((d) => d.id === relayLeg.disciplineId);
 
     if (discipline === undefined) {
       return undefined;
