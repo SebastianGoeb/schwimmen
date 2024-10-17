@@ -25,6 +25,11 @@ import { useDisclosure } from "@mantine/hooks";
 import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 import { Discipline } from "../../model/discipline.ts";
 
+enum ScoringOptions {
+  Total = "Gesamtzeit",
+  Max = "Schnellste Zeit (Team)",
+}
+
 export default function Relays() {
   const [
     relays,
@@ -210,6 +215,18 @@ export default function Relays() {
                     updateRelay({ ...relay, name: evt.currentTarget.value });
                   }}
                 ></Input>
+
+                <Group>
+                  <Select
+                    style={{ flexShrink: 1, flexGrow: 1 }}
+                    label="Wertung"
+                    data={[ScoringOptions.Total, ScoringOptions.Max]}
+                    value={relay.team ? ScoringOptions.Max : ScoringOptions.Total}
+                    onChange={(value) => updateRelay({ ...relay, team: value === ScoringOptions.Max })}
+                  ></Select>
+                  {/* no idea, why we can't access --ai-size-md (ActionIcon medium size) */}
+                  <Space w="28px" />
+                </Group>
 
                 {/* existing legs */}
                 {relay.legs.map((relayLeg, index) => renderRelayLeg(relay, relayLeg, index))}

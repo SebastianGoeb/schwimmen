@@ -48,16 +48,19 @@ export const demoData1: Data = {
       id: 0,
       name: "Brust",
       legs: [{ disciplineId: 0, times: 4 }],
+      team: false,
     },
     {
       id: 1,
       name: "Kraul",
       legs: [{ disciplineId: 1, times: 4 }],
+      team: false,
     },
     {
       id: 2,
       name: "Rücken",
       legs: [{ disciplineId: 2, times: 4 }],
+      team: false,
     },
     {
       id: 3,
@@ -67,6 +70,7 @@ export const demoData1: Data = {
         { disciplineId: 1, times: 2 },
         { disciplineId: 2, times: 2 },
       ],
+      team: false,
     },
   ],
 };
