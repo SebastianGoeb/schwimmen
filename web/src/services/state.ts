@@ -165,6 +165,7 @@ function addRelay(state: State): Partial<State> {
     id: (max(ids) ?? 0) + 1,
     name: "",
     legs: [],
+    team: true,
   };
   return { relays: new Map(state.relays).set(relay.id, relay) };
 }
