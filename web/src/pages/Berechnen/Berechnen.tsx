@@ -1,23 +1,123 @@
-import { Checkbox, Container, Fieldset, Input, NumberInput, Paper, SimpleGrid, Stack } from "@mantine/core";
+import { Button, Checkbox, Container, Fieldset, Input, NumberInput, Paper, SimpleGrid, Stack } from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { IMaskInput } from "react-imask";
 import { zeitenMask } from "../../utils/input-mask.ts";
+import { buildKonfiguration } from "../../lib/schwimmen/eingabe/konfiguration.ts";
+import {
+  Hyperparameters,
+  runCrappySimulatedAnnealing,
+} from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
+import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
+import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
+import { Schwimmer } from "../../lib/schwimmen/eingabe/zeiten.ts";
+import { parseZeit } from "../../lib/schwimmen/util/zeit.ts";
+import { Discipline } from "../../model/discipline.ts";
+import { Geschlecht } from "../../lib/schwimmen/eingabe/geschlecht.ts";
+import { Gender } from "../../model/gender.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
 }
 
+function schwimmerIndexIdMapping(swimmers: Map<number, Swimmer>): number[] {
+  return Array.from(swimmers.values())
+    .sort(compareByYearThenGenderThenLastname)
+    .map((swimmer) => swimmer.id);
+}
+
+function mapSwimmerToSchwimmer(swimmer: Swimmer, disciplines: Discipline[]): Schwimmer {
+  return {
+    name: swimmer.name,
+    zeitenSeconds: new Map(
+      Array.from(swimmer.lapTimes.entries())
+        .filter(([, lapTime]) => lapTime.enabled)
+        .map(([disciplineId, lapTime]): [string, number | undefined] => [
+          disciplines.find((d) => d.id === disciplineId)!.name,
+          parseMaskedZeitToSeconds(lapTime.seconds),
+        ])
+        .filter((pair): pair is [string, number] => pair[1] !== undefined),
+    ),
+  };
+}
+
+function parseMaskedZeitToSeconds(zeit: string): number | undefined {
+  const cleaned = zeit.replace(/[:,]/g, "");
+  if (cleaned === "" || cleaned == "______") {
+    return undefined;
+  }
+
+  // TODO handle partially filled strings (e.g. 12:_5,10) with error
+  const cleaned2 = cleaned.replace(/_/g, "0");
+
+  const min = Number(cleaned2.slice(0, 2));
+  const sec = Number(cleaned2.slice(2, 2));
+  const cent = Number(cleaned2.slice(4, 2));
+
+  return min * 60 + sec + cent / 100;
+}
+
+function mapGenderToGeschlecht(gender: Gender): Geschlecht {
+  return gender === Gender.M ? Geschlecht.MALE : Geschlecht.FEMALE;
+}
+
 export default function Berechnen() {
-  const [teamSettings, updateTeamSettings] = useStore(
-    useShallow((state) => [state.teamSettings, state.updateTeamSettings]),
+  const [disciplines, swimmers, relays, teamSettings, updateTeamSettings] = useStore(
+    useShallow((state) => [
+      state.disciplines,
+      state.swimmers,
+      state.relays,
+      state.teamSettings,
+      state.updateTeamSettings,
+    ]),
   );
+
+  async function berechnen() {
+    // TODO check no duplicate discipline names
+    const konfiguration = buildKonfiguration({
+      parameters: {
+        ...teamSettings,
+        maxZeitspanneProStaffelSeconds: parseZeit(teamSettings.maxZeitspanneProStaffelSeconds),
+      },
+      schwimmerList: schwimmerIndexIdMapping(swimmers).map((id) =>
+        mapSwimmerToSchwimmer(swimmers.get(id)!, disciplines),
+      ),
+      geschlecht: new Map(
+        Array.from(swimmers.values(), (swimmer) => [swimmer.name, mapGenderToGeschlecht(swimmer.gender)]),
+      ),
+      minMax: new Map(
+        Array.from(swimmers.values(), (swimmer) => [swimmer.name, { min: swimmer.minStarts, max: swimmer.maxStarts }]),
+      ),
+      staffeln: Array.from(relays.values(), (relay) => ({
+        name: relay.name,
+        disziplinen: relay.legs.flatMap((leg) =>
+          new Array(leg.times).fill(disciplines.find((d) => d.id === leg.disciplineId)!.name),
+        ),
+        team: false, // TODO make this configurable in UI
+      })),
+    });
+
+    const hyperparameters: Hyperparameters = {
+      smartMutationRate: 0.85,
+      smartMutation: mutateVerySmart,
+      dumbMutation: mutateRandom,
+      acceptanceProbability: 0.1,
+      globalGenerationLimit: 50,
+      restartGenerationLimit: 20,
+      maxGenerations: 1_000_000,
+      populationSize: 10,
+    };
+
+    const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
+
+    console.log(state, duration, checked);
+  }
 
   return (
     <Container size="xl">
       <h1>Berechnen</h1>
 
-      <SimpleGrid cols={1}>
+      <Stack>
         <Paper withBorder shadow="md" p="xl">
           <h2>Einstellungen</h2>
           <SimpleGrid cols={2}>
@@ -102,7 +202,13 @@ export default function Berechnen() {
             </Fieldset>
           </SimpleGrid>
         </Paper>
-      </SimpleGrid>
+
+        <Paper withBorder shadow="md" p="xl">
+          <h2>Berechnen</h2>
+
+          <Button onClick={() => berechnen()}>Los</Button>
+        </Paper>
+      </Stack>
     </Container>
   );
 }
