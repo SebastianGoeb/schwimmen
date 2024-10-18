@@ -152,8 +152,7 @@ function LapTimeImportModal(props: LapTimeImportModalProps) {
 
 export default function LapTimes() {
   const [view, setView] = useState<string>(View.Grid);
-  const [importReconciliationOpened, { open: openImportReconciliation, close: closeImportReconciliation }] =
-    useDisclosure(false);
+  const [importModalOpened, { open: openImportModal, close: closeImportModal }] = useDisclosure(false);
   const [importedSchwimmer, setImportedSchwimmer] = useState<Schwimmer[]>([]);
 
   async function importLapTimes() {
@@ -161,7 +160,7 @@ export default function LapTimes() {
     const grid = text.split("\n").map((row) => row.split("\t"));
     const schwimmer = parseStilZeitenFromGrid(grid);
     setImportedSchwimmer(schwimmer);
-    openImportReconciliation();
+    openImportModal();
   }
 
   return (
@@ -185,11 +184,7 @@ export default function LapTimes() {
 
       {view === View.Grid ? <LapTimeGridView /> : <LapTimeDisciplinesView />}
 
-      <LapTimeImportModal
-        opened={importReconciliationOpened}
-        onClose={closeImportReconciliation}
-        importedSchwimmer={importedSchwimmer}
-      />
+      <LapTimeImportModal opened={importModalOpened} onClose={closeImportModal} importedSchwimmer={importedSchwimmer} />
     </Container>
   );
 }
