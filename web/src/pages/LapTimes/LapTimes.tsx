@@ -68,11 +68,11 @@ function LapTimeImportModal(props: LapTimeImportModalProps) {
     () => setSwimmerNameToId(getInitialSwimmerNameToIdMapping(swimmers, props.importedSchwimmer)),
     [swimmers, props.importedSchwimmer],
   );
-  const [disciplineNameToId, setDiscipineNameToId] = useState<Map<string, number>>(
+  const [disciplineNameToId, setDisciplineNameToId] = useState<Map<string, number>>(
     getInitialDiscipineNameToIdMapping(disciplines, importedDisciplines),
   );
   useEffect(
-    () => setDiscipineNameToId(getInitialDiscipineNameToIdMapping(disciplines, importedDisciplines)),
+    () => setDisciplineNameToId(getInitialDiscipineNameToIdMapping(disciplines, importedDisciplines)),
     [disciplines, importedDisciplines],
   );
 
@@ -126,7 +126,7 @@ function LapTimeImportModal(props: LapTimeImportModalProps) {
                 data={disciplineMappingOptions}
                 value={String(disciplineNameToId.get(name)!)}
                 onChange={(value) => {
-                  setDiscipineNameToId(new Map(disciplineNameToId).set(name, value !== null ? Number(value) : -1));
+                  setDisciplineNameToId(new Map(disciplineNameToId).set(name, value !== null ? Number(value) : -1));
                 }}
               />,
             ]),
