@@ -7,7 +7,7 @@ const links = [
   { link: "schwimmer", label: "Schwimmer", disabled: false },
   { link: "zeiten", label: "Zeiten", disabled: false },
   { link: "staffeln", label: "Staffeln", disabled: false },
-  { link: "optimieren", label: "Optimieren", disabled: true },
+  { link: "berechnen", label: "Berechnen", disabled: false },
   { link: "importieren", label: "Importieren", disabled: true },
   { link: "dev", label: "Entwicklerbereich", disabled: false },
 ];

@@ -1,6 +1,6 @@
 import { StaffelBelegung, State, Team } from "../state/state";
 import { Konfiguration, StaffelX } from "../../eingabe/konfiguration";
-import times from "lodash/times";
+import { times } from "lodash-es";
 
 export function initialRandomAssignment(konfiguration: Konfiguration): State {
   return { teams: times(konfiguration.anzahlTeams, () => generateTeam(konfiguration)) };

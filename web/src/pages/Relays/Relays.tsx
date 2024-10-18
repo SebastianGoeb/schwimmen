@@ -195,7 +195,6 @@ export default function Relays() {
               <Stack>
                 <Input
                   styles={(theme) => {
-                    console.log("h2 font weight", theme.headings.sizes);
                     return {
                       input: {
                         fontWeight: 700,

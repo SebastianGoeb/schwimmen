@@ -7,7 +7,7 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import { createBrowserRouter, replace, RouterProvider } from "react-router-dom";
 import Importieren from "./pages/Importieren/Importieren.tsx";
 import Relays from "./pages/Relays/Relays.tsx";
-import Optimieren from "./pages/Optimieren/Optimieren.tsx";
+import Berechnen from "./pages/Berechnen/Berechnen.tsx";
 import Swimmers from "./pages/Swimmers/Swimmers.tsx";
 import LapTimes from "./pages/LapTimes/LapTimes.tsx";
 import { Notifications } from "@mantine/notifications";
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
       { path: "schwimmer", element: <Swimmers /> },
       { path: "zeiten", element: <LapTimes /> },
       { path: "staffeln", element: <Relays /> },
-      { path: "optimieren", element: <Optimieren /> },
+      { path: "berechnen", element: <Berechnen /> },
       { path: "importieren", element: <Importieren /> },
       { path: "dev", element: <Developer /> },
     ],
