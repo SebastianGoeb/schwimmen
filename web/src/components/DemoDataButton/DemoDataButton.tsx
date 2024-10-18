@@ -7,7 +7,7 @@ export default function DemoDataButton() {
   const updateEverything = useStore((state) => state.updateEverything);
 
   return (
-    <Button variant="outline" rightSection={<IconRestore />} onClick={() => updateEverything(demoData1)}>
+    <Button leftSection={<IconRestore />} onClick={() => updateEverything(demoData1)}>
       Auf Demodaten zurücksetzen
     </Button>
   );

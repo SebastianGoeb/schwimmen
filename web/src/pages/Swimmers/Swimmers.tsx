@@ -18,7 +18,6 @@ import { Gender } from "../../model/gender.ts";
 import SwimmerRemoveButton from "../../components/SwimmerRemoveButton/SwimmerRemoveButton.tsx";
 import SwimmerAddButton from "../../components/SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerNameInput from "../../components/SwimmerNameInput/SwimmerNameInput.tsx";
-import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 
 function numberify(sn: string | number): number | undefined {
   if (typeof sn === "string") {
@@ -96,10 +95,7 @@ export default function Swimmers() {
 
   return (
     <Container size="xl">
-      <Group justify="space-between">
-        <h1>Schwimmer</h1>
-        <DemoDataButton />
-      </Group>
+      <h1>Schwimmer</h1>
 
       <Alert variant="light" color="orange" title="Achtung">
         Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten

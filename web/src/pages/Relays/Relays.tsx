@@ -22,7 +22,6 @@ import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
 import { useDisclosure } from "@mantine/hooks";
-import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 import { Discipline } from "../../model/discipline.ts";
 
 enum ScoringOptions {
@@ -148,10 +147,7 @@ export default function Relays() {
 
   return (
     <Container size="xl">
-      <Group justify="space-between">
-        <h1>Disziplinen</h1>
-        <DemoDataButton />
-      </Group>
+      <h1>Disziplinen</h1>
 
       <Alert variant="light" color="orange" title="Achtung">
         Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten
