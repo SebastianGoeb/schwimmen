@@ -6,7 +6,7 @@ import { max } from "lodash-es";
 import { Gender } from "../model/gender.ts";
 import { Relay, RelayLeg } from "../model/relay.ts";
 import { showProgrammingErrorNotification } from "../utils/notifications.ts";
-import { demoData1 } from "../demo/data.ts";
+import { realDataFJugend } from "../demo/data.ts";
 import { TeamSettings } from "../model/team-settings.ts";
 import { SimulatedAnnealingSettings } from "../model/simulated-annealing-settings.ts";
 import { LapTimeImport } from "../model/lap-time-import.ts";
@@ -54,11 +54,11 @@ interface State {
 }
 
 export const useStore = create<State>()((set) => ({
-  disciplines: [...demoData1.disciplines],
-  swimmers: new Map(demoData1.swimmers.map((s) => [s.id, s])),
-  relays: new Map(demoData1.relays.map((r) => [r.id, r])),
-  teamSettings: demoData1.teamSettings,
-  simulatedAnnealingSettings: demoData1.simulatedAnnealingSettings,
+  disciplines: [...realDataFJugend.disciplines],
+  swimmers: new Map(realDataFJugend.swimmers.map((s) => [s.id, s])),
+  relays: new Map(realDataFJugend.relays.map((r) => [r.id, r])),
+  teamSettings: realDataFJugend.teamSettings,
+  simulatedAnnealingSettings: realDataFJugend.simulatedAnnealingSettings,
   // demo
   updateEverything: (data) => set((state) => updateEverything(state, data)),
 
