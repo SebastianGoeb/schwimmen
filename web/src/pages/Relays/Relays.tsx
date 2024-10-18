@@ -22,8 +22,12 @@ import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
 import { useDisclosure } from "@mantine/hooks";
-import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 import { Discipline } from "../../model/discipline.ts";
+
+enum ScoringOptions {
+  Total = "Gesamtzeit",
+  Max = "Schnellste Zeit (Team)",
+}
 
 export default function Relays() {
   const [
@@ -143,10 +147,7 @@ export default function Relays() {
 
   return (
     <Container size="xl">
-      <Group justify="space-between">
-        <h1>Disziplinen</h1>
-        <DemoDataButton />
-      </Group>
+      <h1>Disziplinen</h1>
 
       <Alert variant="light" color="orange" title="Achtung">
         Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten
@@ -210,6 +211,18 @@ export default function Relays() {
                     updateRelay({ ...relay, name: evt.currentTarget.value });
                   }}
                 ></Input>
+
+                <Group>
+                  <Select
+                    style={{ flexShrink: 1, flexGrow: 1 }}
+                    label="Wertung"
+                    data={[ScoringOptions.Total, ScoringOptions.Max]}
+                    value={relay.team ? ScoringOptions.Max : ScoringOptions.Total}
+                    onChange={(value) => updateRelay({ ...relay, team: value === ScoringOptions.Max })}
+                  ></Select>
+                  {/* no idea, why we can't access --ai-size-md (ActionIcon medium size) */}
+                  <Space w="28px" />
+                </Group>
 
                 {/* existing legs */}
                 {relay.legs.map((relayLeg, index) => renderRelayLeg(relay, relayLeg, index))}
