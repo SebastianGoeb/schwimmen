@@ -209,6 +209,7 @@ export const realDataFJugend: Data = {
           times: 4,
         },
       ],
+      team: false,
     },
     {
       id: 1,
@@ -219,6 +220,7 @@ export const realDataFJugend: Data = {
           times: 4,
         },
       ],
+      team: false,
     },
     {
       id: 2,
@@ -229,6 +231,7 @@ export const realDataFJugend: Data = {
           times: 4,
         },
       ],
+      team: false,
     },
     {
       id: 3,
@@ -247,6 +250,7 @@ export const realDataFJugend: Data = {
           times: 2,
         },
       ],
+      team: false,
     },
     {
       id: 4,
@@ -257,6 +261,7 @@ export const realDataFJugend: Data = {
           times: 4,
         },
       ],
+      team: false,
     },
     {
       id: 5,
@@ -267,6 +272,7 @@ export const realDataFJugend: Data = {
           times: 4,
         },
       ],
+      team: true,
     },
     {
       id: 6,
@@ -285,6 +291,7 @@ export const realDataFJugend: Data = {
           times: 2,
         },
       ],
+      team: false,
     },
   ],
   teamSettings: {
