@@ -109,72 +109,81 @@ export default function Berechnen() {
       state.updateTeamSettings,
     ]),
   );
+  const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | undefined>(undefined);
 
   async function berechnen() {
-    // TODO check no duplicate discipline names
-    const konfiguration = buildKonfiguration({
-      parameters: {
-        ...teamSettings,
-        maxZeitspanneProStaffelSeconds: parseZeit(teamSettings.maxZeitspanneProStaffelSeconds),
-      },
-      schwimmerList: schwimmerIndexIdMapping(swimmers).map((id) =>
-        mapSwimmerToSchwimmer(swimmers.get(id)!, disciplines),
-      ),
-      geschlecht: new Map(
-        Array.from(swimmers.values(), (swimmer) => [swimmer.name, mapGenderToGeschlecht(swimmer.gender)]),
-      ),
-      minMax: new Map(
-        Array.from(swimmers.values(), (swimmer) => [swimmer.name, { min: swimmer.minStarts, max: swimmer.maxStarts }]),
-      ),
-      staffeln: Array.from(relays.values(), (relay) => ({
-        name: relay.name,
-        disziplinen: relay.legs.flatMap((leg) =>
-          new Array(leg.times).fill(disciplines.find((d) => d.id === leg.disciplineId)!.name),
+    try {
+      setRunning(true);
+      // TODO check no duplicate discipline names
+      const konfiguration = buildKonfiguration({
+        parameters: {
+          ...teamSettings,
+          maxZeitspanneProStaffelSeconds: parseZeit(teamSettings.maxZeitspanneProStaffelSeconds),
+        },
+        schwimmerList: schwimmerIndexIdMapping(swimmers).map((id) =>
+          mapSwimmerToSchwimmer(swimmers.get(id)!, disciplines),
         ),
-        team: relay.team,
-      })),
-    });
+        geschlecht: new Map(
+          Array.from(swimmers.values(), (swimmer) => [swimmer.name, mapGenderToGeschlecht(swimmer.gender)]),
+        ),
+        minMax: new Map(
+          Array.from(swimmers.values(), (swimmer) => [
+            swimmer.name,
+            { min: swimmer.minStarts, max: swimmer.maxStarts },
+          ]),
+        ),
+        staffeln: Array.from(relays.values(), (relay) => ({
+          name: relay.name,
+          disziplinen: relay.legs.flatMap((leg) =>
+            new Array(leg.times).fill(disciplines.find((d) => d.id === leg.disciplineId)!.name),
+          ),
+          team: relay.team,
+        })),
+      });
 
-    const hyperparameters: Hyperparameters = {
-      smartMutationRate: 0.85,
-      smartMutation: mutateVerySmart,
-      dumbMutation: mutateRandom,
-      acceptanceProbability: 0.1,
-      globalGenerationLimit: 50,
-      restartGenerationLimit: 20,
-      maxGenerations: 1_000_000,
-      populationSize: 10,
-    };
+      const hyperparameters: Hyperparameters = {
+        smartMutationRate: 0.85,
+        smartMutation: mutateVerySmart,
+        dumbMutation: mutateRandom,
+        acceptanceProbability: 0.1,
+        globalGenerationLimit: 50,
+        restartGenerationLimit: 20,
+        maxGenerations: 1_000_000,
+        populationSize: 10,
+      };
 
-    const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
-    console.log(state, duration, checked);
+      const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
+      console.log(state, duration, checked);
 
-    setResult({
-      teams: state.state.teams.map((team) => {
-        const relayResults = team.staffelBelegungen.map((sb) => {
-          const legs = sb.startBelegungen.map((swimmerIdx, startIdx) => {
-            const disziplinId = konfiguration.staffeln[sb.staffelId].disziplinIds[startIdx];
+      setResult({
+        teams: state.state.teams.map((team) => {
+          const relayResults = team.staffelBelegungen.map((sb) => {
+            const legs = sb.startBelegungen.map((swimmerIdx, startIdx) => {
+              const disziplinId = konfiguration.staffeln[sb.staffelId].disziplinIds[startIdx];
+              return {
+                swimmerName: konfiguration.schwimmerList[swimmerIdx].name,
+                seconds: konfiguration.disziplinToSchwimmerToZeit[disziplinId][swimmerIdx]!,
+              };
+            });
             return {
-              swimmerName: konfiguration.schwimmerList[swimmerIdx].name,
-              seconds: konfiguration.disziplinToSchwimmerToZeit[disziplinId][swimmerIdx]!,
+              staffelName: konfiguration.staffeln[sb.staffelId].name,
+              legs,
+              totalSeconds: konfiguration.staffeln[sb.staffelId].team
+                ? max(legs.map((leg) => leg.seconds))!
+                : sum(legs.map((leg) => leg.seconds)),
             };
           });
           return {
-            staffelName: konfiguration.staffeln[sb.staffelId].name,
-            legs,
-            totalSeconds: konfiguration.staffeln[sb.staffelId].team
-              ? max(legs.map((leg) => leg.seconds))!
-              : sum(legs.map((leg) => leg.seconds)),
+            swimmerNames: uniq(relayResults.flatMap((r) => r.legs.flatMap((leg) => leg.swimmerName))), // TODO
+            relays: relayResults,
+            totalSeconds: sum(relayResults.map((r) => r.totalSeconds)),
           };
-        });
-        return {
-          swimmerNames: uniq(relayResults.flatMap((r) => r.legs.flatMap((leg) => leg.swimmerName))), // TODO
-          relays: relayResults,
-          totalSeconds: sum(relayResults.map((r) => r.totalSeconds)),
-        };
-      }),
-    });
+        }),
+      });
+    } finally {
+      setRunning(false);
+    }
   }
 
   function renderResult(result: Result): React.ReactNode {
@@ -307,7 +316,9 @@ export default function Berechnen() {
           <h2>Berechnen</h2>
 
           <Stack>
-            <Button onClick={() => berechnen()}>Los</Button>
+            <Button onClick={() => berechnen()} loading={running} loaderProps={{ type: "dots" }}>
+              Los
+            </Button>
             <Divider />
             {result && renderResult(result)}
           </Stack>
