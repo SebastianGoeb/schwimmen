@@ -9,9 +9,9 @@ import {
   ScrollArea,
   SegmentedControl,
   Select,
-  SimpleGrid,
   Space,
   Stack,
+  Table,
   Text,
 } from "@mantine/core";
 import LapTimeGridView from "../../components/LapTimeGridView/LapTimeGridView.tsx";
@@ -95,38 +95,43 @@ function LapTimeImportModal(props: LapTimeImportModalProps) {
       scrollAreaComponent={ScrollArea.Autosize}
     >
       <Stack>
-        <h3>Folgende Schwimmer wurden gefunden</h3>
-        <SimpleGrid cols={2}>
-          {props.importedSchwimmer.map((schwimmer) => (
-            <>
-              <Text>{schwimmer.name}</Text>
+        <h3>Folgende Schwimmer wurden erkannt</h3>
+        <Table
+          withRowBorders={false}
+          data={{
+            head: ["Aus Zwischenablage", "Zuweisen zu"],
+            body: props.importedSchwimmer.map((schwimmer) => [
+              <Text>{schwimmer.name}</Text>,
               <Select
                 data={swimmerMappingOptions}
                 value={String(swimmerNameToId.get(schwimmer.name)!)}
                 onChange={(value) => {
                   setSwimmerNameToId(new Map(swimmerNameToId).set(schwimmer.name, value !== null ? Number(value) : -1));
                 }}
-              />
-            </>
-          ))}
-        </SimpleGrid>
+              />,
+            ]),
+          }}
+        />
+
         <Divider />
 
-        <h3>Folgende Disziplinen wurden gefunden</h3>
-        <SimpleGrid cols={2}>
-          {importedDisciplines.map((name) => (
-            <>
-              <Text>{name}</Text>
+        <h3>Folgende Disziplinen wurden erkannt</h3>
+        <Table
+          withRowBorders={false}
+          data={{
+            head: ["Aus Zwischenablage", "Zuweisen zu"],
+            body: importedDisciplines.map((name) => [
+              <Text>{name}</Text>,
               <Select
                 data={disciplineMappingOptions}
                 value={String(disciplineNameToId.get(name)!)}
                 onChange={(value) => {
                   setDiscipineNameToId(new Map(disciplineNameToId).set(name, value !== null ? Number(value) : -1));
                 }}
-              />
-            </>
-          ))}
-        </SimpleGrid>
+              />,
+            ]),
+          }}
+        />
         <Group justify="flex-end">
           <Button variant="subtle" color="dimmed" onClick={props.onClose}>
             Abbrechen
