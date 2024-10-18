@@ -1,4 +1,18 @@
-import { Button, Checkbox, Container, Fieldset, Input, NumberInput, Paper, SimpleGrid, Stack } from "@mantine/core";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Container,
+  Divider,
+  Fieldset,
+  Input,
+  NumberInput,
+  Paper,
+  SimpleGrid,
+  Stack,
+  Table,
+  Text,
+} from "@mantine/core";
 import { useStore } from "../../services/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { IMaskInput } from "react-imask";
@@ -15,6 +29,9 @@ import { parseZeit } from "../../lib/schwimmen/util/zeit.ts";
 import { Discipline } from "../../model/discipline.ts";
 import { Geschlecht } from "../../lib/schwimmen/eingabe/geschlecht.ts";
 import { Gender } from "../../model/gender.ts";
+import { useState } from "react";
+import { max, sum, uniq } from "lodash-es";
+import { formatMaskedTime } from "../../utils/masking.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
@@ -51,14 +68,35 @@ function parseMaskedZeitToSeconds(zeit: string): number | undefined {
   const cleaned2 = cleaned.replace(/_/g, "0");
 
   const min = Number(cleaned2.slice(0, 2));
-  const sec = Number(cleaned2.slice(2, 2));
-  const cent = Number(cleaned2.slice(4, 2));
+  const sec = Number(cleaned2.slice(2, 4));
+  const cent = Number(cleaned2.slice(4, 6));
 
   return min * 60 + sec + cent / 100;
 }
 
 function mapGenderToGeschlecht(gender: Gender): Geschlecht {
   return gender === Gender.M ? Geschlecht.MALE : Geschlecht.FEMALE;
+}
+
+interface Result {
+  teams: TeamResult[];
+}
+
+interface TeamResult {
+  swimmerNames: string[];
+  relays: RelayResult[];
+  totalSeconds: number;
+}
+
+interface RelayResult {
+  staffelName: string;
+  legs: RelayLegResult[];
+  totalSeconds: number;
+}
+
+interface RelayLegResult {
+  swimmerName: string;
+  seconds: number;
 }
 
 export default function Berechnen() {
@@ -71,6 +109,7 @@ export default function Berechnen() {
       state.updateTeamSettings,
     ]),
   );
+  const [result, setResult] = useState<Result | undefined>(undefined);
 
   async function berechnen() {
     // TODO check no duplicate discipline names
@@ -93,7 +132,7 @@ export default function Berechnen() {
         disziplinen: relay.legs.flatMap((leg) =>
           new Array(leg.times).fill(disciplines.find((d) => d.id === leg.disciplineId)!.name),
         ),
-        team: false, // TODO make this configurable in UI
+        team: relay.team,
       })),
     });
 
@@ -109,8 +148,69 @@ export default function Berechnen() {
     };
 
     const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
-
     console.log(state, duration, checked);
+
+    setResult({
+      teams: state.state.teams.map((team) => {
+        const relayResults = team.staffelBelegungen.map((sb) => {
+          const legs = sb.startBelegungen.map((swimmerIdx, startIdx) => {
+            const disziplinId = konfiguration.staffeln[sb.staffelId].disziplinIds[startIdx];
+            return {
+              swimmerName: konfiguration.schwimmerList[swimmerIdx].name,
+              seconds: konfiguration.disziplinToSchwimmerToZeit[disziplinId][swimmerIdx]!,
+            };
+          });
+          return {
+            staffelName: konfiguration.staffeln[sb.staffelId].name,
+            legs,
+            totalSeconds: konfiguration.staffeln[sb.staffelId].team
+              ? max(legs.map((leg) => leg.seconds))!
+              : sum(legs.map((leg) => leg.seconds)),
+          };
+        });
+        return {
+          swimmerNames: uniq(relayResults.flatMap((r) => r.legs.flatMap((leg) => leg.swimmerName))), // TODO
+          relays: relayResults,
+          totalSeconds: sum(relayResults.map((r) => r.totalSeconds)),
+        };
+      }),
+    });
+  }
+
+  function renderResult(result: Result): React.ReactNode {
+    return (
+      <Stack>
+        {result.teams.map((team, index) => (
+          <>
+            <h3>Team {index + 1}</h3>
+            <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
+            <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
+              {team.relays.map((relay) => (
+                <Box>
+                  <h4>{relay.staffelName}</h4>
+
+                  <Table
+                    withTableBorder
+                    withRowBorders={false}
+                    data={{
+                      body: relay.legs.map((leg) => [leg.swimmerName, formatMaskedTime(leg.seconds)]),
+                      foot: ["Gesamt", formatMaskedTime(relay.totalSeconds)],
+                    }}
+                  />
+                </Box>
+              ))}
+            </SimpleGrid>
+
+            <h4>Schwimmer</h4>
+            <Table
+              data={{
+                body: team.swimmerNames.map((it) => [it]),
+              }}
+            />
+          </>
+        ))}
+      </Stack>
+    );
   }
 
   return (
@@ -206,7 +306,11 @@ export default function Berechnen() {
         <Paper withBorder shadow="md" p="xl">
           <h2>Berechnen</h2>
 
-          <Button onClick={() => berechnen()}>Los</Button>
+          <Stack>
+            <Button onClick={() => berechnen()}>Los</Button>
+            <Divider />
+            {result && renderResult(result)}
+          </Stack>
         </Paper>
       </Stack>
     </Container>
