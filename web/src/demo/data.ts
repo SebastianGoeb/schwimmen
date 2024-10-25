@@ -1,5 +1,6 @@
 import { Gender } from "../model/gender.ts";
 import { Data } from "../model/data.ts";
+import { mutateRandom, mutateVerySmart } from "../lib/schwimmen/search/sa/mutation.ts";
 
 export const demoData1: Data = {
   disciplines: [
@@ -73,4 +74,179 @@ export const demoData1: Data = {
       team: false,
     },
   ],
+  teamSettings: {
+    alleMuessenSchwimmen: false,
+    minSchwimmerProTeam: 7,
+    maxSchwimmerProTeam: 12,
+    minMaleProTeam: 2,
+    minFemaleProTeam: 2,
+    minStartsProSchwimmer: 0,
+    maxStartsProSchwimmer: 5,
+    anzahlTeams: 1,
+    maxZeitspanneProStaffelSeconds: "00:10,00",
+  },
+  simulatedAnnealingSettings: {
+    smartMutationRate: 0.85,
+    smartMutation: mutateVerySmart,
+    dumbMutation: mutateRandom,
+    acceptanceProbability: 0.1,
+    globalGenerationLimit: 200,
+    restartGenerationLimit: 50,
+    maxGenerations: 1_000_000,
+    populationSize: 20,
+  },
+};
+
+export const realData: Data = {
+  disciplines: [
+    {
+      id: 0,
+      name: "Rücken",
+    },
+    {
+      id: 1,
+      name: "Brust",
+    },
+    {
+      id: 2,
+      name: "Kraul",
+    },
+    {
+      name: "Rü Beine",
+      id: 3,
+    },
+    {
+      name: "Kr Beine",
+      id: 4,
+    },
+    {
+      name: "Br Beine",
+      id: 5,
+    },
+    {
+      name: "200",
+      id: 6,
+    },
+    {
+      name: "BrAr/KrBei",
+      id: 7,
+    },
+  ],
+  swimmers: [],
+  relays: [
+    {
+      id: 0,
+      name: "4 x Kraul",
+      legs: [
+        {
+          disciplineId: 2,
+          times: 4,
+        },
+      ],
+      team: false,
+    },
+    {
+      id: 1,
+      name: "4 x Brust A Kr Beine",
+      legs: [
+        {
+          disciplineId: 7,
+          times: 4,
+        },
+      ],
+      team: false,
+    },
+    {
+      id: 2,
+      name: "4 x Brust",
+      legs: [
+        {
+          disciplineId: 1,
+          times: 4,
+        },
+      ],
+      team: false,
+    },
+    {
+      id: 3,
+      name: "6 x LG Beine",
+      legs: [
+        {
+          disciplineId: 3,
+          times: 2,
+        },
+        {
+          disciplineId: 5,
+          times: 2,
+        },
+        {
+          disciplineId: 4,
+          times: 2,
+        },
+      ],
+      team: false,
+    },
+    {
+      id: 4,
+      name: "4 x Rücken",
+      legs: [
+        {
+          disciplineId: 0,
+          times: 4,
+        },
+      ],
+      team: false,
+    },
+    {
+      id: 5,
+      name: "200 Team",
+      legs: [
+        {
+          disciplineId: 6,
+          times: 4,
+        },
+      ],
+      team: true,
+    },
+    {
+      id: 6,
+      name: "6 x LG",
+      legs: [
+        {
+          disciplineId: 0,
+          times: 2,
+        },
+        {
+          disciplineId: 1,
+          times: 2,
+        },
+        {
+          disciplineId: 2,
+          times: 2,
+        },
+      ],
+      team: false,
+    },
+  ],
+  teamSettings: {
+    alleMuessenSchwimmen: false,
+    minSchwimmerProTeam: 7,
+    maxSchwimmerProTeam: 12,
+    minMaleProTeam: 2,
+    minFemaleProTeam: 2,
+    minStartsProSchwimmer: 0,
+    maxStartsProSchwimmer: 5,
+    anzahlTeams: 1,
+    maxZeitspanneProStaffelSeconds: "00:10,00",
+  },
+  simulatedAnnealingSettings: {
+    smartMutationRate: 0.85,
+    smartMutation: mutateVerySmart,
+    dumbMutation: mutateRandom,
+    acceptanceProbability: 0.1,
+    globalGenerationLimit: 200,
+    restartGenerationLimit: 50,
+    maxGenerations: 1_000_000,
+    populationSize: 20,
+  },
 };
