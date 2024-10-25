@@ -97,7 +97,7 @@ export const demoData1: Data = {
   },
 };
 
-export const realDataFJugend: Data = {
+export const realData: Data = {
   disciplines: [
     {
       id: 0,
