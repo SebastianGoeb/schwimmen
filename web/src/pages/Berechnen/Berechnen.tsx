@@ -30,7 +30,7 @@ import { Discipline } from "../../model/discipline.ts";
 import { Geschlecht } from "../../lib/schwimmen/eingabe/geschlecht.ts";
 import { Gender } from "../../model/gender.ts";
 import { useState } from "react";
-import { max, sum, uniq } from "lodash-es";
+import { max, sortBy, sum, uniq } from "lodash-es";
 import { formatMaskedTime } from "../../utils/masking.ts";
 
 function onlyNumbers(value: string | number): number {
@@ -39,6 +39,7 @@ function onlyNumbers(value: string | number): number {
 
 function schwimmerIndexIdMapping(swimmers: Map<number, Swimmer>): number[] {
   return Array.from(swimmers.values())
+    .filter((s) => s.present)
     .sort(compareByYearThenGenderThenLastname)
     .map((swimmer) => swimmer.id);
 }
@@ -83,7 +84,6 @@ interface Result {
 }
 
 interface TeamResult {
-  swimmerNames: string[];
   relays: RelayResult[];
   totalSeconds: number;
 }
@@ -175,7 +175,6 @@ export default function Berechnen() {
             };
           });
           return {
-            swimmerNames: uniq(relayResults.flatMap((r) => r.legs.flatMap((leg) => leg.swimmerName))), // TODO
             relays: relayResults,
             totalSeconds: sum(relayResults.map((r) => r.totalSeconds)),
           };
@@ -186,40 +185,59 @@ export default function Berechnen() {
     }
   }
 
-  function renderResult(result: Result): React.ReactNode {
+  function renderRelayResult(relay: RelayResult) {
+    const legsSorted = sortBy(relay.legs, (l) => l.swimmerName);
     return (
-      <Stack>
-        {result.teams.map((team, index) => (
-          <>
-            <h3>Team {index + 1}</h3>
-            <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
-            <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
-              {team.relays.map((relay) => (
-                <Box>
-                  <h4>{relay.staffelName}</h4>
+      <Box>
+        <h4>{relay.staffelName}</h4>
 
-                  <Table
-                    withTableBorder
-                    withRowBorders={false}
-                    data={{
-                      body: relay.legs.map((leg) => [leg.swimmerName, formatMaskedTime(leg.seconds)]),
-                      foot: ["Gesamt", formatMaskedTime(relay.totalSeconds)],
-                    }}
-                  />
-                </Box>
-              ))}
-            </SimpleGrid>
+        <Table
+          withTableBorder
+          withRowBorders={false}
+          data={{
+            body: legsSorted.map((leg) => [leg.swimmerName, formatMaskedTime(leg.seconds)]),
+            foot: ["Gesamt", formatMaskedTime(relay.totalSeconds)],
+          }}
+        />
+      </Box>
+    );
+  }
 
+  function renderTeamResult(team: TeamResult, index: number) {
+    const swimmerCounts = new Map<string, number>();
+    team.relays.forEach((relay) => {
+      relay.legs.forEach((leg) => {
+        if (!swimmerCounts.has(leg.swimmerName)) {
+          swimmerCounts.set(leg.swimmerName, 0);
+        }
+        swimmerCounts.set(leg.swimmerName, swimmerCounts.get(leg.swimmerName)! + 1);
+      });
+    });
+    const swimmerNames = uniq(team.relays.flatMap((relay) => relay.legs).flatMap((leg) => leg.swimmerName)).sort();
+    return (
+      <>
+        <h3>Team {index + 1}</h3>
+        <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
+        <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
+          {team.relays.map((relay) => renderRelayResult(relay))}
+
+          <Box>
             <h4>Schwimmer</h4>
             <Table
+              withTableBorder
+              withRowBorders={false}
               data={{
-                body: team.swimmerNames.map((it) => [it]),
+                body: swimmerNames.map((it) => [it, `${swimmerCounts.get(it)!}x`]),
               }}
             />
-          </>
-        ))}
-      </Stack>
+          </Box>
+        </SimpleGrid>
+      </>
     );
+  }
+
+  function renderResult(result: Result) {
+    return <Stack>{result.teams.map((team, index) => renderTeamResult(team, index))}</Stack>;
   }
 
   return (
