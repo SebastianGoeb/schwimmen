@@ -124,7 +124,7 @@ export const realDataFJugend: Data = {
       id: 5,
     },
     {
-      name: "200 Team",
+      name: "200",
       id: 6,
     },
     {
@@ -132,77 +132,11 @@ export const realDataFJugend: Data = {
       id: 7,
     },
   ],
-  swimmers: [
-    // {
-    //   id: 4,
-    //   name: "Leo Tan",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.M,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-    // {
-    //   id: 6,
-    //   name: "Arthur Kleber",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.M,
-    //   present: true,
-    //   lapTimes: new Map(),
-    //   maxStarts: 2,
-    // },
-    // {
-    //   id: 8,
-    //   name: "Marlene Trapper",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.W,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-    // {
-    //   id: 9,
-    //   name: "Leonie Sophie Wiehlpütz",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.W,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-    // {
-    //   id: 11,
-    //   name: "Benno Reimann",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.M,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-    // {
-    //   id: 12,
-    //   name: "Marie Gädke",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.W,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-    // {
-    //   id: 15,
-    //   name: "Sophie Neumann",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.W,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-    // {
-    //   id: 16,
-    //   name: "Theo Kemmerer",
-    //   yearOfBirth: 2024,
-    //   gender: Gender.M,
-    //   present: true,
-    //   lapTimes: new Map(),
-    // },
-  ],
+  swimmers: [],
   relays: [
     {
       id: 0,
-      name: "4 x 25 Kraul",
+      name: "4 x Kraul",
       legs: [
         {
           disciplineId: 2,
@@ -213,7 +147,7 @@ export const realDataFJugend: Data = {
     },
     {
       id: 1,
-      name: "4 x 25 Brust A Kr Beine",
+      name: "4 x Brust A Kr Beine",
       legs: [
         {
           disciplineId: 7,
@@ -224,7 +158,7 @@ export const realDataFJugend: Data = {
     },
     {
       id: 2,
-      name: "4 x 25 Brust",
+      name: "4 x Brust",
       legs: [
         {
           disciplineId: 1,
@@ -235,7 +169,7 @@ export const realDataFJugend: Data = {
     },
     {
       id: 3,
-      name: "6 x 25 LG Beine",
+      name: "6 x LG Beine",
       legs: [
         {
           disciplineId: 3,
@@ -254,7 +188,7 @@ export const realDataFJugend: Data = {
     },
     {
       id: 4,
-      name: "4 x 25 Rücken",
+      name: "4 x Rücken",
       legs: [
         {
           disciplineId: 0,
@@ -276,7 +210,7 @@ export const realDataFJugend: Data = {
     },
     {
       id: 6,
-      name: "6 x 25 LG",
+      name: "6 x LG",
       legs: [
         {
           disciplineId: 0,
