@@ -1,10 +1,10 @@
 import { Alert, Container, Group, NumberInput, Paper, Select, SimpleGrid, Stack } from "@mantine/core";
 import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 
 export default function Developer() {
-  const [disziplinen, swimmers, relays] = useStore(
+  const [disziplinen, swimmers, relays] = useCombinedStore(
     useShallow((state) => [state.disciplines, state.swimmers, state.relays]),
   );
 

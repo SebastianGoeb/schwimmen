@@ -1,5 +1,5 @@
 import { Group, Paper, ScrollArea, Space, Table } from "@mantine/core";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
 import React from "react";
@@ -9,7 +9,7 @@ import SwimmerRemoveButton from "../SwimmerRemoveButton/SwimmerRemoveButton.tsx"
 import SwimmerNameInput from "../SwimmerNameInput/SwimmerNameInput.tsx";
 
 export default function LapTimeGridView() {
-  const [disciplines, swimmers] = useStore(useShallow((state) => [state.disciplines, state.swimmers]));
+  const [disciplines, swimmers] = useCombinedStore(useShallow((state) => [state.disciplines, state.swimmers]));
 
   const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
 

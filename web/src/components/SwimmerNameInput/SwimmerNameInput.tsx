@@ -1,5 +1,5 @@
 import { TextInput } from "@mantine/core";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
@@ -9,7 +9,7 @@ export interface SwimmerNameInputProps {
 }
 
 export default function SwimmerNameInput({ swimmer }: SwimmerNameInputProps) {
-  const [updateSwimmer] = useStore(useShallow((state) => [state.updateSwimmer]));
+  const [updateSwimmer] = useCombinedStore(useShallow((state) => [state.updateSwimmer]));
   const [value, setValue] = useState(swimmer.name);
 
   return (

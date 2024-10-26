@@ -11,7 +11,7 @@ import {
   Table,
 } from "@mantine/core";
 import React from "react";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
 import { Gender } from "../../model/gender.ts";
@@ -27,7 +27,7 @@ function numberify(sn: string | number): number | undefined {
 }
 
 export default function Swimmers() {
-  const [swimmers, updateSwimmer] = useStore(useShallow((state) => [state.swimmers, state.updateSwimmer]));
+  const [swimmers, updateSwimmer] = useCombinedStore(useShallow((state) => [state.swimmers, state.updateSwimmer]));
 
   const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
 

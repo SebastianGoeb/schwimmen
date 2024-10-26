@@ -20,7 +20,7 @@ import LapTimeDisciplinesView from "../../components/LapTimeDisciplinesView/LapT
 import { IconClipboardPlus } from "@tabler/icons-react";
 import { parseStilZeitenFromGrid, Schwimmer } from "../../lib/schwimmen/eingabe/zeiten.ts";
 import { useDisclosure } from "@mantine/hooks";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
 import { Discipline } from "../../model/discipline.ts";
@@ -55,7 +55,7 @@ function getInitialDiscipineNameToIdMapping(
 }
 
 function LapTimeImportModal(props: LapTimeImportModalProps) {
-  const [swimmers, disciplines, importLapTimes] = useStore(
+  const [swimmers, disciplines, importLapTimes] = useCombinedStore(
     useShallow((state) => [state.swimmers, state.disciplines, state.importLapTimes]),
   );
   const importedDisciplines: string[] = useMemo(() => {

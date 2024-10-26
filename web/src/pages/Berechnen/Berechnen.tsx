@@ -13,7 +13,7 @@ import {
   Table,
   Text,
 } from "@mantine/core";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { IMaskInput } from "react-imask";
 import { zeitenMask } from "../../utils/input-mask.ts";
@@ -100,7 +100,7 @@ interface RelayLegResult {
 }
 
 export default function Berechnen() {
-  const [disciplines, swimmers, relays, teamSettings, updateTeamSettings] = useStore(
+  const [disciplines, swimmers, relays, teamSettings, updateTeamSettings] = useCombinedStore(
     useShallow((state) => [
       state.disciplines,
       state.swimmers,

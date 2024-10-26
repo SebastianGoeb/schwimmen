@@ -1,12 +1,14 @@
 import { Checkbox, Group, Input } from "@mantine/core";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { Swimmer } from "../../model/swimmer.ts";
 import { IMaskInput } from "react-imask";
 import { zeitenMask } from "../../utils/input-mask.ts";
 
 export default function LapTimeCell({ swimmer, disciplineId }: { swimmer: Swimmer; disciplineId: number }) {
-  const [updateLapTime, removeLapTime] = useStore(useShallow((state) => [state.updateLapTime, state.removeLapTime]));
+  const [updateLapTime, removeLapTime] = useCombinedStore(
+    useShallow((state) => [state.updateLapTime, state.removeLapTime]),
+  );
 
   const lapTime = swimmer.lapTimes.get(disciplineId);
   return (
