@@ -1,11 +1,11 @@
 import { ActionIcon, Button, Group, Modal, Stack, Text } from "@mantine/core";
 import { IconTrashX } from "@tabler/icons-react";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { useDisclosure } from "@mantine/hooks";
 
 export default function SwimmerRemoveButton({ id }: { id: number }) {
-  const [removeSwimmer] = useStore(useShallow((state) => [state.removeSwimmer]));
+  const [removeSwimmer] = useCombinedStore(useShallow((state) => [state.removeSwimmer]));
   const [opened, { open, close }] = useDisclosure(false);
 
   return (

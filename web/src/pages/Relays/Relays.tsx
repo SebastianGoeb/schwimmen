@@ -17,7 +17,7 @@ import {
   Text,
 } from "@mantine/core";
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrashX } from "@tabler/icons-react";
-import { useStore } from "../../services/state.ts";
+import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import React, { useState } from "react";
 import { Relay, RelayLeg } from "../../model/relay.ts";
@@ -43,7 +43,7 @@ export default function Relays() {
     addRelayLeg,
     removeRelayLeg,
     updateRelayLeg,
-  ] = useStore(
+  ] = useCombinedStore(
     useShallow((state) => [
       state.relays,
       state.disciplines,
