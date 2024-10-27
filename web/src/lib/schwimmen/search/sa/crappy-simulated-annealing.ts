@@ -20,10 +20,19 @@ export interface Hyperparameters {
   populationSize: number;
 }
 
+export type ProgressFun = (progress: Progress) => void;
+export interface Progress {
+  gen: number;
+  statesChecked: number;
+  score: number;
+  valid: boolean;
+}
+
 export async function runCrappySimulatedAnnealing(
   konfiguration: Konfiguration,
   hyperparameters: Hyperparameters,
   printProgress: boolean = true,
+  progress: ProgressFun = () => {},
 ): Promise<{ state: StateAndScore; duration: number; checked: number }> {
   const start = new Date();
 
@@ -82,6 +91,8 @@ export async function runCrappySimulatedAnnealing(
         // console.log(JSON.stringify(bestState));
       }
     }
+
+    progress({ gen, statesChecked, score: bestState.score, valid: true });
 
     if (gen > genOfBestState + hyperparameters.globalGenerationLimit) {
       break;

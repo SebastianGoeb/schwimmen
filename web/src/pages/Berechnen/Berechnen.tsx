@@ -20,6 +20,7 @@ import { zeitenMask } from "../../utils/input-mask.ts";
 import { buildKonfiguration } from "../../lib/schwimmen/eingabe/konfiguration.ts";
 import {
   Hyperparameters,
+  Progress,
   runCrappySimulatedAnnealing,
 } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
 import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
@@ -111,6 +112,7 @@ export default function Berechnen() {
   );
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | undefined>(undefined);
+  const [progress, setProgress] = useState<Progress | undefined>(undefined);
 
   async function berechnen() {
     try {
@@ -153,8 +155,14 @@ export default function Berechnen() {
         populationSize: 10,
       };
 
-      const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
-      console.log(state, duration, checked);
+      const { state, duration, checked } = await runCrappySimulatedAnnealing(
+        konfiguration,
+        hyperparameters,
+        false,
+        (gen) => {
+          setProgress(gen);
+        },
+      );
 
       setResult({
         teams: state.state.teams.map((team) => {
@@ -338,8 +346,29 @@ export default function Berechnen() {
               Los
             </Button>
             <Divider />
-            {result && renderResult(result)}
+            {progress && (
+              <>
+                <Table
+                  data={{
+                    head: ["Generationen", "Geprüfte Kombinationen", "Wertung"],
+                    body: [
+                      [
+                        progress.gen.toLocaleString(),
+                        progress.statesChecked.toLocaleString(),
+                        formatMaskedTime(progress.score),
+                      ],
+                    ],
+                  }}
+                />
+              </>
+            )}
           </Stack>
+        </Paper>
+
+        <Paper withBorder shadow="md" p="xl">
+          <h2>Ergebnis</h2>
+
+          <Stack>{result && renderResult(result)}</Stack>
         </Paper>
       </Stack>
     </Container>
