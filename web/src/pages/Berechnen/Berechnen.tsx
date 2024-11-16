@@ -194,7 +194,7 @@ export default function Berechnen() {
   function renderRelayResult(relay: RelayResult, relayIndex: number, teamIndex: number) {
     const legsSorted = sortBy(relay.legs, (l) => l.swimmerName);
     const relayValidity: StaffelValidity | undefined =
-      progress && progress.validity.teamValidities[teamIndex].staffelValidities[relayIndex];
+      progress?.validity?.teamValidities[teamIndex]?.staffelValidities[relayIndex];
     return (
       <Box>
         <h4
