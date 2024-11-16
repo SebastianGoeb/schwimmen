@@ -170,9 +170,9 @@ export default function LapTimes() {
         <Group>
           Ansicht
           <SegmentedControl onChange={setView} data={[View.Grid, View.Disciplines]} />
-          <Button leftSection={<IconClipboardPlus />} onClick={() => importLapTimes()}>
-            aus Zwischenablage importieren
-          </Button>
+          {/*<Button leftSection={<IconClipboardPlus />} onClick={() => importLapTimes()}>*/}
+          {/*  aus Zwischenablage importieren*/}
+          {/*</Button>*/}
         </Group>
       </Group>
 
