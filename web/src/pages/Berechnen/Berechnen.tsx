@@ -9,6 +9,7 @@ import {
   NumberInput,
   Paper,
   SimpleGrid,
+  Space,
   Stack,
   Table,
   Text,
@@ -20,6 +21,7 @@ import { zeitenMask } from "../../utils/input-mask.ts";
 import { buildKonfiguration } from "../../lib/schwimmen/eingabe/konfiguration.ts";
 import {
   Hyperparameters,
+  Progress,
   runCrappySimulatedAnnealing,
 } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
 import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
@@ -32,6 +34,8 @@ import { Gender } from "../../model/gender.ts";
 import { useState } from "react";
 import { max, sortBy, sum, uniq } from "lodash-es";
 import { formatMaskedTime } from "../../utils/masking.ts";
+import { IconCheck, IconX } from "@tabler/icons-react";
+import { StaffelValidity } from "../../lib/schwimmen/search/score/staffel.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
@@ -111,6 +115,7 @@ export default function Berechnen() {
   );
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | undefined>(undefined);
+  const [progress, setProgress] = useState<Progress | undefined>(undefined);
 
   async function berechnen() {
     try {
@@ -153,8 +158,9 @@ export default function Berechnen() {
         populationSize: 10,
       };
 
-      const { state, duration, checked } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters);
-      console.log(state, duration, checked);
+      const { state } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters, false, (gen) =>
+        setProgress(gen),
+      );
 
       setResult({
         teams: state.state.teams.map((team) => {
@@ -185,25 +191,48 @@ export default function Berechnen() {
     }
   }
 
-  function renderRelayResult(relay: RelayResult) {
+  function renderRelayResult(relay: RelayResult, relayIndex: number, teamIndex: number) {
     const legsSorted = sortBy(relay.legs, (l) => l.swimmerName);
+    const relayValidity: StaffelValidity | undefined =
+      progress && progress.validity.teamValidities[teamIndex].staffelValidities[relayIndex];
     return (
       <Box>
-        <h4>{relay.staffelName}</h4>
+        <h4
+          style={{
+            color: relayValidity && relayValidity.valid ? undefined : "var(--mantine-color-error)",
+          }}
+        >
+          {relay.staffelName}
+        </h4>
 
         <Table
           withTableBorder
           withRowBorders={false}
+          style={{
+            borderColor: relayValidity && relayValidity.valid ? undefined : "var(--mantine-color-error)",
+          }}
           data={{
             body: legsSorted.map((leg) => [leg.swimmerName, formatMaskedTime(leg.seconds)]),
             foot: ["Gesamt", formatMaskedTime(relay.totalSeconds)],
           }}
         />
+        {relayValidity && (
+          <Stack
+            style={{
+              color: relayValidity && relayValidity.valid ? undefined : "var(--mantine-color-error)",
+            }}
+          >
+            <Space />
+            {relayValidity.minOneFemaleViolations > 0 && <Text size="xs">Mindestens ein Mädchen benötigt</Text>}
+            {relayValidity.minOneMaleViolations > 0 && "min one male"}
+            {relayValidity.maxOneStartProSchwimmerViolations > 0 && "max one start pro schwimmer"}
+          </Stack>
+        )}
       </Box>
     );
   }
 
-  function renderTeamResult(team: TeamResult, index: number) {
+  function renderTeamResult(team: TeamResult, teamIndex: number) {
     const swimmerCounts = new Map<string, number>();
     team.relays.forEach((relay) => {
       relay.legs.forEach((leg) => {
@@ -216,10 +245,10 @@ export default function Berechnen() {
     const swimmerNames = uniq(team.relays.flatMap((relay) => relay.legs).flatMap((leg) => leg.swimmerName)).sort();
     return (
       <>
-        <h3>Team {index + 1}</h3>
+        <h3>Team {teamIndex + 1}</h3>
         <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
         <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
-          {team.relays.map((relay) => renderRelayResult(relay))}
+          {team.relays.map((relay, relayIndex) => renderRelayResult(relay, relayIndex, teamIndex))}
 
           <Box>
             <h4>Schwimmer</h4>
@@ -338,8 +367,32 @@ export default function Berechnen() {
               Los
             </Button>
             <Divider />
-            {result && renderResult(result)}
+            {progress && (
+              <>
+                <Table
+                  data={{
+                    head: ["Generationen", "Geprüfte Kombinationen", "Score", "Ergebnis Valide"],
+                    body: [
+                      [
+                        progress.gen.toLocaleString(),
+                        progress.statesChecked.toLocaleString(),
+                        formatMaskedTime(progress.score),
+                        progress.validity.valid ? <IconCheck color="green" /> : <IconX color="red" />,
+                      ],
+                    ],
+                  }}
+                />
+              </>
+            )}
           </Stack>
+        </Paper>
+
+        <Paper withBorder shadow="md" p="xl" style={{ borderColor: progress?.validity?.valid ? undefined : "red" }}>
+          <h2>Ergebnis</h2>
+
+          <Stack>{result && renderResult(result)}</Stack>
+
+          {/*<pre>{JSON.stringify(progress?.validity, null, 2)}</pre>*/}
         </Paper>
       </Stack>
     </Container>

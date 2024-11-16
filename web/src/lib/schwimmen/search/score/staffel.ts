@@ -18,7 +18,7 @@ export function staffelGesamtzeit(staffelBelegung: StaffelBelegung, konfiguratio
   return gesamtZeit;
 }
 
-function maxOneStartProSchwimmerViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
+function calcMaxOneStartProSchwimmerViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
   const starts = new Int8Array(konfiguration.schwimmerList.length);
   for (const schwimmerId of staffelBelegung.startBelegungen) {
     starts[schwimmerId]++;
@@ -32,7 +32,7 @@ function maxOneStartProSchwimmerViolations(staffelBelegung: StaffelBelegung, kon
   return sum;
 }
 
-function minOneMaleViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
+function calcMinOneMaleViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
   let sum = 0;
   for (const schwimmerId of staffelBelegung.startBelegungen) {
     if (konfiguration.geschlecht[schwimmerId] == Geschlecht.MALE) {
@@ -42,7 +42,7 @@ function minOneMaleViolations(staffelBelegung: StaffelBelegung, konfiguration: K
   return Math.max(1 - sum, 0);
 }
 
-function minOneFemaleViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
+function calcMinOneFemaleViolations(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
   let sum = 0;
   for (const schwimmerId of staffelBelegung.startBelegungen) {
     if (konfiguration.geschlecht[schwimmerId] == Geschlecht.FEMALE) {
@@ -55,8 +55,27 @@ function minOneFemaleViolations(staffelBelegung: StaffelBelegung, konfiguration:
 export function staffelScore(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): number {
   return (
     staffelGesamtzeit(staffelBelegung, konfiguration) +
-    strafSekundenProRegelverstoss * maxOneStartProSchwimmerViolations(staffelBelegung, konfiguration) +
-    strafSekundenProRegelverstoss * minOneMaleViolations(staffelBelegung, konfiguration) +
-    strafSekundenProRegelverstoss * minOneFemaleViolations(staffelBelegung, konfiguration)
+    strafSekundenProRegelverstoss * calcMaxOneStartProSchwimmerViolations(staffelBelegung, konfiguration) +
+    strafSekundenProRegelverstoss * calcMinOneMaleViolations(staffelBelegung, konfiguration) +
+    strafSekundenProRegelverstoss * calcMinOneFemaleViolations(staffelBelegung, konfiguration)
   );
+}
+
+export interface StaffelValidity {
+  valid: boolean;
+  maxOneStartProSchwimmerViolations: number;
+  minOneMaleViolations: number;
+  minOneFemaleViolations: number;
+}
+
+export function validateStaffel(staffelBelegung: StaffelBelegung, konfiguration: Konfiguration): StaffelValidity {
+  const maxOneStartProSchwimmerViolations = calcMaxOneStartProSchwimmerViolations(staffelBelegung, konfiguration);
+  const minOneMaleViolations = calcMinOneMaleViolations(staffelBelegung, konfiguration);
+  const minOneFemaleViolations = calcMinOneFemaleViolations(staffelBelegung, konfiguration);
+  return {
+    valid: maxOneStartProSchwimmerViolations === 0 && minOneMaleViolations === 0 && minOneFemaleViolations === 0,
+    maxOneStartProSchwimmerViolations,
+    minOneMaleViolations,
+    minOneFemaleViolations,
+  };
 }
