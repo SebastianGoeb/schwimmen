@@ -194,7 +194,7 @@ export default function Berechnen() {
   function renderRelayResult(relay: RelayResult, relayIndex: number, teamIndex: number) {
     const legsSorted = sortBy(relay.legs, (l) => l.swimmerName);
     const relayValidity: StaffelValidity | undefined =
-      progress && progress.validity.teamValidities[teamIndex].staffelValidities[relayIndex];
+      progress?.validity?.teamValidities[teamIndex]?.staffelValidities[relayIndex];
     return (
       <Box>
         <h4
@@ -232,6 +232,10 @@ export default function Berechnen() {
     );
   }
 
+  function violationErrorText(violations: number | undefined, text: string) {
+    return <Text style={{ color: "var(--mantine-color-error)" }}>{violations ?? 0 !== 0 ? text : undefined}</Text>;
+  }
+
   function renderTeamResult(team: TeamResult, teamIndex: number) {
     const swimmerCounts = new Map<string, number>();
     team.relays.forEach((relay) => {
@@ -247,9 +251,26 @@ export default function Berechnen() {
       <>
         <h3>Team {teamIndex + 1}</h3>
         <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
+        <Box>
+          {violationErrorText(
+            progress?.validity?.teamValidities[teamIndex]?.minSchwimmerViolations,
+            "Min Schwimmer nicht eingehalten",
+          )}
+          {violationErrorText(
+            progress?.validity?.teamValidities[teamIndex]?.maxSchwimmerViolations,
+            "Max Schwimmer nicht eingehalten",
+          )}
+          {violationErrorText(
+            progress?.validity?.teamValidities[teamIndex]?.minMaleViolations,
+            "Min Jungen pro Team nicht eingehalten",
+          )}
+          {violationErrorText(
+            progress?.validity?.teamValidities[teamIndex]?.minFemaleViolations,
+            "Min Mädchen pro Team nicht eingehalten",
+          )}
+        </Box>
         <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
           {team.relays.map((relay, relayIndex) => renderRelayResult(relay, relayIndex, teamIndex))}
-
           <Box>
             <h4>Schwimmer</h4>
             <Table
@@ -390,9 +411,30 @@ export default function Berechnen() {
         <Paper withBorder shadow="md" p="xl" style={{ borderColor: progress?.validity?.valid ? undefined : "red" }}>
           <h2>Ergebnis</h2>
 
-          <Stack>{result && renderResult(result)}</Stack>
+          <Box>
+            {violationErrorText(
+              progress?.validity?.minStartsProSchwimmerViolations,
+              "Min Starts pro Schwimmer nicht eingehalten",
+            )}
+            {violationErrorText(
+              progress?.validity?.maxStartsProSchwimmerViolations,
+              "Max Starts pro Schwimmer nicht eingehalten",
+            )}
+            {violationErrorText(
+              progress?.validity?.alleMuessenSchwimmenViolations,
+              "Alle müssen schwimmen nicht eingehalten",
+            )}
+            {violationErrorText(
+              progress?.validity?.schwimmerInMehrerenTeamsViolations,
+              "Es gibt Schwimmer, die in mehreren Teams schwimmen",
+            )}
+            {violationErrorText(
+              progress?.validity?.zeitspannePenaltySeconds,
+              "Maximale Staffelzeitendifferenz nicht eingehalten",
+            )}
+          </Box>
 
-          {/*<pre>{JSON.stringify(progress?.validity, null, 2)}</pre>*/}
+          <Stack>{result && renderResult(result)}</Stack>
         </Paper>
       </Stack>
     </Container>
