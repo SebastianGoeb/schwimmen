@@ -1,7 +1,7 @@
 import { Konfiguration } from "../../eingabe/konfiguration";
 import { Team } from "../state/state";
 import { Geschlecht } from "../../eingabe/geschlecht";
-import { staffelScore } from "./staffel";
+import { staffelScore, StaffelValidity, validateStaffel } from "./staffel";
 import { strafSekundenProRegelverstoss } from "./common";
 
 function countSchwimmer(team: Team, konfiguration: Konfiguration) {
@@ -70,4 +70,40 @@ export function teamScore(team: Team, konfiguration: Konfiguration): number {
     strafSekundenProRegelverstoss * minMaleViolations +
     strafSekundenProRegelverstoss * minFemaleViolations
   );
+}
+
+export interface TeamValidity {
+  valid: boolean;
+  staffelValidities: StaffelValidity[];
+  minSchwimmerViolations: number;
+  maxSchwimmerViolations: number;
+  minMaleViolations: number;
+  minFemaleViolations: number;
+}
+
+export function teamValidity(team: Team, konfiguration: Konfiguration): TeamValidity {
+  const staffelValidities = team.staffelBelegungen.map((staffelBelegung) =>
+    validateStaffel(staffelBelegung, konfiguration),
+  );
+
+  const anzahlSchwimmer = countSchwimmer(team, konfiguration);
+  const minSchwimmerViolations = Math.max(konfiguration.minSchwimmerProTeam - anzahlSchwimmer, 0);
+  const maxSchwimmerViolations = Math.max(anzahlSchwimmer - konfiguration.maxSchwimmerProTeam, 0);
+  const { males, females } = countGeschlechter(team, konfiguration);
+  const minMaleViolations = Math.max(konfiguration.minMaleProTeam - males, 0);
+  const minFemaleViolations = Math.max(konfiguration.minFemaleProTeam - females, 0);
+
+  return {
+    valid:
+      staffelValidities.every((it) => it.valid) &&
+      minSchwimmerViolations === 0 &&
+      maxSchwimmerViolations === 0 &&
+      minMaleViolations === 0 &&
+      minFemaleViolations === 0,
+    staffelValidities,
+    minSchwimmerViolations,
+    maxSchwimmerViolations,
+    minMaleViolations,
+    minFemaleViolations,
+  };
 }

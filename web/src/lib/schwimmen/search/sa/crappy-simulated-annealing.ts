@@ -2,7 +2,7 @@ import { State, StateAndScore } from "../state/state";
 import { Konfiguration } from "../../eingabe/konfiguration";
 import { initialRandomAssignment } from "../common/initialization";
 import { minBy, times } from "lodash-es";
-import { stateScore } from "../score/state";
+import { stateScore, StateValidity, stateValidity } from "../score/state";
 import { formatZeit } from "../../util/zeit";
 import type { Pool } from "workerpool";
 import * as workerpool from "workerpool";
@@ -25,7 +25,7 @@ export interface Progress {
   gen: number;
   statesChecked: number;
   score: number;
-  valid: boolean;
+  validity: StateValidity;
 }
 
 export async function runCrappySimulatedAnnealing(
@@ -92,7 +92,7 @@ export async function runCrappySimulatedAnnealing(
       }
     }
 
-    progress({ gen, statesChecked, score: bestState.score, valid: true });
+    progress({ gen, statesChecked, score: bestState.score, validity: stateValidity(bestState.state, konfiguration) });
 
     if (gen > genOfBestState + hyperparameters.globalGenerationLimit) {
       break;
