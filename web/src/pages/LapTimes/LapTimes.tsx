@@ -17,7 +17,6 @@ import {
 import LapTimeGridView from "../../components/LapTimeGridView/LapTimeGridView.tsx";
 import { useEffect, useMemo, useState } from "react";
 import LapTimeDisciplinesView from "../../components/LapTimeDisciplinesView/LapTimeDisciplinesView.tsx";
-import { IconClipboardPlus } from "@tabler/icons-react";
 import { parseStilZeitenFromGrid, Schwimmer } from "../../lib/schwimmen/eingabe/zeiten.ts";
 import { useDisclosure } from "@mantine/hooks";
 import { useCombinedStore } from "../../services/state/state.ts";
@@ -170,9 +169,6 @@ export default function LapTimes() {
         <Group>
           Ansicht
           <SegmentedControl onChange={setView} data={[View.Grid, View.Disciplines]} />
-          {/*<Button leftSection={<IconClipboardPlus />} onClick={() => importLapTimes()}>*/}
-          {/*  aus Zwischenablage importieren*/}
-          {/*</Button>*/}
         </Group>
       </Group>
 

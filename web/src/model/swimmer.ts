@@ -9,6 +9,7 @@ export interface Swimmer {
   minStarts?: number;
   maxStarts?: number;
   lapTimes: Map<number, LapTime>;
+  ageGroup: string;
 }
 
 export interface LapTime {

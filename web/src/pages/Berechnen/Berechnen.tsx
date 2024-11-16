@@ -5,7 +5,10 @@ import {
   Container,
   Divider,
   Fieldset,
+  Group,
   Input,
+  Loader,
+  NativeSelect,
   NumberInput,
   Paper,
   SimpleGrid,
@@ -116,8 +119,13 @@ export default function Berechnen() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<Result | undefined>(undefined);
   const [progress, setProgress] = useState<Progress | undefined>(undefined);
+  const ageGroups = uniq(Array.from(swimmers.values(), (s) => s.ageGroup)).sort();
+  const [ageGroup, setAgeGroup] = useState<string>(ageGroups[0]);
 
   async function berechnen() {
+    const swimmersForSearch: Map<number, Swimmer> = new Map(
+      Array.from(swimmers.entries()).filter(([, s]) => s.ageGroup === ageGroup),
+    );
     try {
       setRunning(true);
       // TODO check no duplicate discipline names
@@ -126,14 +134,14 @@ export default function Berechnen() {
           ...teamSettings,
           maxZeitspanneProStaffelSeconds: parseZeit(teamSettings.maxZeitspanneProStaffelSeconds),
         },
-        schwimmerList: schwimmerIndexIdMapping(swimmers).map((id) =>
-          mapSwimmerToSchwimmer(swimmers.get(id)!, disciplines),
+        schwimmerList: schwimmerIndexIdMapping(swimmersForSearch).map((id) =>
+          mapSwimmerToSchwimmer(swimmersForSearch.get(id)!, disciplines),
         ),
         geschlecht: new Map(
-          Array.from(swimmers.values(), (swimmer) => [swimmer.name, mapGenderToGeschlecht(swimmer.gender)]),
+          Array.from(swimmersForSearch.values(), (swimmer) => [swimmer.name, mapGenderToGeschlecht(swimmer.gender)]),
         ),
         minMax: new Map(
-          Array.from(swimmers.values(), (swimmer) => [
+          Array.from(swimmersForSearch.values(), (swimmer) => [
             swimmer.name,
             { min: swimmer.minStarts, max: swimmer.maxStarts },
           ]),
@@ -384,9 +392,22 @@ export default function Berechnen() {
           <h2>Berechnen</h2>
 
           <Stack>
-            <Button onClick={() => berechnen()} loading={running} loaderProps={{ type: "dots" }}>
-              Los
-            </Button>
+            <Group justify="stretch">
+              <NativeSelect
+                style={{ flexGrow: 1 }}
+                data={ageGroups}
+                value={ageGroup}
+                onChange={(evt) => setAgeGroup(evt.currentTarget.value)}
+              />
+              <Button
+                style={{ flexGrow: 1 }}
+                onClick={() => berechnen()}
+                loading={running}
+                loaderProps={{ type: "dots" }}
+              >
+                Los
+              </Button>
+            </Group>
             <Divider />
             {progress && (
               <>
@@ -408,34 +429,64 @@ export default function Berechnen() {
           </Stack>
         </Paper>
 
-        <Paper withBorder shadow="md" p="xl" style={{ borderColor: progress?.validity?.valid ? undefined : "red" }}>
-          <h2>Ergebnis</h2>
+        <Box style={{ position: "relative" }}>
+          {
+            <Paper
+              withBorder
+              shadow="md"
+              p="xl"
+              style={{ borderColor: result === undefined || progress?.validity?.valid ? undefined : "red" }}
+            >
+              <h2>Ergebnis</h2>
 
-          <Box>
-            {violationErrorText(
-              progress?.validity?.minStartsProSchwimmerViolations,
-              "Min Starts pro Schwimmer nicht eingehalten",
-            )}
-            {violationErrorText(
-              progress?.validity?.maxStartsProSchwimmerViolations,
-              "Max Starts pro Schwimmer nicht eingehalten",
-            )}
-            {violationErrorText(
-              progress?.validity?.alleMuessenSchwimmenViolations,
-              "Alle müssen schwimmen nicht eingehalten",
-            )}
-            {violationErrorText(
-              progress?.validity?.schwimmerInMehrerenTeamsViolations,
-              "Es gibt Schwimmer, die in mehreren Teams schwimmen",
-            )}
-            {violationErrorText(
-              progress?.validity?.zeitspannePenaltySeconds,
-              "Maximale Staffelzeitendifferenz nicht eingehalten",
-            )}
-          </Box>
+              <Box>
+                {violationErrorText(
+                  progress?.validity?.minStartsProSchwimmerViolations,
+                  "Min Starts pro Schwimmer nicht eingehalten",
+                )}
+                {violationErrorText(
+                  progress?.validity?.maxStartsProSchwimmerViolations,
+                  "Max Starts pro Schwimmer nicht eingehalten",
+                )}
+                {violationErrorText(
+                  progress?.validity?.alleMuessenSchwimmenViolations,
+                  "Alle müssen schwimmen nicht eingehalten",
+                )}
+                {violationErrorText(
+                  progress?.validity?.schwimmerInMehrerenTeamsViolations,
+                  "Es gibt Schwimmer, die in mehreren Teams schwimmen",
+                )}
+                {violationErrorText(
+                  progress?.validity?.zeitspannePenaltySeconds,
+                  "Maximale Staffelzeitendifferenz nicht eingehalten",
+                )}
+              </Box>
 
-          <Stack>{result && renderResult(result)}</Stack>
-        </Paper>
+              <Stack>{result && renderResult(result)}</Stack>
+
+              {running && (
+                <Box
+                  style={{
+                    position: "absolute",
+                    width: "100%",
+                    height: "100%",
+                    top: 0,
+                    right: 0,
+                    left: 0,
+                    bottom: 0,
+                    background: "white",
+                    opacity: "80%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Loader type="dots" size="xl" color="black" />
+                </Box>
+              )}
+            </Paper>
+          }
+        </Box>
       </Stack>
     </Container>
   );
