@@ -280,7 +280,7 @@ export default function Berechnen() {
             <Fieldset legend="Min">
               <Stack>
                 <NumberInput
-                  label="Min Schwimmer"
+                  label="Min Schwimmer pro Team"
                   min={0}
                   value={teamSettings.minSchwimmerProTeam}
                   onChange={(value) => updateTeamSettings({ minSchwimmerProTeam: onlyNumbers(value) })}
@@ -292,13 +292,13 @@ export default function Berechnen() {
                   onChange={(value) => updateTeamSettings({ minStartsProSchwimmer: onlyNumbers(value) })}
                 ></NumberInput>
                 <NumberInput
-                  label="Min Jungen"
+                  label="Min Jungen pro Team"
                   min={0}
                   value={teamSettings.minMaleProTeam}
                   onChange={(value) => updateTeamSettings({ minMaleProTeam: onlyNumbers(value) })}
                 ></NumberInput>
                 <NumberInput
-                  label="Min Mädchen"
+                  label="Min Mädchen pro Team"
                   min={0}
                   value={teamSettings.minFemaleProTeam}
                   onChange={(value) => updateTeamSettings({ minFemaleProTeam: onlyNumbers(value) })}
@@ -308,7 +308,7 @@ export default function Berechnen() {
             <Fieldset legend="Max">
               <Stack>
                 <NumberInput
-                  label="Max Schwimmer"
+                  label="Max Schwimmer pro Team"
                   min={0}
                   value={teamSettings.maxSchwimmerProTeam}
                   onChange={(value) => updateTeamSettings({ maxSchwimmerProTeam: onlyNumbers(value) })}
