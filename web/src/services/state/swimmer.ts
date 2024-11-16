@@ -20,6 +20,7 @@ export interface SwimmerSlice {
   addSwimmer: () => void;
   removeSwimmer: (swimmerId: number) => void;
   updateSwimmer: (swimmer: Swimmer) => void;
+  replaceAllSwimmers: (swimmers: Swimmer[]) => void;
   removeLapTime: (swimmer: Swimmer, disciplineId: number) => void;
   updateLapTime: (swimmer: Swimmer, disciplineId: number, lapTime: LapTime) => void;
   importLapTimes: (lapTimeImport: LapTimeImport) => void;
@@ -30,6 +31,7 @@ export const createSwimmerSlice: StateCreator<SwimmerSlice & DisciplineSlice, []
   addSwimmer: () => set((state) => addSwimmer(state)),
   removeSwimmer: (swimmerId) => set((state) => removeSwimmer(state, swimmerId)),
   updateSwimmer: (swimmer) => set((state) => updateSwimmer(state, swimmer)),
+  replaceAllSwimmers: (swimmers) => set((state) => replaceAllSwimmers(state, swimmers)),
   removeLapTime: (swimmer, disciplineId) => set((state) => removeLapTime(state, swimmer, disciplineId)),
   updateLapTime: (swimmer, disciplineId, lapTime) =>
     set((state) => updateLapTime(state, swimmer, disciplineId, lapTime)),
@@ -50,6 +52,10 @@ function removeSwimmer(state: SwimmerSlice, swimmerId: number): Partial<SwimmerS
 
 function updateSwimmer(state: SwimmerSlice, swimmer: Swimmer): Partial<SwimmerSlice> {
   return { swimmers: new Map(state.swimmers).set(swimmer.id, swimmer) };
+}
+
+function replaceAllSwimmers(_state: SwimmerSlice, swimmers: Swimmer[]): Partial<SwimmerSlice> {
+  return { swimmers: new Map(swimmers.map((s) => [s.id, s])) };
 }
 
 function removeLapTime(state: SwimmerSlice, swimmer: Swimmer, disciplineId: number): Partial<SwimmerSlice> {
