@@ -1,6 +1,6 @@
 import { Konfiguration } from "../../eingabe/konfiguration";
 import { State } from "../state/state";
-import { teamScore } from "./team";
+import { teamScore, TeamValidity, teamValidity } from "./team";
 import { strafSekundenProRegelverstoss } from "./common";
 import { staffelGesamtzeit } from "./staffel";
 
@@ -126,4 +126,41 @@ export function stateScore(state: State, konfiguration: Konfiguration): number {
     strafSekundenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
     zeitspannePenaltySeconds;
   return number;
+}
+
+export interface StateValidity {
+  valid: boolean;
+  teamValidities: TeamValidity[];
+  minStartsProSchwimmerViolations: number;
+  maxStartsProSchwimmerViolations: number;
+  alleMuessenSchwimmenViolations: number;
+  schwimmerInMehrerenTeamsViolations: number;
+  zeitspannePenaltySeconds: number;
+}
+
+export function stateValidity(state: State, konfiguration: Konfiguration): StateValidity {
+  const teamValidities = state.teams.map((team) => teamValidity(team, konfiguration));
+
+  const startsProSchwimmer = calculateStartsProSchwimmer(state, konfiguration);
+  const minStartsProSchwimmerViolations = calculateMinStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
+  const maxStartsProSchwimmerViolations = calculateMaxStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
+  const alleMuessenSchwimmenViolations = calculateAlleMuessenSchwimmenViolations(startsProSchwimmer, konfiguration);
+  const schwimmerInMehrerenTeamsViolations = calculateSchwimmerInMehrerenTeamsViolations(state, konfiguration);
+
+  const zeitspannePenaltySeconds = calculateZeitspannePenaltySeconds(state, konfiguration);
+  return {
+    valid:
+      teamValidities.every((it) => it.valid) &&
+      minStartsProSchwimmerViolations === 0 &&
+      maxStartsProSchwimmerViolations === 0 &&
+      alleMuessenSchwimmenViolations === 0 &&
+      schwimmerInMehrerenTeamsViolations === 0 &&
+      zeitspannePenaltySeconds === 0,
+    teamValidities,
+    minStartsProSchwimmerViolations,
+    maxStartsProSchwimmerViolations,
+    alleMuessenSchwimmenViolations,
+    schwimmerInMehrerenTeamsViolations,
+    zeitspannePenaltySeconds,
+  };
 }
