@@ -154,6 +154,7 @@ export default function LapTimes() {
   const [importModalOpened, { open: openImportModal, close: closeImportModal }] = useDisclosure(false);
   const [importedSchwimmer, setImportedSchwimmer] = useState<Schwimmer[]>([]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function importLapTimes() {
     const text = await navigator.clipboard.readText();
     const grid = text.split("\n").map((row) => row.split("\t"));
