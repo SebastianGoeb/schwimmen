@@ -241,7 +241,11 @@ export default function Berechnen() {
   }
 
   function violationErrorText(violations: number | undefined, text: string) {
-    return <Text style={{ color: "var(--mantine-color-error)" }}>{violations ?? 0 !== 0 ? text : undefined}</Text>;
+    if (violations !== undefined && violations > 0) {
+      return <Text style={{ color: "var(--mantine-color-error)" }}>{text}</Text>;
+    } else {
+      return undefined;
+    }
   }
 
   function renderTeamResult(team: TeamResult, teamIndex: number) {
