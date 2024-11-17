@@ -1,23 +1,32 @@
 import {
   Alert,
+  Button,
   Checkbox,
   Container,
+  FileButton,
   Group,
   NativeSelect,
   NumberInput,
   Paper,
   ScrollArea,
   Space,
+  Stack,
   Table,
 } from "@mantine/core";
 import React from "react";
 import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
-import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
+import { compareByYearThenGenderThenLastname, LapTime, Swimmer } from "../../model/swimmer.ts";
 import { Gender } from "../../model/gender.ts";
 import SwimmerRemoveButton from "../../components/SwimmerRemoveButton/SwimmerRemoveButton.tsx";
 import SwimmerAddButton from "../../components/SwimmerAddButton/SwimmerAddButton.tsx";
 import SwimmerNameInput from "../../components/SwimmerNameInput/SwimmerNameInput.tsx";
+import { IconFileSpreadsheet } from "@tabler/icons-react";
+
+import { read, utils } from "xlsx";
+import { readFileAsArrayBuffer } from "../../utils/file.ts";
+import { formatMaskedTime } from "../../utils/masking.ts";
+import { uniq } from "lodash-es";
 
 function numberify(sn: string | number): number | undefined {
   if (typeof sn === "string") {
@@ -27,9 +36,9 @@ function numberify(sn: string | number): number | undefined {
 }
 
 export default function Swimmers() {
-  const [swimmers, updateSwimmer] = useCombinedStore(useShallow((state) => [state.swimmers, state.updateSwimmer]));
-
-  const swimmersSorted = Array.from(swimmers.values()).sort(compareByYearThenGenderThenLastname);
+  const [swimmers, disciplines, updateSwimmer, replaceAllSwimmers] = useCombinedStore(
+    useShallow((state) => [state.swimmers, state.disciplines, state.updateSwimmer, state.replaceAllSwimmers]),
+  );
 
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from(Array(18).keys(), (yearsOld) => String(currentYear - yearsOld));
@@ -93,9 +102,74 @@ export default function Swimmers() {
     );
   }
 
+  async function processFile(file: File | null) {
+    if (file) {
+      const arraybuffer = await readFileAsArrayBuffer(file);
+      const workbook = read(arraybuffer);
+
+      let id = 1;
+      const swimmers: Swimmer[] = [];
+      for (const sheetName of workbook.SheetNames) {
+        const sheet = workbook.Sheets[sheetName];
+        const data = utils.sheet_to_json(sheet);
+        swimmers.push(...data.map((row) => toSwimmer(id++, row, sheetName)));
+      }
+      replaceAllSwimmers(swimmers);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function toSwimmer(idx: number, row: any, ageGroup: string): Swimmer {
+    const id = idx + 1;
+    const { __EMPTY, __EMPTY_1, __EMPTY_2, ...times } = row;
+
+    const lapTimes = new Map<number, LapTime>();
+    for (const [disciplineName, time] of Object.entries(times)) {
+      const seconds = (time as number) * 24 * 3600;
+      const secondsRounded = parseFloat(seconds.toFixed(2));
+      const disciplineId = disciplines.find((d) => d.name === disciplineName)!.id;
+      lapTimes.set(disciplineId, {
+        seconds: formatMaskedTime(secondsRounded),
+        enabled: true,
+      });
+    }
+
+    return {
+      id,
+      name: __EMPTY as string,
+      present: true,
+      gender: toGender(__EMPTY_1 as string),
+      yearOfBirth: __EMPTY_2,
+      lapTimes,
+      ageGroup,
+    };
+  }
+
+  function toGender(s: string): Gender {
+    const lower = s.toLowerCase();
+    if (lower === "m") {
+      return Gender.M;
+    } else if (lower === "w") {
+      return Gender.W;
+    } else {
+      throw new Error("Geschlecht konnte nicht gelesen werden: " + s);
+    }
+  }
+
+  const ageGroups = uniq(Array.from(swimmers.values(), (s) => s.ageGroup)).sort();
+
   return (
     <Container size="xl">
-      <h1>Schwimmer</h1>
+      <Group justify="space-between">
+        <h1>Schwimmer</h1>
+        <FileButton onChange={processFile} accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+          {(props) => (
+            <Button {...props} leftSection={<IconFileSpreadsheet />}>
+              Excel importieren
+            </Button>
+          )}
+        </FileButton>
+      </Group>
 
       <Alert variant="light" color="orange" title="Achtung">
         Die Applikation ist noch unfertig, insbesondere gibt es keine Speicherung. Bitte nicht zu viele Echtdaten
@@ -103,25 +177,36 @@ export default function Swimmers() {
       </Alert>
       <Space h="md"></Space>
 
-      <Paper shadow="md" withBorder p="xl">
-        <ScrollArea>
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                {["Name", "Jahrgang", "Geschlecht", "Min Starts", "Max Starts", "Anwesend"].map((header) => (
-                  <Table.Th key={header}>{header}</Table.Th>
-                ))}
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>{swimmersSorted.map(renderRow)}</Table.Tbody>
-          </Table>
+      <Stack>
+        {ageGroups.map((ageGroup) => {
+          const swimmersSorted = Array.from(swimmers.values())
+            .filter((s) => s.ageGroup === ageGroup)
+            .sort(compareByYearThenGenderThenLastname);
 
-          <Space h="md" />
-          <Group justify="flex-end">
-            <SwimmerAddButton />
-          </Group>
-        </ScrollArea>
-      </Paper>
+          return (
+            <Paper shadow="md" withBorder p="xl" key={ageGroup}>
+              <h2>{ageGroup}</h2>
+              <ScrollArea>
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      {["Name", "Jahrgang", "Geschlecht", "Min Starts", "Max Starts", "Anwesend"].map((header) => (
+                        <Table.Th key={header}>{header}</Table.Th>
+                      ))}
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>{swimmersSorted.map(renderRow)}</Table.Tbody>
+                </Table>
+
+                <Space h="md" />
+                <Group justify="flex-end">
+                  <SwimmerAddButton />
+                </Group>
+              </ScrollArea>
+            </Paper>
+          );
+        })}
+      </Stack>
     </Container>
   );
 }

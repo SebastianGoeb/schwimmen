@@ -75,6 +75,7 @@ export default function Relays() {
         justify={"space-between"}
         style={{ borderBottom: "1px solid var(--mantine-color-gray-3)" }}
         p="xs"
+        key={discipline.id}
       >
         <Input
           variant="unstyled"
@@ -115,7 +116,7 @@ export default function Relays() {
     }
 
     return (
-      <Group wrap="nowrap">
+      <Group wrap="nowrap" key={index}>
         <Select
           style={{ flexShrink: 1, flexGrow: 1 }}
           placeholder="Disziplin..."
@@ -189,7 +190,7 @@ export default function Relays() {
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {Array.from(relays.values()).map((relay) => (
-          <Paper shadow="md" withBorder>
+          <Paper shadow="md" withBorder key={relay.id}>
             <Stack justify="space-between" style={{ height: "100%" }} py="md" px="xl">
               {/* main content */}
               <Stack>
