@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createDisciplineSlice, DisciplineSlice } from "./discipline.ts";
-import { createSwimmerSlice, SwimmerSlice } from "./swimmer.ts";
+import { createSwimmerSlice, swimmerDefaults, SwimmerSlice } from "./swimmer.ts";
 import { createRelaySlice, RelaySlice } from "./relay.ts";
 import { createSharedSlice, SharedSlice } from "./shared.ts";
 import { createSettingsSlice, SettingsSlice } from "./settings.ts";
@@ -32,7 +32,9 @@ export const useCombinedStore = create<CombinedState>()(
               swimmers: new Map(
                 (existingValue.state.swimmers as [number, Swimmer][]).map(([id, swimmer]) => [
                   id,
-                  { ...swimmer, lapTimes: new Map(swimmer.lapTimes) },
+                  // ...swimmerDefaults is a hack to implement backwards compatible storage
+                  // TODO implement real storage migration
+                  { ...swimmerDefaults, ...swimmer, lapTimes: new Map(swimmer.lapTimes) },
                 ]),
               ),
               relays: new Map(existingValue.state.relays),

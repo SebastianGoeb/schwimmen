@@ -232,8 +232,10 @@ export default function Berechnen() {
           >
             <Space />
             {relayValidity.minOneFemaleViolations > 0 && <Text size="xs">Mindestens ein Mädchen benötigt</Text>}
-            {relayValidity.minOneMaleViolations > 0 && "min one male"}
-            {relayValidity.maxOneStartProSchwimmerViolations > 0 && "max one start pro schwimmer"}
+            {relayValidity.minOneMaleViolations > 0 && <Text size="xs">Mindestens ein Junge benötigt</Text>}
+            {relayValidity.maxOneStartProSchwimmerViolations > 0 && (
+              <Text size="xs">Maximal ein Start pro Schwimmer</Text>
+            )}
           </Stack>
         )}
       </Box>

@@ -7,13 +7,13 @@ import { LapTimeImport } from "../../model/lap-time-import.ts";
 import { formatMaskedTime } from "../../utils/masking.ts";
 import { DisciplineSlice } from "./discipline.ts";
 
-const swimmerDefaults: Omit<Swimmer, "id"> = {
+export const swimmerDefaults: Omit<Swimmer, "id"> = {
   name: "",
   yearOfBirth: new Date().getFullYear(),
   gender: Gender.M,
   present: true,
   lapTimes: new Map(),
-  ageGroup: "",
+  ageGroup: "Unbekannt",
 };
 
 export interface SwimmerSlice {
