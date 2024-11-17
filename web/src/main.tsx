@@ -12,6 +12,9 @@ import Swimmers from "./pages/Swimmers/Swimmers.tsx";
 import LapTimes from "./pages/LapTimes/LapTimes.tsx";
 import { Notifications } from "@mantine/notifications";
 import Developer from "./pages/Developer/Developer.tsx";
+import LogRocket from "logrocket";
+
+LogRocket.init("pc9l0b/schwimmen");
 
 const theme = createTheme({
   cursorType: "pointer",
