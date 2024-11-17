@@ -204,7 +204,7 @@ export default function Berechnen() {
     const relayValidity: StaffelValidity | undefined =
       progress?.validity?.teamValidities[teamIndex]?.staffelValidities[relayIndex];
     return (
-      <Box>
+      <Box key={relayIndex}>
         <h4
           style={{
             color: relayValidity && relayValidity.valid ? undefined : "var(--mantine-color-error)",
@@ -262,7 +262,7 @@ export default function Berechnen() {
     });
     const swimmerNames = uniq(team.relays.flatMap((relay) => relay.legs).flatMap((leg) => leg.swimmerName)).sort();
     return (
-      <>
+      <Box key={teamIndex}>
         <h3>Team {teamIndex + 1}</h3>
         <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
         <Box>
@@ -296,7 +296,7 @@ export default function Berechnen() {
             />
           </Box>
         </SimpleGrid>
-      </>
+      </Box>
     );
   }
 

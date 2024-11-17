@@ -184,7 +184,7 @@ export default function Swimmers() {
             .sort(compareByYearThenGenderThenLastname);
 
           return (
-            <Paper shadow="md" withBorder p="xl">
+            <Paper shadow="md" withBorder p="xl" key={ageGroup}>
               <h2>{ageGroup}</h2>
               <ScrollArea>
                 <Table>
