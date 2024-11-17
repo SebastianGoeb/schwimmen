@@ -28,6 +28,7 @@ export const demoData1: Data = {
         [0, { seconds: "00:05,50", enabled: true }],
         [2, { seconds: "00:25,50", enabled: true }],
       ]),
+      ageGroup: "Junged E",
     },
     {
       id: 1,
@@ -42,6 +43,7 @@ export const demoData1: Data = {
         [1, { seconds: "00:13,07", enabled: true }],
         [2, { seconds: "00:03,00", enabled: true }],
       ]),
+      ageGroup: "Junged E",
     },
   ],
   relays: [

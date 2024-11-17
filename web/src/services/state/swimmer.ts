@@ -13,6 +13,7 @@ const swimmerDefaults: Omit<Swimmer, "id"> = {
   gender: Gender.M,
   present: true,
   lapTimes: new Map(),
+  ageGroup: "",
 };
 
 export interface SwimmerSlice {
