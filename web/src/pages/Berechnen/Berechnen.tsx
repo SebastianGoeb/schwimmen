@@ -21,89 +21,19 @@ import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { IMaskInput } from "react-imask";
 import { zeitenMask } from "../../utils/input-mask.ts";
-import { buildKonfiguration } from "../../lib/schwimmen/eingabe/konfiguration.ts";
-import {
-  Hyperparameters,
-  Progress,
-  runCrappySimulatedAnnealing,
-} from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
+import { Hyperparameters, Parameters } from "../../lib/schwimmen/eingabe/configuration.ts";
+import { Progress, runCrappySimulatedAnnealing } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
 import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
-import { compareByYearThenGenderThenLastname, Swimmer } from "../../model/swimmer.ts";
-import { Schwimmer } from "../../lib/schwimmen/eingabe/zeiten.ts";
-import { parseZeit } from "../../lib/schwimmen/util/zeit.ts";
-import { Discipline } from "../../model/discipline.ts";
-import { Geschlecht } from "../../lib/schwimmen/eingabe/geschlecht.ts";
-import { Gender } from "../../model/gender.ts";
+import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
-import { max, sortBy, sum, uniq } from "lodash-es";
-import { formatMaskedTime } from "../../utils/masking.ts";
+import { uniq } from "lodash-es";
+import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.ts";
 import { IconCheck, IconX } from "@tabler/icons-react";
-import { StaffelValidity } from "../../lib/schwimmen/search/score/staffel.ts";
+import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
+import { RelayResult, Result, TeamResult } from "../../lib/schwimmen/search/state/result.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
-}
-
-function schwimmerIndexIdMapping(swimmers: Map<number, Swimmer>): number[] {
-  return Array.from(swimmers.values())
-    .filter((s) => s.present)
-    .sort(compareByYearThenGenderThenLastname)
-    .map((swimmer) => swimmer.id);
-}
-
-function mapSwimmerToSchwimmer(swimmer: Swimmer, disciplines: Discipline[]): Schwimmer {
-  return {
-    name: swimmer.name,
-    zeitenSeconds: new Map(
-      Array.from(swimmer.lapTimes.entries())
-        .filter(([, lapTime]) => lapTime.enabled)
-        .map(([disciplineId, lapTime]): [string, number | undefined] => [
-          disciplines.find((d) => d.id === disciplineId)!.name,
-          parseMaskedZeitToSeconds(lapTime.seconds),
-        ])
-        .filter((pair): pair is [string, number] => pair[1] !== undefined),
-    ),
-  };
-}
-
-function parseMaskedZeitToSeconds(zeit: string): number | undefined {
-  const cleaned = zeit.replace(/[:,]/g, "");
-  if (cleaned === "" || cleaned == "______") {
-    return undefined;
-  }
-
-  // TODO handle partially filled strings (e.g. 12:_5,10) with error
-  const cleaned2 = cleaned.replace(/_/g, "0");
-
-  const min = Number(cleaned2.slice(0, 2));
-  const sec = Number(cleaned2.slice(2, 4));
-  const cent = Number(cleaned2.slice(4, 6));
-
-  return min * 60 + sec + cent / 100;
-}
-
-function mapGenderToGeschlecht(gender: Gender): Geschlecht {
-  return gender === Gender.M ? Geschlecht.MALE : Geschlecht.FEMALE;
-}
-
-interface Result {
-  teams: TeamResult[];
-}
-
-interface TeamResult {
-  relays: RelayResult[];
-  totalSeconds: number;
-}
-
-interface RelayResult {
-  staffelName: string;
-  legs: RelayLegResult[];
-  totalSeconds: number;
-}
-
-interface RelayLegResult {
-  swimmerName: string;
-  seconds: number;
 }
 
 export default function Berechnen() {
@@ -123,37 +53,29 @@ export default function Berechnen() {
   const [ageGroup, setAgeGroup] = useState<string>(ageGroups[0]);
 
   async function berechnen() {
-    const swimmersForSearch: Map<number, Swimmer> = new Map(
-      Array.from(swimmers.entries()).filter(([, s]) => s.ageGroup === ageGroup),
-    );
     try {
       setRunning(true);
       // TODO check no duplicate discipline names
-      const konfiguration = buildKonfiguration({
-        parameters: {
-          ...teamSettings,
-          maxZeitspanneProStaffelSeconds: parseZeit(teamSettings.maxZeitspanneProStaffelSeconds),
-        },
-        schwimmerList: schwimmerIndexIdMapping(swimmersForSearch).map((id) =>
-          mapSwimmerToSchwimmer(swimmersForSearch.get(id)!, disciplines),
-        ),
-        geschlecht: new Map(
-          Array.from(swimmersForSearch.values(), (swimmer) => [swimmer.name, mapGenderToGeschlecht(swimmer.gender)]),
-        ),
-        minMax: new Map(
-          Array.from(swimmersForSearch.values(), (swimmer) => [
-            swimmer.name,
-            { min: swimmer.minStarts, max: swimmer.maxStarts },
-          ]),
-        ),
-        staffeln: Array.from(relays.values(), (relay) => ({
-          name: relay.name,
-          disziplinen: relay.legs.flatMap((leg) =>
-            new Array(leg.times).fill(disciplines.find((d) => d.id === leg.disciplineId)!.name),
-          ),
-          team: relay.team,
-        })),
-      });
+
+      const disciplinesForSearch = disciplines;
+      const relaysForSearch = Array.from(relays.values());
+      const swimmersForSearch: Swimmer[] = Array.from(swimmers.values()).filter(
+        (swimmer) => swimmer.ageGroup === ageGroup && swimmer.present,
+      );
+      const parameters: Parameters = {
+        allMustSwim: teamSettings.alleMuessenSchwimmen,
+        minSwimmersPerTeam: teamSettings.minSchwimmerProTeam,
+        maxSwimmersPerTeam: teamSettings.maxSchwimmerProTeam,
+        minMalesProTeam: teamSettings.minMaleProTeam,
+        minFemalesProTeam: teamSettings.minFemaleProTeam,
+        minStartsPerSwimmer: teamSettings.minStartsProSchwimmer,
+        maxStartsPerSwimmer: teamSettings.maxStartsProSchwimmer,
+        numTeams: teamSettings.anzahlTeams,
+        maxTimeDifferencePerRelaySeconds: parseMaskedZeitToSeconds(teamSettings.maxZeitspanneProStaffelSeconds)!,
+        disciplines: disciplinesForSearch,
+        relays: relaysForSearch,
+        swimmers: swimmersForSearch,
+      };
 
       const hyperparameters: Hyperparameters = {
         smartMutationRate: 0.85,
@@ -166,43 +88,19 @@ export default function Berechnen() {
         populationSize: 10,
       };
 
-      const { state } = await runCrappySimulatedAnnealing(konfiguration, hyperparameters, false, (gen) =>
+      const { result } = await runCrappySimulatedAnnealing(parameters, hyperparameters, false, (gen) =>
         setProgress(gen),
       );
-
-      setResult({
-        teams: state.state.teams.map((team) => {
-          const relayResults = team.staffelBelegungen.map((sb) => {
-            const legs = sb.startBelegungen.map((swimmerIdx, startIdx) => {
-              const disziplinId = konfiguration.staffeln[sb.staffelId].disziplinIds[startIdx];
-              return {
-                swimmerName: konfiguration.schwimmerList[swimmerIdx].name,
-                seconds: konfiguration.disziplinToSchwimmerToZeit[disziplinId][swimmerIdx]!,
-              };
-            });
-            return {
-              staffelName: konfiguration.staffeln[sb.staffelId].name,
-              legs,
-              totalSeconds: konfiguration.staffeln[sb.staffelId].team
-                ? max(legs.map((leg) => leg.seconds))!
-                : sum(legs.map((leg) => leg.seconds)),
-            };
-          });
-          return {
-            relays: relayResults,
-            totalSeconds: sum(relayResults.map((r) => r.totalSeconds)),
-          };
-        }),
-      });
+      setResult(result);
     } finally {
       setRunning(false);
     }
   }
 
-  function renderRelayResult(relay: RelayResult, relayIndex: number, teamIndex: number) {
-    const legsSorted = sortBy(relay.legs, (l) => l.swimmerName);
-    const relayValidity: StaffelValidity | undefined =
-      progress?.validity?.teamValidities[teamIndex]?.staffelValidities[relayIndex];
+  function renderRelayResult(relayResult: RelayResult, relayIndex: number, teamIndex: number) {
+    const legResultsSorted = relayResult.legs;
+    const relayValidity: RelayValidity | undefined =
+      progress?.validity?.teamValidities[teamIndex]?.relayValidities[relayIndex];
     return (
       <Box key={relayIndex}>
         <h4
@@ -210,7 +108,7 @@ export default function Berechnen() {
             color: relayValidity && relayValidity.valid ? undefined : "var(--mantine-color-error)",
           }}
         >
-          {relay.staffelName}
+          {relayResult.relay.name}
         </h4>
 
         <Table
@@ -220,8 +118,12 @@ export default function Berechnen() {
             borderColor: relayValidity && relayValidity.valid ? undefined : "var(--mantine-color-error)",
           }}
           data={{
-            body: legsSorted.map((leg) => [leg.swimmerName, formatMaskedTime(leg.seconds)]),
-            foot: ["Gesamt", formatMaskedTime(relay.totalSeconds)],
+            body: legResultsSorted.map((legResult) => [
+              legResult.swimmer.name,
+              legResult.discipline.name,
+              formatMaskedTime(legResult.time),
+            ]),
+            foot: ["Gesamt", "", formatMaskedTime(relayResult.time)],
           }}
         />
         {relayValidity && (
@@ -233,7 +135,7 @@ export default function Berechnen() {
             <Space />
             {relayValidity.minOneFemaleViolations > 0 && <Text size="xs">Mindestens ein Mädchen benötigt</Text>}
             {relayValidity.minOneMaleViolations > 0 && <Text size="xs">Mindestens ein Junge benötigt</Text>}
-            {relayValidity.maxOneStartProSchwimmerViolations > 0 && (
+            {relayValidity.maxOneStartPerSwimmerViolations > 0 && (
               <Text size="xs">Maximal ein Start pro Schwimmer</Text>
             )}
           </Stack>
@@ -250,28 +152,27 @@ export default function Berechnen() {
     }
   }
 
-  function renderTeamResult(team: TeamResult, teamIndex: number) {
-    const swimmerCounts = new Map<string, number>();
-    team.relays.forEach((relay) => {
-      relay.legs.forEach((leg) => {
-        if (!swimmerCounts.has(leg.swimmerName)) {
-          swimmerCounts.set(leg.swimmerName, 0);
+  function renderTeamResult(teamResult: TeamResult, teamIndex: number) {
+    const swimmerCounts = new Map<number, number>();
+    teamResult.relays.forEach((relayResult) => {
+      relayResult.legs.forEach((legResult) => {
+        if (!swimmerCounts.has(legResult.swimmer.id)) {
+          swimmerCounts.set(legResult.swimmer.id, 0);
         }
-        swimmerCounts.set(leg.swimmerName, swimmerCounts.get(leg.swimmerName)! + 1);
+        swimmerCounts.set(legResult.swimmer.id, swimmerCounts.get(legResult.swimmer.id)! + 1);
       });
     });
-    const swimmerNames = uniq(team.relays.flatMap((relay) => relay.legs).flatMap((leg) => leg.swimmerName)).sort();
     return (
       <Box key={teamIndex}>
         <h3>Team {teamIndex + 1}</h3>
-        <Text>Gesamtzeit: {formatMaskedTime(team.totalSeconds)}</Text>
+        <Text>Gesamtzeit: {formatMaskedTime(teamResult.time)}</Text>
         <Box>
           {violationErrorText(
-            progress?.validity?.teamValidities[teamIndex]?.minSchwimmerViolations,
+            progress?.validity?.teamValidities[teamIndex]?.minSwimmerViolations,
             "Min Schwimmer nicht eingehalten",
           )}
           {violationErrorText(
-            progress?.validity?.teamValidities[teamIndex]?.maxSchwimmerViolations,
+            progress?.validity?.teamValidities[teamIndex]?.maxSwimmerViolations,
             "Max Schwimmer nicht eingehalten",
           )}
           {violationErrorText(
@@ -284,14 +185,17 @@ export default function Berechnen() {
           )}
         </Box>
         <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
-          {team.relays.map((relay, relayIndex) => renderRelayResult(relay, relayIndex, teamIndex))}
+          {teamResult.relays.map((relay, relayIndex) => renderRelayResult(relay, relayIndex, teamIndex))}
           <Box>
             <h4>Schwimmer</h4>
             <Table
               withTableBorder
               withRowBorders={false}
               data={{
-                body: swimmerNames.map((it) => [it, `${swimmerCounts.get(it)!}x`]),
+                body: Array.from(swimmerCounts.entries(), ([swimmerId, count]) => [
+                  swimmers.get(swimmerId)!.name,
+                  `${count}x`,
+                ]).sort(),
               }}
             />
           </Box>
@@ -447,19 +351,19 @@ export default function Berechnen() {
 
               <Box>
                 {violationErrorText(
-                  progress?.validity?.minStartsProSchwimmerViolations,
+                  progress?.validity?.minStartsPerSwimmerViolations,
                   "Min Starts pro Schwimmer nicht eingehalten",
                 )}
                 {violationErrorText(
-                  progress?.validity?.maxStartsProSchwimmerViolations,
+                  progress?.validity?.maxStartsPerSwimmerViolations,
                   "Max Starts pro Schwimmer nicht eingehalten",
                 )}
                 {violationErrorText(
-                  progress?.validity?.alleMuessenSchwimmenViolations,
+                  progress?.validity?.allMustSwimViolations,
                   "Alle müssen schwimmen nicht eingehalten",
                 )}
                 {violationErrorText(
-                  progress?.validity?.schwimmerInMehrerenTeamsViolations,
+                  progress?.validity?.swimmerInMultipleTeamsViolations,
                   "Es gibt Schwimmer, die in mehreren Teams schwimmen",
                 )}
                 {violationErrorText(

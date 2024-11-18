@@ -1,26 +1,26 @@
-export function parseGeschlechter(data: string): Map<string, Geschlecht> {
+export function parseGeschlechter(data: string): Map<string, Gender> {
   return parseGeschlechterFromGrid(data.split("\n").map((row) => row.split("\t")));
 }
 
-export function parseGeschlechterFromGrid(rows: string[][]): Map<string, Geschlecht> {
-  return new Map<string, Geschlecht>(
+export function parseGeschlechterFromGrid(rows: string[][]): Map<string, Gender> {
+  return new Map<string, Gender>(
     rows
       .filter((row) => row.length >= 2 && !isBlank(row[0]) && !isBlank(row[1]))
       .map((row) => [row[0], toGeschlecht(row[1])]),
   );
 }
 
-function toGeschlecht(it: string): Geschlecht {
+function toGeschlecht(it: string): Gender {
   if (it === "m") {
-    return Geschlecht.MALE;
+    return Gender.MALE;
   } else if (it == "w") {
-    return Geschlecht.FEMALE;
+    return Gender.FEMALE;
   } else {
     throw Error(`Unbekanntes Geschlecht ${it}`);
   }
 }
 
-export enum Geschlecht {
+export enum Gender {
   MALE,
   FEMALE,
 }
