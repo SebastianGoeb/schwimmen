@@ -26,7 +26,7 @@ import { Discipline } from "../../model/discipline.ts";
 
 enum ScoringOptions {
   Total = "Gesamtzeit",
-  Max = "Schnellste Zeit (Team)",
+  Max = "Langsamste Zeit (Team)",
 }
 
 export default function Relays() {
