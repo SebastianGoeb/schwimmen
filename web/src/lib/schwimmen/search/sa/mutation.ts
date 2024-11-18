@@ -1,53 +1,65 @@
-import { StaffelBelegung, State, StateAndScore, Team } from "../state/state";
-import { Konfiguration } from "../../eingabe/konfiguration";
+import { RelayState, State, StateAndScore, TeamState } from "../state/state";
+import { HighPerfConfiguration } from "../../eingabe/configuration.ts";
 import { stateScore } from "../score/state";
 
-export function mutateRandom(state: State, konfiguration: Konfiguration): { state: StateAndScore; checked: number } {
+export function mutateRandom(
+  state: State,
+  configuration: HighPerfConfiguration,
+): { state: StateAndScore; checked: number } {
   const teamIndex = randomIndex(state.teams);
-  const team = state.teams[teamIndex];
+  const teamState = state.teams[teamIndex];
 
-  const staffelIndex = randomIndex(team.staffelBelegungen);
-  const staffelBelegung = team.staffelBelegungen[staffelIndex];
+  const relayIndex = randomIndex(teamState.relays);
+  const relayState = teamState.relays[relayIndex];
 
-  const startIndex = randomIndex(staffelBelegung.startBelegungen);
-  const schwimmerId = staffelBelegung.startBelegungen[startIndex];
-  const disziplinId = konfiguration.staffeln[staffelIndex].disziplinIds[startIndex];
+  const legIndex = randomIndex(relayState.swimmerIndices);
+  const swimmerIndex = relayState.swimmerIndices[legIndex];
+  const disciplineIndex = configuration.relays[relayIndex].disciplineIndices[legIndex];
 
-  const schwimmerZeiten = konfiguration.disziplinToSchwimmerZeiten[disziplinId];
+  const swimmerIndicesAndTimes = configuration.disciplineToSwimmerTimes[disciplineIndex];
 
-  const candidates = schwimmerZeiten.filter((it) => it.schwimmerId != schwimmerId);
-  const neueSchwimmerId = candidates[randomIndex(candidates)].schwimmerId;
+  const candidatesSwimmers = swimmerIndicesAndTimes.filter((it) => it.swimmerIndex != swimmerIndex);
+  const newSwimmerIndex = candidatesSwimmers[randomIndex(candidatesSwimmers)].swimmerIndex;
 
-  const result = replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, neueSchwimmerId);
+  const newState = replaceSwimmer(state, teamIndex, relayIndex, legIndex, newSwimmerIndex);
   return {
     state: {
-      state: result,
-      score: stateScore(state, konfiguration),
+      state: newState,
+      score: stateScore(state, configuration),
     },
     checked: 1,
   };
 }
 
-export function mutateVerySmart(state: State, konfiguration: Konfiguration): { state: StateAndScore; checked: number } {
+export function mutateVerySmart(
+  state: State,
+  configuration: HighPerfConfiguration,
+): { state: StateAndScore; checked: number } {
   let best: StateAndScore | undefined = undefined;
   let checked = 0;
 
   for (let teamIndex = 0; teamIndex < state.teams.length; teamIndex++) {
-    const team = state.teams[teamIndex];
+    const teamState = state.teams[teamIndex];
 
-    for (let staffelIndex = 0; staffelIndex < team.staffelBelegungen.length; staffelIndex++) {
-      const staffelBelegung = team.staffelBelegungen[staffelIndex];
+    for (let relayIndex = 0; relayIndex < teamState.relays.length; relayIndex++) {
+      const relayState = teamState.relays[relayIndex];
 
-      for (let startIndex = 0; startIndex < staffelBelegung.startBelegungen.length; startIndex++) {
-        const schwimmerId = staffelBelegung.startBelegungen[startIndex];
-        const disziplinId = konfiguration.staffeln[staffelIndex].disziplinIds[startIndex];
+      for (let legIndex = 0; legIndex < relayState.swimmerIndices.length; legIndex++) {
+        const swimmerIndex = relayState.swimmerIndices[legIndex];
+        const disciplineIndex = configuration.relays[relayIndex].disciplineIndices[legIndex];
 
-        for (const schwimmerIdZeit of konfiguration.disziplinToSchwimmerZeiten[disziplinId]) {
-          if (schwimmerIdZeit.schwimmerId != schwimmerId) {
-            const candidate = replaceSchwimmer(state, teamIndex, staffelIndex, startIndex, schwimmerIdZeit.schwimmerId);
-            const score = stateScore(candidate, konfiguration);
-            if (best === undefined || score < best.score) {
-              best = { state: candidate, score };
+        for (const swimmerIndexAndTime of configuration.disciplineToSwimmerTimes[disciplineIndex]) {
+          if (swimmerIndexAndTime.swimmerIndex != swimmerIndex) {
+            const candidateState = replaceSwimmer(
+              state,
+              teamIndex,
+              relayIndex,
+              legIndex,
+              swimmerIndexAndTime.swimmerIndex,
+            );
+            const candidateScore = stateScore(candidateState, configuration);
+            if (best === undefined || candidateScore < best.score) {
+              best = { state: candidateState, score: candidateScore };
             }
             checked++;
           }
@@ -61,27 +73,27 @@ export function mutateVerySmart(state: State, konfiguration: Konfiguration): { s
   };
 }
 
-function replaceSchwimmer(
+function replaceSwimmer(
   state: State,
   teamIndex: number,
-  staffelIndex: number,
-  startIndex: number,
-  neueSchwimmerId: number,
+  relayIndex: number,
+  legIndex: number,
+  newSwimmerIndex: number,
 ): State {
-  const team = state.teams[teamIndex];
-  const staffelBelegung = team.staffelBelegungen[staffelIndex];
+  const teamState = state.teams[teamIndex];
+  const relayState = teamState.relays[relayIndex];
 
-  const neueStartBelegungen: number[] = replace(staffelBelegung.startBelegungen, startIndex, neueSchwimmerId);
-  const neueStaffelBelegungen: StaffelBelegung[] = replace(team.staffelBelegungen, staffelIndex, {
-    ...staffelBelegung,
-    startBelegungen: neueStartBelegungen,
+  const newSwimmerIndices: number[] = replace(relayState.swimmerIndices, legIndex, newSwimmerIndex);
+  const newRelayStates: RelayState[] = replace(teamState.relays, relayIndex, {
+    ...relayState,
+    swimmerIndices: newSwimmerIndices,
   });
-  const neueTeams: Team[] = replace(state.teams, teamIndex, {
-    ...team,
-    staffelBelegungen: neueStaffelBelegungen,
+  const newTeamStates: TeamState[] = replace(state.teams, teamIndex, {
+    ...teamState,
+    relays: newRelayStates,
   });
 
-  return { teams: neueTeams };
+  return { teams: newTeamStates };
 }
 
 function randomIndex(array: unknown[]): number {

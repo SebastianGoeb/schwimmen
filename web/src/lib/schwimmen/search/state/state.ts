@@ -1,17 +1,17 @@
+// TODO do this differently / without a wrapper object
 export interface StateAndScore {
   state: State;
   score: number;
 }
 
 export interface State {
-  teams: Team[];
+  teams: TeamState[];
 }
 
-export interface Team {
-  staffelBelegungen: StaffelBelegung[];
+export interface TeamState {
+  relays: RelayState[];
 }
 
-export interface StaffelBelegung {
-  staffelId: number; // TODO do we need this?
-  startBelegungen: number[];
+export interface RelayState {
+  swimmerIndices: number[];
 }

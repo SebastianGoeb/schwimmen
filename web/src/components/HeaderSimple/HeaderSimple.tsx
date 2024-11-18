@@ -8,7 +8,6 @@ const links = [
   { link: "zeiten", label: "Zeiten", disabled: false },
   { link: "staffeln", label: "Staffeln", disabled: false },
   { link: "berechnen", label: "Berechnen", disabled: false },
-  { link: "importieren", label: "Importieren", disabled: true },
   { link: "dev", label: "Entwicklerbereich", disabled: false },
 ];
 

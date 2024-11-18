@@ -1,47 +1,53 @@
-import { Konfiguration } from "../../eingabe/konfiguration";
+import { HighPerfConfiguration } from "../../eingabe/configuration.ts";
 import { State } from "../state/state";
 import { teamScore, TeamValidity, teamValidity } from "./team";
-import { strafSekundenProRegelverstoss } from "./common";
-import { staffelGesamtzeit } from "./staffel";
+import { penaltySecondsPerViolation } from "./common";
+import { relayTime } from "./relay.ts";
 
-function calculateStartsProSchwimmer(state: State, konfiguration: Konfiguration): Int8Array {
-  const starts = new Int8Array(konfiguration.schwimmerList.length);
-  for (const team of state.teams) {
-    for (const staffelBelegung of team.staffelBelegungen) {
-      for (const schwimmerId of staffelBelegung.startBelegungen) {
-        starts[schwimmerId]++;
+function calculateStartsPerSwimmer(state: State, configuration: HighPerfConfiguration): Int8Array {
+  const swimmerStarts = new Int8Array(configuration.numSwimmers);
+  for (const teamState of state.teams) {
+    for (const relayState of teamState.relays) {
+      for (const swimmerIndex of relayState.swimmerIndices) {
+        swimmerStarts[swimmerIndex]++;
       }
     }
   }
-  return starts;
+  return swimmerStarts;
 }
 
-function calculateMinStartsProSchwimmerViolations(startsProSchwimmer: Int8Array, konfiguration: Konfiguration): number {
+function calculateMinStartsPerSwimmerViolations(
+  startsPerSwimmer: Int8Array,
+  configuration: HighPerfConfiguration,
+): number {
   let violations = 0;
-  for (let schimmerId = 0; schimmerId < startsProSchwimmer.length; schimmerId++) {
-    const starts = startsProSchwimmer[schimmerId];
-    violations += Math.max(konfiguration.minStartsProSchwimmer[schimmerId] - starts, 0);
+  for (let swimmerIndex = 0; swimmerIndex < startsPerSwimmer.length; swimmerIndex++) {
+    const starts = startsPerSwimmer[swimmerIndex];
+    violations += Math.max(configuration.minStartsPerSwimmer[swimmerIndex] - starts, 0);
   }
   return violations;
 }
 
-function calculateMaxStartsProSchwimmerViolations(startsProSchwimmer: Int8Array, konfiguration: Konfiguration): number {
+function calculateMaxStartsPerSwimmerViolations(
+  startsPerSwimmer: Int8Array,
+  configuration: HighPerfConfiguration,
+): number {
   let violations = 0;
-  for (let schimmerId = 0; schimmerId < startsProSchwimmer.length; schimmerId++) {
-    const starts = startsProSchwimmer[schimmerId];
-    violations += Math.max(starts - konfiguration.maxStartsProSchwimmer[schimmerId], 0);
+  for (let schimmerIndex = 0; schimmerIndex < startsPerSwimmer.length; schimmerIndex++) {
+    const starts = startsPerSwimmer[schimmerIndex];
+    violations += Math.max(starts - configuration.maxStartsPerSwimmer[schimmerIndex], 0);
   }
   return violations;
 }
 
-function calculateAlleMuessenSchwimmenViolations(startsProSchwimmer: Int8Array, konfiguration: Konfiguration): number {
-  if (!konfiguration.alleMuessenSchwimmen) {
+function calculateAllMustSwimViolations(startsPerSwimmer: Int8Array, configuration: HighPerfConfiguration): number {
+  if (!configuration.allMustSwim) {
     return 0;
   }
 
   let violations = 0;
-  for (let schimmerId = 0; schimmerId < startsProSchwimmer.length; schimmerId++) {
-    const starts = startsProSchwimmer[schimmerId];
+  for (let schimmerIndex = 0; schimmerIndex < startsPerSwimmer.length; schimmerIndex++) {
+    const starts = startsPerSwimmer[schimmerIndex];
     if (starts == 0) {
       violations++;
     }
@@ -49,81 +55,80 @@ function calculateAlleMuessenSchwimmenViolations(startsProSchwimmer: Int8Array, 
   return violations;
 }
 
-function calculateSchwimmerInMehrerenTeamsViolations(state: State, konfiguration: Konfiguration): number {
-  const hasMultipleTeams = new Int8Array(konfiguration.schwimmerList.length);
-  const primaryTeamNumber = new Int8Array(konfiguration.schwimmerList.length);
+function calculateSwimmerInMultipleTeamsViolations(state: State, configuration: HighPerfConfiguration): number {
+  const hasMultipleTeams = new Int8Array(configuration.numSwimmers);
+  const primaryTeamNumber = new Int8Array(configuration.numSwimmers);
   for (let i = 0; i < primaryTeamNumber.length; i++) {
     primaryTeamNumber[i] = -1;
   }
 
-  for (let teamId = 0; teamId < state.teams.length; teamId++) {
-    const team = state.teams[teamId];
-    for (const staffelBelegung of team.staffelBelegungen) {
-      for (const schwimmerId of staffelBelegung.startBelegungen) {
-        if (hasMultipleTeams[schwimmerId] == 0) {
-          if (primaryTeamNumber[schwimmerId] == -1) {
-            primaryTeamNumber[schwimmerId] = teamId;
-          } else if (primaryTeamNumber[schwimmerId] != teamId) {
-            hasMultipleTeams[schwimmerId] = 1;
+  for (let teamIndex = 0; teamIndex < state.teams.length; teamIndex++) {
+    const teamState = state.teams[teamIndex];
+    for (const relayState of teamState.relays) {
+      for (const swimmerIndex of relayState.swimmerIndices) {
+        if (hasMultipleTeams[swimmerIndex] == 0) {
+          if (primaryTeamNumber[swimmerIndex] == -1) {
+            primaryTeamNumber[swimmerIndex] = teamIndex;
+          } else if (primaryTeamNumber[swimmerIndex] != teamIndex) {
+            hasMultipleTeams[swimmerIndex] = 1;
           }
         }
       }
     }
   }
 
-  let sum = 0;
+  let violations = 0;
   for (const hasMultiple of hasMultipleTeams) {
     if (hasMultiple == 1) {
-      sum++;
+      violations++;
     }
   }
 
-  return sum;
+  return violations;
 }
 
-function calculateZeitspannePenaltySeconds(state: State, konfiguration: Konfiguration): number {
-  if (konfiguration.anzahlTeams <= 1) {
+function calculateRelayTimeDifferencePenaltySeconds(state: State, configuration: HighPerfConfiguration): number {
+  if (configuration.numTeams <= 1) {
     return 0;
   }
 
   let penalty = 0;
-  for (let staffelId = 0; staffelId < konfiguration.staffeln.length; staffelId++) {
+  for (let relayIndex = 0; relayIndex < configuration.relays.length; relayIndex++) {
     let max = 0;
     let min = 9999999;
-    for (const team of state.teams) {
-      // TODO gesamtZeit not memoized due to lack of lazy {}
-      const zeit = staffelGesamtzeit(team.staffelBelegungen[staffelId], konfiguration);
-      max = Math.max(zeit, max);
-      min = Math.min(zeit, min);
+    for (const teamState of state.teams) {
+      const time = relayTime(teamState.relays[relayIndex], relayIndex, configuration);
+      max = Math.max(time, max);
+      min = Math.min(time, min);
     }
-    const spanne = max - min;
-    if (spanne > konfiguration.maxZeitspanneProStaffelSeconds) {
-      penalty += spanne + strafSekundenProRegelverstoss;
+    const timeDifference = max - min;
+    if (timeDifference > configuration.maxTimeDifferencePerRelaySeconds) {
+      penalty += timeDifference + penaltySecondsPerViolation;
     }
   }
 
   return penalty;
 }
 
-export function stateScore(state: State, konfiguration: Konfiguration): number {
+export function stateScore(state: State, configuration: HighPerfConfiguration): number {
   let teamsScore = 0;
-  for (const team of state.teams) {
-    teamsScore += teamScore(team, konfiguration);
+  for (const teamState of state.teams) {
+    teamsScore += teamScore(teamState, configuration);
   }
 
-  const startsProSchwimmer = calculateStartsProSchwimmer(state, konfiguration);
-  const minStartsProSchwimmerViolations = calculateMinStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
-  const maxStartsProSchwimmerViolations = calculateMaxStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
-  const alleMuessenSchwimmenViolations = calculateAlleMuessenSchwimmenViolations(startsProSchwimmer, konfiguration);
-  const schwimmerInMehrerenTeamsViolations = calculateSchwimmerInMehrerenTeamsViolations(state, konfiguration);
+  const startsPerSwimmer = calculateStartsPerSwimmer(state, configuration);
+  const minStartsPerSwimmerViolations = calculateMinStartsPerSwimmerViolations(startsPerSwimmer, configuration);
+  const maxStartsPerSwimmerViolations = calculateMaxStartsPerSwimmerViolations(startsPerSwimmer, configuration);
+  const allMustSwimViolations = calculateAllMustSwimViolations(startsPerSwimmer, configuration);
+  const swimmerInMultipleTeamsViolations = calculateSwimmerInMultipleTeamsViolations(state, configuration);
 
-  const zeitspannePenaltySeconds = calculateZeitspannePenaltySeconds(state, konfiguration);
+  const zeitspannePenaltySeconds = calculateRelayTimeDifferencePenaltySeconds(state, configuration);
   const number =
     teamsScore +
-    strafSekundenProRegelverstoss * minStartsProSchwimmerViolations +
-    strafSekundenProRegelverstoss * maxStartsProSchwimmerViolations +
-    strafSekundenProRegelverstoss * alleMuessenSchwimmenViolations +
-    strafSekundenProRegelverstoss * schwimmerInMehrerenTeamsViolations +
+    penaltySecondsPerViolation * minStartsPerSwimmerViolations +
+    penaltySecondsPerViolation * maxStartsPerSwimmerViolations +
+    penaltySecondsPerViolation * allMustSwimViolations +
+    penaltySecondsPerViolation * swimmerInMultipleTeamsViolations +
     zeitspannePenaltySeconds;
   return number;
 }
@@ -131,36 +136,36 @@ export function stateScore(state: State, konfiguration: Konfiguration): number {
 export interface StateValidity {
   valid: boolean;
   teamValidities: TeamValidity[];
-  minStartsProSchwimmerViolations: number;
-  maxStartsProSchwimmerViolations: number;
-  alleMuessenSchwimmenViolations: number;
-  schwimmerInMehrerenTeamsViolations: number;
+  minStartsPerSwimmerViolations: number;
+  maxStartsPerSwimmerViolations: number;
+  allMustSwimViolations: number;
+  swimmerInMultipleTeamsViolations: number;
   zeitspannePenaltySeconds: number;
 }
 
-export function stateValidity(state: State, konfiguration: Konfiguration): StateValidity {
-  const teamValidities = state.teams.map((team) => teamValidity(team, konfiguration));
+export function stateValidity(state: State, configuration: HighPerfConfiguration): StateValidity {
+  const teamValidities = state.teams.map((team) => teamValidity(team, configuration));
 
-  const startsProSchwimmer = calculateStartsProSchwimmer(state, konfiguration);
-  const minStartsProSchwimmerViolations = calculateMinStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
-  const maxStartsProSchwimmerViolations = calculateMaxStartsProSchwimmerViolations(startsProSchwimmer, konfiguration);
-  const alleMuessenSchwimmenViolations = calculateAlleMuessenSchwimmenViolations(startsProSchwimmer, konfiguration);
-  const schwimmerInMehrerenTeamsViolations = calculateSchwimmerInMehrerenTeamsViolations(state, konfiguration);
+  const startsPerSwimmer = calculateStartsPerSwimmer(state, configuration);
+  const minStartsPerSwimmerViolations = calculateMinStartsPerSwimmerViolations(startsPerSwimmer, configuration);
+  const maxStartsPerSwimmerViolations = calculateMaxStartsPerSwimmerViolations(startsPerSwimmer, configuration);
+  const allMustSwimViolations = calculateAllMustSwimViolations(startsPerSwimmer, configuration);
+  const swimmerInMultipleTeamsViolations = calculateSwimmerInMultipleTeamsViolations(state, configuration);
 
-  const zeitspannePenaltySeconds = calculateZeitspannePenaltySeconds(state, konfiguration);
+  const zeitspannePenaltySeconds = calculateRelayTimeDifferencePenaltySeconds(state, configuration);
   return {
     valid:
       teamValidities.every((it) => it.valid) &&
-      minStartsProSchwimmerViolations === 0 &&
-      maxStartsProSchwimmerViolations === 0 &&
-      alleMuessenSchwimmenViolations === 0 &&
-      schwimmerInMehrerenTeamsViolations === 0 &&
+      minStartsPerSwimmerViolations === 0 &&
+      maxStartsPerSwimmerViolations === 0 &&
+      allMustSwimViolations === 0 &&
+      swimmerInMultipleTeamsViolations === 0 &&
       zeitspannePenaltySeconds === 0,
     teamValidities,
-    minStartsProSchwimmerViolations,
-    maxStartsProSchwimmerViolations,
-    alleMuessenSchwimmenViolations,
-    schwimmerInMehrerenTeamsViolations,
+    minStartsPerSwimmerViolations,
+    maxStartsPerSwimmerViolations,
+    allMustSwimViolations: allMustSwimViolations,
+    swimmerInMultipleTeamsViolations: swimmerInMultipleTeamsViolations,
     zeitspannePenaltySeconds,
   };
 }

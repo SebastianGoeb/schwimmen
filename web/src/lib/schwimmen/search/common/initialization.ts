@@ -1,28 +1,27 @@
-import { StaffelBelegung, State, Team } from "../state/state";
-import { Konfiguration, StaffelX } from "../../eingabe/konfiguration";
+import { RelayState, State, TeamState } from "../state/state";
+import { HighPerfConfiguration, HighPerfRelay } from "../../eingabe/configuration.ts";
 import { times } from "lodash-es";
 
-export function initialRandomAssignment(konfiguration: Konfiguration): State {
-  return { teams: times(konfiguration.anzahlTeams, () => generateTeam(konfiguration)) };
+export function generateRandomState(configuration: HighPerfConfiguration): State {
+  return { teams: times(configuration.numTeams, () => generateRandomTeamState(configuration)) };
 }
 
-function generateTeam(konfiguration: Konfiguration): Team {
+function generateRandomTeamState(configuration: HighPerfConfiguration): TeamState {
   return {
-    staffelBelegungen: konfiguration.staffeln.map((staffel, staffelId) =>
-      generateStaffelBelegung(staffel, staffelId, konfiguration),
+    relays: configuration.relays.map((relay) => generateRandomRelayState(relay, configuration)),
+  };
+}
+
+function generateRandomRelayState(relay: HighPerfRelay, configuration: HighPerfConfiguration): RelayState {
+  return {
+    swimmerIndices: relay.disciplineIndices.map((disciplineIndex) =>
+      generateRandomSwimmerIndex(disciplineIndex, configuration),
     ),
   };
 }
 
-function generateStaffelBelegung(staffel: StaffelX, staffelId: number, konfiguration: Konfiguration): StaffelBelegung {
-  return {
-    staffelId,
-    startBelegungen: staffel.disziplinIds.map((diszplinId) => generateStartBelegung(diszplinId, konfiguration)),
-  };
-}
-
-function generateStartBelegung(disziplinId: number, konfiguration: Konfiguration): number {
-  const schwimmerIdsZuDenenEsZeitenGibt = konfiguration.disziplinToSchwimmerZeiten[disziplinId];
-  const index = Math.floor(Math.random() * schwimmerIdsZuDenenEsZeitenGibt.length);
-  return schwimmerIdsZuDenenEsZeitenGibt[index].schwimmerId;
+function generateRandomSwimmerIndex(disciplineIndex: number, configuration: HighPerfConfiguration): number {
+  const swimmersWithLapTimes = configuration.disciplineToSwimmerTimes[disciplineIndex];
+  const choice = Math.floor(Math.random() * swimmersWithLapTimes.length);
+  return swimmersWithLapTimes[choice].swimmerIndex;
 }
