@@ -13,7 +13,9 @@ import { Notifications } from "@mantine/notifications";
 import Developer from "./pages/Developer/Developer.tsx";
 import LogRocket from "logrocket";
 
-LogRocket.init("pc9l0b/schwimmen");
+LogRocket.init("pc9l0b/schwimmen", {
+  release: __APP_VERSION__,
+});
 
 const theme = createTheme({
   cursorType: "pointer",

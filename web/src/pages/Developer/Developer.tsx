@@ -1,4 +1,4 @@
-import { Alert, Container, Group, NumberInput, Paper, Select, SimpleGrid, Stack } from "@mantine/core";
+import { Alert, Container, Group, NumberInput, Paper, Select, SimpleGrid, Stack, Text } from "@mantine/core";
 import DemoDataButton from "../../components/DemoDataButton/DemoDataButton.tsx";
 import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
@@ -12,6 +12,7 @@ export default function Developer() {
     <Container size="xl">
       <Group justify="space-between">
         <h1>Entwicklerbereich</h1>
+        <Text fw={700}>Version: {__APP_VERSION__}</Text>
       </Group>
 
       <Stack>
