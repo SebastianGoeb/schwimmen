@@ -7,7 +7,7 @@ import {
 } from "../../eingabe/configuration.ts";
 import { generateRandomState } from "../common/initialization";
 import { minBy, times } from "lodash-es";
-import { stateScore, StateValidity, stateValidity } from "../score/state";
+import { stateScore, stateValidity } from "../score/state";
 import { formatZeit } from "../../util/zeit";
 import type { Pool } from "workerpool";
 import * as workerpool from "workerpool";
@@ -19,8 +19,6 @@ import { PerfInfo } from "../state/perf-info.ts";
 export type ProgressFun = (progress: Progress) => void;
 export interface Progress {
   perfInfo: PerfInfo;
-  score: number;
-  validity: StateValidity;
 }
 
 export async function runCrappySimulatedAnnealing(
@@ -28,7 +26,7 @@ export async function runCrappySimulatedAnnealing(
   hyperparameters: Hyperparameters,
   printProgress: boolean = true,
   progress: ProgressFun = () => {},
-): Promise<{ result: Result; perfInfo: PerfInfo }> {
+): Promise<Result> {
   const start = new Date();
 
   const configuration = buildHighPerfConfiguration(parameters);
@@ -91,8 +89,6 @@ export async function runCrappySimulatedAnnealing(
 
     progress({
       perfInfo: { duration: (new Date().getTime() - start.getTime()) / 1000, checked: statesChecked },
-      score: bestState.score,
-      validity: stateValidity(bestState.state, configuration),
     });
 
     if (gen > genOfBestState + hyperparameters.globalGenerationLimit) {
@@ -105,10 +101,17 @@ export async function runCrappySimulatedAnnealing(
   }
 
   const end = new Date();
-  return {
-    result: fromState(parameters, configuration, bestState.state),
-    perfInfo: { duration: (end.getTime() - start.getTime()) / 1000, checked: statesChecked },
-  };
+  return fromState(
+    parameters,
+    configuration,
+    bestState.state,
+    bestState.score,
+    {
+      duration: (end.getTime() - start.getTime()) / 1000,
+      checked: statesChecked,
+    },
+    stateValidity(bestState.state, configuration),
+  );
 }
 
 async function generateNewStates(
