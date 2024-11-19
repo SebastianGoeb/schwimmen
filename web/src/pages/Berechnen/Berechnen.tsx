@@ -26,7 +26,7 @@ import { Progress, runCrappySimulatedAnnealing } from "../../lib/schwimmen/searc
 import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
 import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
-import { throttle, uniq } from "lodash-es";
+import { sortBy, throttle, uniq } from "lodash-es";
 import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.ts";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
@@ -53,8 +53,8 @@ const HYPERPARAMETERS: Hyperparameters = {
   smartMutation: mutateVerySmart,
   dumbMutation: mutateRandom,
   acceptanceProbability: 0.1,
-  globalGenerationLimit: 50,
-  restartGenerationLimit: 20,
+  globalGenerationLimit: 200,
+  restartGenerationLimit: 100,
   maxGenerations: 1_000_000,
   populationSize: 10,
 };
@@ -122,7 +122,7 @@ export default function Berechnen() {
   }
 
   function renderRelayResult(relayResult: RelayResult, relayIndex: number, teamIndex: number) {
-    const legResultsSorted = relayResult.legs;
+    const legResultsSorted = sortBy(relayResult.legs, (value) => [value.discipline.id, value.swimmer.name]);
     const relayValidity: RelayValidity | undefined =
       result?.validity?.teamValidities[teamIndex]?.relayValidities[relayIndex];
     return (
