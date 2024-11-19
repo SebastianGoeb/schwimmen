@@ -7,6 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# vite temp files
+vite.config.ts.timestamp*
+
 node_modules
 dist
 dist-ssr
