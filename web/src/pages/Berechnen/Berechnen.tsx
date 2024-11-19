@@ -26,12 +26,15 @@ import { Progress, runCrappySimulatedAnnealing } from "../../lib/schwimmen/searc
 import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
 import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
-import { uniq } from "lodash-es";
+import { throttle, uniq } from "lodash-es";
 import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.ts";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
 import { RelayResult, Result, TeamResult } from "../../lib/schwimmen/search/state/result.ts";
 import { PerfInfo } from "../../lib/schwimmen/search/state/perf-info.ts";
+import { Discipline } from "../../model/discipline.ts";
+import { Relay } from "../../model/relay.ts";
+import { TeamSettings } from "../../model/team-settings.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
@@ -44,6 +47,47 @@ function formatPerformanceMetrics({ checked, duration }: PerfInfo) {
     rate: `${parseFloat((checked / duration).toPrecision(2)).toLocaleString()}/s`,
   };
 }
+
+const HYPERPARAMETERS: Hyperparameters = {
+  smartMutationRate: 0.85,
+  smartMutation: mutateVerySmart,
+  dumbMutation: mutateRandom,
+  acceptanceProbability: 0.1,
+  globalGenerationLimit: 50,
+  restartGenerationLimit: 20,
+  maxGenerations: 1_000_000,
+  populationSize: 10,
+};
+
+function toParameters(
+  disciplines: Discipline[],
+  relays: Map<number, Relay>,
+  swimmers: Map<number, Swimmer>,
+  ageGroup: string,
+  teamSettings: TeamSettings,
+) {
+  const disciplinesForSearch = disciplines;
+  const relaysForSearch = Array.from(relays.values());
+  const swimmersForSearch: Swimmer[] = Array.from(swimmers.values()).filter(
+    (swimmer) => swimmer.ageGroup === ageGroup && swimmer.present,
+  );
+  const parameters: Parameters = {
+    allMustSwim: teamSettings.alleMuessenSchwimmen,
+    minSwimmersPerTeam: teamSettings.minSchwimmerProTeam,
+    maxSwimmersPerTeam: teamSettings.maxSchwimmerProTeam,
+    minMalesProTeam: teamSettings.minMaleProTeam,
+    minFemalesProTeam: teamSettings.minFemaleProTeam,
+    minStartsPerSwimmer: teamSettings.minStartsProSchwimmer,
+    maxStartsPerSwimmer: teamSettings.maxStartsProSchwimmer,
+    numTeams: teamSettings.anzahlTeams,
+    maxTimeDifferencePerRelaySeconds: parseMaskedZeitToSeconds(teamSettings.maxZeitspanneProStaffelSeconds)!,
+    disciplines: disciplinesForSearch,
+    relays: relaysForSearch,
+    swimmers: swimmersForSearch,
+  };
+  return parameters;
+}
+
 export default function Berechnen() {
   const [disciplines, swimmers, relays, teamSettings, updateTeamSettings] = useCombinedStore(
     useShallow((state) => [
@@ -63,41 +107,14 @@ export default function Berechnen() {
   async function berechnen() {
     try {
       setRunning(true);
-      // TODO check no duplicate discipline names
-
-      const disciplinesForSearch = disciplines;
-      const relaysForSearch = Array.from(relays.values());
-      const swimmersForSearch: Swimmer[] = Array.from(swimmers.values()).filter(
-        (swimmer) => swimmer.ageGroup === ageGroup && swimmer.present,
+      const result = await runCrappySimulatedAnnealing(
+        toParameters(disciplines, relays, swimmers, ageGroup, teamSettings),
+        HYPERPARAMETERS,
+        false,
+        throttle(setProgress, 100), // don't re-render 100s of times per second
       );
-      const parameters: Parameters = {
-        allMustSwim: teamSettings.alleMuessenSchwimmen,
-        minSwimmersPerTeam: teamSettings.minSchwimmerProTeam,
-        maxSwimmersPerTeam: teamSettings.maxSchwimmerProTeam,
-        minMalesProTeam: teamSettings.minMaleProTeam,
-        minFemalesProTeam: teamSettings.minFemaleProTeam,
-        minStartsPerSwimmer: teamSettings.minStartsProSchwimmer,
-        maxStartsPerSwimmer: teamSettings.maxStartsProSchwimmer,
-        numTeams: teamSettings.anzahlTeams,
-        maxTimeDifferencePerRelaySeconds: parseMaskedZeitToSeconds(teamSettings.maxZeitspanneProStaffelSeconds)!,
-        disciplines: disciplinesForSearch,
-        relays: relaysForSearch,
-        swimmers: swimmersForSearch,
-      };
-
-      const hyperparameters: Hyperparameters = {
-        smartMutationRate: 0.85,
-        smartMutation: mutateVerySmart,
-        dumbMutation: mutateRandom,
-        acceptanceProbability: 0.1,
-        globalGenerationLimit: 50,
-        restartGenerationLimit: 20,
-        maxGenerations: 1_000_000,
-        populationSize: 10,
-      };
-
-      const { result, perfInfo } = await runCrappySimulatedAnnealing(parameters, hyperparameters, false, setProgress);
-      console.log(formatPerformanceMetrics(perfInfo));
+      console.log(formatPerformanceMetrics(result.perfInfo));
+      setProgress({ perfInfo: result.perfInfo });
       setResult(result);
     } finally {
       setRunning(false);
@@ -107,7 +124,7 @@ export default function Berechnen() {
   function renderRelayResult(relayResult: RelayResult, relayIndex: number, teamIndex: number) {
     const legResultsSorted = relayResult.legs;
     const relayValidity: RelayValidity | undefined =
-      progress?.validity?.teamValidities[teamIndex]?.relayValidities[relayIndex];
+      result?.validity?.teamValidities[teamIndex]?.relayValidities[relayIndex];
     return (
       <Box key={relayIndex}>
         <h4
@@ -175,19 +192,19 @@ export default function Berechnen() {
         <Text>Gesamtzeit: {formatMaskedTime(teamResult.time)}</Text>
         <Box>
           {violationErrorText(
-            progress?.validity?.teamValidities[teamIndex]?.minSwimmerViolations,
+            result?.validity?.teamValidities[teamIndex]?.minSwimmerViolations,
             "Min Schwimmer nicht eingehalten",
           )}
           {violationErrorText(
-            progress?.validity?.teamValidities[teamIndex]?.maxSwimmerViolations,
+            result?.validity?.teamValidities[teamIndex]?.maxSwimmerViolations,
             "Max Schwimmer nicht eingehalten",
           )}
           {violationErrorText(
-            progress?.validity?.teamValidities[teamIndex]?.minMaleViolations,
+            result?.validity?.teamValidities[teamIndex]?.minMaleViolations,
             "Min Jungen pro Team nicht eingehalten",
           )}
           {violationErrorText(
-            progress?.validity?.teamValidities[teamIndex]?.minFemaleViolations,
+            result?.validity?.teamValidities[teamIndex]?.minFemaleViolations,
             "Min Mädchen pro Team nicht eingehalten",
           )}
         </Box>
@@ -351,32 +368,29 @@ export default function Berechnen() {
               withBorder
               shadow="md"
               p="xl"
-              style={{ borderColor: result === undefined || progress?.validity?.valid ? undefined : "red" }}
+              style={{ borderColor: result === undefined || result?.validity?.valid ? undefined : "red" }}
             >
               <Group>
                 <h2>Ergebnis</h2>
-                {progress && progress.validity.valid ? <IconCheck size={48} color="green" /> : <IconX color="red" />}
+                {result && result.validity.valid ? <IconCheck size={48} color="green" /> : <IconX color="red" />}
               </Group>
 
               <Box>
                 {violationErrorText(
-                  progress?.validity?.minStartsPerSwimmerViolations,
+                  result?.validity?.minStartsPerSwimmerViolations,
                   "Min Starts pro Schwimmer nicht eingehalten",
                 )}
                 {violationErrorText(
-                  progress?.validity?.maxStartsPerSwimmerViolations,
+                  result?.validity?.maxStartsPerSwimmerViolations,
                   "Max Starts pro Schwimmer nicht eingehalten",
                 )}
+                {violationErrorText(result?.validity?.allMustSwimViolations, "Alle müssen schwimmen nicht eingehalten")}
                 {violationErrorText(
-                  progress?.validity?.allMustSwimViolations,
-                  "Alle müssen schwimmen nicht eingehalten",
-                )}
-                {violationErrorText(
-                  progress?.validity?.swimmerInMultipleTeamsViolations,
+                  result?.validity?.swimmerInMultipleTeamsViolations,
                   "Es gibt Schwimmer, die in mehreren Teams schwimmen",
                 )}
                 {violationErrorText(
-                  progress?.validity?.zeitspannePenaltySeconds,
+                  result?.validity?.zeitspannePenaltySeconds,
                   "Maximale Staffelzeitendifferenz nicht eingehalten",
                 )}
               </Box>
