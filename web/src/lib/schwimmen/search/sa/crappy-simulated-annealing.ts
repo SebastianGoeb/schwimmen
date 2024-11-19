@@ -18,7 +18,6 @@ import { PerfInfo } from "../state/perf-info.ts";
 
 export type ProgressFun = (progress: Progress) => void;
 export interface Progress {
-  gen: number;
   perfInfo: PerfInfo;
   score: number;
   validity: StateValidity;
@@ -91,7 +90,6 @@ export async function runCrappySimulatedAnnealing(
     }
 
     progress({
-      gen,
       perfInfo: { duration: (new Date().getTime() - start.getTime()) / 1000, checked: statesChecked },
       score: bestState.score,
       validity: stateValidity(bestState.state, configuration),
