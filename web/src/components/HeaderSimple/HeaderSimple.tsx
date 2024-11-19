@@ -38,6 +38,7 @@ export function HeaderSimple() {
     <header className={classes.header}>
       <Container size="md" className={classes.inner}>
         <Image src={"/icon128.png"} h={32} />
+        <h2>{__APP_VERSION__}</h2>
 
         {/* desktop design */}
         <Group gap={5} visibleFrom="xs">
