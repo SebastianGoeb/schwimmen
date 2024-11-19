@@ -3,7 +3,10 @@ import react from "@vitejs/plugin-react-swc";
 import * as child from "child_process";
 
 const commitHash = child.execSync("git rev-parse --short HEAD").toString().trim();
-const worktreeClean = child.execSync("git status --porcelain").toString().trim().length === 0;
+const worktreeString = child.execSync("git status --porcelain").toString().trim();
+const worktreeClean = worktreeString.length === 0;
+
+console.log(worktreeString, worktreeClean);
 
 // https://vitejs.dev/config/
 export default defineConfig({
