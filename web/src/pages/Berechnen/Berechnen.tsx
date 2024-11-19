@@ -31,11 +31,19 @@ import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
 import { RelayResult, Result, TeamResult } from "../../lib/schwimmen/search/state/result.ts";
+import { PerfInfo } from "../../lib/schwimmen/search/state/perf-info.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
 }
 
+function formatPerformanceMetrics({ checked, duration }: PerfInfo) {
+  return {
+    checked: checked.toLocaleString(),
+    duration: `${duration.toFixed(1)}s`,
+    rate: `${parseFloat((checked / duration).toPrecision(2)).toLocaleString()}/s`,
+  };
+}
 export default function Berechnen() {
   const [disciplines, swimmers, relays, teamSettings, updateTeamSettings] = useCombinedStore(
     useShallow((state) => [
@@ -88,9 +96,8 @@ export default function Berechnen() {
         populationSize: 10,
       };
 
-      const { result } = await runCrappySimulatedAnnealing(parameters, hyperparameters, false, (gen) =>
-        setProgress(gen),
-      );
+      const { result, perfInfo } = await runCrappySimulatedAnnealing(parameters, hyperparameters, false, setProgress);
+      console.log(formatPerformanceMetrics(perfInfo));
       setResult(result);
     } finally {
       setRunning(false);
@@ -323,13 +330,12 @@ export default function Berechnen() {
               <>
                 <Table
                   data={{
-                    head: ["Generationen", "Geprüfte Kombinationen", "Score", "Ergebnis Valide"],
+                    head: ["Geprüfte Kombinationen", "Dauer", "Rate"],
                     body: [
                       [
-                        progress.gen.toLocaleString(),
-                        progress.statesChecked.toLocaleString(),
-                        formatMaskedTime(progress.score),
-                        progress.validity.valid ? <IconCheck color="green" /> : <IconX color="red" />,
+                        formatPerformanceMetrics(progress.perfInfo).checked,
+                        formatPerformanceMetrics(progress.perfInfo).duration,
+                        formatPerformanceMetrics(progress.perfInfo).rate,
                       ],
                     ],
                   }}
@@ -347,7 +353,10 @@ export default function Berechnen() {
               p="xl"
               style={{ borderColor: result === undefined || progress?.validity?.valid ? undefined : "red" }}
             >
-              <h2>Ergebnis</h2>
+              <Group>
+                <h2>Ergebnis</h2>
+                {progress && progress.validity.valid ? <IconCheck size={48} color="green" /> : <IconX color="red" />}
+              </Group>
 
               <Box>
                 {violationErrorText(
