@@ -31,9 +31,15 @@ import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
 import { RelayResult, Result, TeamResult } from "../../lib/schwimmen/search/state/result.ts";
+import { PerfInfo } from "../../lib/schwimmen/search/state/perf-info.ts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
+}
+
+function formatKombinationenString({ checked, duration }: PerfInfo) {
+  const rate = parseFloat((checked / duration).toPrecision(2));
+  return `${checked.toLocaleString()} (in ${duration.toFixed(1)}s – ${rate.toLocaleString()}/s)`;
 }
 
 export default function Berechnen() {
@@ -88,9 +94,8 @@ export default function Berechnen() {
         populationSize: 10,
       };
 
-      const { result } = await runCrappySimulatedAnnealing(parameters, hyperparameters, false, (gen) =>
-        setProgress(gen),
-      );
+      const { result, perfInfo } = await runCrappySimulatedAnnealing(parameters, hyperparameters, false, setProgress);
+      console.log(formatKombinationenString(perfInfo));
       setResult(result);
     } finally {
       setRunning(false);
@@ -323,11 +328,18 @@ export default function Berechnen() {
               <>
                 <Table
                   data={{
-                    head: ["Generationen", "Geprüfte Kombinationen", "Score", "Ergebnis Valide"],
+                    head: [
+                      "Generationen",
+                      "Geprüfte Kombinationen",
+                      // "Dauer",
+                      // "Geschwindigkeit",
+                      "Score",
+                      "Ergebnis Valide",
+                    ],
                     body: [
                       [
                         progress.gen.toLocaleString(),
-                        progress.statesChecked.toLocaleString(),
+                        formatKombinationenString(progress.perfInfo),
                         formatMaskedTime(progress.score),
                         progress.validity.valid ? <IconCheck color="green" /> : <IconX color="red" />,
                       ],
