@@ -4,14 +4,11 @@ import { HighPerfConfiguration, Parameters } from "../../eingabe/configuration.t
 import { RelayState, State, TeamState } from "./state.ts";
 import { max, sum } from "lodash-es";
 import { Relay } from "../../../../model/relay.ts";
-import { PerfInfo } from "./perf-info.ts";
-import { StateValidity } from "../score/state.ts";
+import { stateValidity, StateValidity } from "../score/state.ts";
 
 export interface Result {
   teams: TeamResult[];
   time: number;
-  perfInfo: PerfInfo;
-  score: number;
   validity: StateValidity;
 }
 
@@ -32,21 +29,12 @@ export interface RelayLegResult {
   time: number;
 }
 
-export function fromState(
-  parameters: Parameters,
-  configuration: HighPerfConfiguration,
-  state: State,
-  score: number,
-  perfInfo: PerfInfo,
-  validity: StateValidity,
-): Result {
+export function fromState(parameters: Parameters, configuration: HighPerfConfiguration, state: State): Result {
   const teamResults = state.teams.map((teamState) => fromTeamState(parameters, configuration, teamState));
   return {
     teams: teamResults,
     time: sum(teamResults.map((it) => it.time)),
-    perfInfo,
-    score,
-    validity,
+    validity: stateValidity(state, configuration),
   };
 }
 

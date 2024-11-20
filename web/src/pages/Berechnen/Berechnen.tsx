@@ -22,7 +22,7 @@ import { useShallow } from "zustand/react/shallow";
 import { IMaskInput } from "react-imask";
 import { zeitenMask } from "../../utils/input-mask.ts";
 import { Hyperparameters, Parameters } from "../../lib/schwimmen/eingabe/configuration.ts";
-import { Progress, runCrappySimulatedAnnealing } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
+import { runCrappySimulatedAnnealing } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
 import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
 import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
@@ -31,7 +31,7 @@ import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
 import { RelayResult, Result, TeamResult } from "../../lib/schwimmen/search/state/result.ts";
-import { PerfInfo } from "../../lib/schwimmen/search/state/perf-info.ts";
+import { Progress } from "../../lib/schwimmen/search/state/progress.ts";
 import { Discipline } from "../../model/discipline.ts";
 import { Relay } from "../../model/relay.ts";
 import { TeamSettings } from "../../model/team-settings.ts";
@@ -40,7 +40,7 @@ function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
 }
 
-function formatPerformanceMetrics({ checked, duration }: PerfInfo) {
+function formatPerformanceMetrics({ checked, duration }: Progress) {
   return {
     checked: checked.toLocaleString(),
     duration: `${duration.toFixed(1)}s`,
@@ -107,14 +107,13 @@ export default function Berechnen() {
   async function berechnen() {
     try {
       setRunning(true);
-      const result = await runCrappySimulatedAnnealing(
+      const [result, finalProgress] = await runCrappySimulatedAnnealing(
         toParameters(disciplines, relays, swimmers, ageGroup, teamSettings),
         HYPERPARAMETERS,
-        false,
         throttle(setProgress, 100), // don't re-render 100s of times per second
       );
-      console.log(formatPerformanceMetrics(result.perfInfo));
-      setProgress({ perfInfo: result.perfInfo });
+      console.log(formatPerformanceMetrics(finalProgress));
+      setProgress(finalProgress);
       setResult(result);
     } finally {
       setRunning(false);
@@ -350,9 +349,9 @@ export default function Berechnen() {
                     head: ["Geprüfte Kombinationen", "Dauer", "Rate"],
                     body: [
                       [
-                        formatPerformanceMetrics(progress.perfInfo).checked,
-                        formatPerformanceMetrics(progress.perfInfo).duration,
-                        formatPerformanceMetrics(progress.perfInfo).rate,
+                        formatPerformanceMetrics(progress).checked,
+                        formatPerformanceMetrics(progress).duration,
+                        formatPerformanceMetrics(progress).rate,
                       ],
                     ],
                   }}

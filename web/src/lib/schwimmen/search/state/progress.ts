@@ -1,4 +1,4 @@
-export interface PerfInfo {
+export interface Progress {
   duration: number;
   checked: number;
 }
