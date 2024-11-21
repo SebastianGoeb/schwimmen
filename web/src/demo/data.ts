@@ -1,6 +1,5 @@
 import { Gender } from "../model/gender.ts";
 import { Data } from "../model/data.ts";
-import { mutateRandom, mutateVerySmart } from "../lib/schwimmen/search/sa/mutation.ts";
 
 export const demoData1: Data = {
   disciplines: [
@@ -89,8 +88,6 @@ export const demoData1: Data = {
   },
   simulatedAnnealingSettings: {
     smartMutationRate: 0.85,
-    smartMutation: mutateVerySmart,
-    dumbMutation: mutateRandom,
     acceptanceProbability: 0.1,
     globalGenerationLimit: 200,
     restartGenerationLimit: 50,
@@ -243,8 +240,6 @@ export const realData: Data = {
   },
   simulatedAnnealingSettings: {
     smartMutationRate: 0.85,
-    smartMutation: mutateVerySmart,
-    dumbMutation: mutateRandom,
     acceptanceProbability: 0.1,
     globalGenerationLimit: 200,
     restartGenerationLimit: 50,

@@ -2,7 +2,6 @@ import { Gender } from "./gender.ts";
 import { Discipline } from "../../../model/discipline.ts";
 import { Relay } from "../../../model/relay.ts";
 import { Swimmer } from "../../../model/swimmer.ts";
-import { State, StateAndScore } from "../search/state/state.ts";
 import { parseMaskedZeitToSeconds } from "../../../utils/masking.ts";
 
 export interface Parameters {
@@ -22,8 +21,6 @@ export interface Parameters {
 
 export interface Hyperparameters {
   smartMutationRate: number;
-  smartMutation: (state: State, configuration: HighPerfConfiguration) => { state: StateAndScore; checked: number };
-  dumbMutation: (state: State, configuration: HighPerfConfiguration) => { state: StateAndScore; checked: number };
   acceptanceProbability: number;
   globalGenerationLimit: number;
   restartGenerationLimit: number;

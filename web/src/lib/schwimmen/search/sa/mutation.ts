@@ -1,11 +1,14 @@
-import { RelayState, State, StateAndScore, TeamState } from "../state/state";
+import { RelayState, State, TeamState } from "../state/state";
 import { HighPerfConfiguration } from "../../eingabe/configuration.ts";
 import { stateScore } from "../score/state";
 
-export function mutateRandom(
-  state: State,
-  configuration: HighPerfConfiguration,
-): { state: StateAndScore; checked: number } {
+export interface MutationResult {
+  state: State;
+  score: number;
+  statesChecked: number;
+}
+
+export function mutateRandom(state: State, configuration: HighPerfConfiguration): MutationResult {
   const teamIndex = randomIndex(state.teams);
   const teamState = state.teams[teamIndex];
 
@@ -23,19 +26,14 @@ export function mutateRandom(
 
   const newState = replaceSwimmer(state, teamIndex, relayIndex, legIndex, newSwimmerIndex);
   return {
-    state: {
-      state: newState,
-      score: stateScore(state, configuration),
-    },
-    checked: 1,
+    state: newState,
+    score: stateScore(state, configuration),
+    statesChecked: 1,
   };
 }
 
-export function mutateVerySmart(
-  state: State,
-  configuration: HighPerfConfiguration,
-): { state: StateAndScore; checked: number } {
-  let best: StateAndScore | undefined = undefined;
+export function mutateVerySmart(state: State, configuration: HighPerfConfiguration): MutationResult {
+  let best: { state: State; score: number } | undefined = undefined;
   let checked = 0;
 
   for (let teamIndex = 0; teamIndex < state.teams.length; teamIndex++) {
@@ -68,8 +66,9 @@ export function mutateVerySmart(
     }
   }
   return {
-    state: best!,
-    checked,
+    state: best!.state,
+    score: best!.score,
+    statesChecked: checked,
   };
 }
 

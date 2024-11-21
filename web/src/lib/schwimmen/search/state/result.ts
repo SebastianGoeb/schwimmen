@@ -7,6 +7,7 @@ import { Relay } from "../../../../model/relay.ts";
 import { stateValidity, StateValidity } from "../score/state.ts";
 
 export interface Result {
+  generated: Date;
   teams: TeamResult[];
   time: number;
   validity: StateValidity;
@@ -29,9 +30,10 @@ export interface RelayLegResult {
   time: number;
 }
 
-export function fromState(parameters: Parameters, configuration: HighPerfConfiguration, state: State): Result {
+export function resultFromState(parameters: Parameters, configuration: HighPerfConfiguration, state: State): Result {
   const teamResults = state.teams.map((teamState) => fromTeamState(parameters, configuration, teamState));
   return {
+    generated: new Date(),
     teams: teamResults,
     time: sum(teamResults.map((it) => it.time)),
     validity: stateValidity(state, configuration),

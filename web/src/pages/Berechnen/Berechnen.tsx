@@ -1,4 +1,5 @@
 import {
+  Accordion,
   Box,
   Button,
   Checkbox,
@@ -23,10 +24,9 @@ import { IMaskInput } from "react-imask";
 import { zeitenMask } from "../../utils/input-mask.ts";
 import { Hyperparameters, Parameters } from "../../lib/schwimmen/eingabe/configuration.ts";
 import { runCrappySimulatedAnnealing } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
-import { mutateRandom, mutateVerySmart } from "../../lib/schwimmen/search/sa/mutation.ts";
 import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
-import { throttle, uniq } from "lodash-es";
+import { sortBy, throttle, uniq } from "lodash-es";
 import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.ts";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
@@ -50,8 +50,6 @@ function formatPerformanceMetrics({ checked, duration }: Progress) {
 
 const HYPERPARAMETERS: Hyperparameters = {
   smartMutationRate: 0.85,
-  smartMutation: mutateVerySmart,
-  dumbMutation: mutateRandom,
   acceptanceProbability: 0.1,
   globalGenerationLimit: 50,
   restartGenerationLimit: 20,
@@ -99,10 +97,11 @@ export default function Berechnen() {
     ]),
   );
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<Result | undefined>(undefined);
+  const [results, setResults] = useState<Result[]>([]);
   const [progress, setProgress] = useState<Progress | undefined>(undefined);
   const ageGroups = uniq(Array.from(swimmers.values(), (s) => s.ageGroup)).sort();
   const [ageGroup, setAgeGroup] = useState<string>(ageGroups[0]);
+  const [accordionValue, setAccordionValue] = useState<string | null>(null);
 
   async function berechnen() {
     try {
@@ -114,14 +113,16 @@ export default function Berechnen() {
       );
       console.log(formatPerformanceMetrics(finalProgress));
       setProgress(finalProgress);
-      setResult(result);
+      setResults([result]);
+      setAccordionValue(String(result.generated));
     } finally {
       setRunning(false);
     }
   }
 
-  function renderRelayResult(relayResult: RelayResult, relayIndex: number, teamIndex: number) {
-    const legResultsSorted = relayResult.legs;
+  function renderRelayResult(result: Result, relayResult: RelayResult, relayIndex: number, teamIndex: number) {
+    // TODO correct discipline order within relay
+    const legResultsSorted = sortBy(relayResult.legs, (leg) => [leg.discipline.name, leg.swimmer.name]);
     const relayValidity: RelayValidity | undefined =
       result?.validity?.teamValidities[teamIndex]?.relayValidities[relayIndex];
     return (
@@ -175,7 +176,7 @@ export default function Berechnen() {
     }
   }
 
-  function renderTeamResult(teamResult: TeamResult, teamIndex: number) {
+  function renderTeamResult(result: Result, teamResult: TeamResult, teamIndex: number) {
     const swimmerCounts = new Map<number, number>();
     teamResult.relays.forEach((relayResult) => {
       relayResult.legs.forEach((legResult) => {
@@ -208,7 +209,7 @@ export default function Berechnen() {
           )}
         </Box>
         <SimpleGrid cols={3} spacing="xl" verticalSpacing="xs">
-          {teamResult.relays.map((relay, relayIndex) => renderRelayResult(relay, relayIndex, teamIndex))}
+          {teamResult.relays.map((relay, relayIndex) => renderRelayResult(result, relay, relayIndex, teamIndex))}
           <Box>
             <h4>Schwimmer</h4>
             <Table
@@ -228,7 +229,7 @@ export default function Berechnen() {
   }
 
   function renderResult(result: Result) {
-    return <Stack>{result.teams.map((team, index) => renderTeamResult(team, index))}</Stack>;
+    return <Stack>{result.teams.map((team, index) => renderTeamResult(result, team, index))}</Stack>;
   }
 
   return (
@@ -362,62 +363,66 @@ export default function Berechnen() {
         </Paper>
 
         <Box style={{ position: "relative" }}>
-          {
-            <Paper
-              withBorder
-              shadow="md"
-              p="xl"
-              style={{ borderColor: result === undefined || result?.validity?.valid ? undefined : "red" }}
-            >
-              <Group>
-                <h2>Ergebnis</h2>
-                {result && result.validity.valid ? <IconCheck size={48} color="green" /> : <IconX color="red" />}
-              </Group>
+          <Paper withBorder shadow="md" p="xl">
+            <Accordion value={accordionValue} onChange={setAccordionValue}>
+              {results.map((result) => (
+                <Accordion.Item key={String(result.generated)} value={String(result.generated)}>
+                  <Accordion.Control
+                    icon={result.validity.valid ? <IconCheck size={24} color="green" /> : <IconX color="red" />}
+                  >
+                    Gesamtzeit: {formatMaskedTime(result.time)}
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Box>
+                      {violationErrorText(
+                        result?.validity?.minStartsPerSwimmerViolations,
+                        "Min Starts pro Schwimmer nicht eingehalten",
+                      )}
+                      {violationErrorText(
+                        result?.validity?.maxStartsPerSwimmerViolations,
+                        "Max Starts pro Schwimmer nicht eingehalten",
+                      )}
+                      {violationErrorText(
+                        result?.validity?.allMustSwimViolations,
+                        "Alle müssen schwimmen nicht eingehalten",
+                      )}
+                      {violationErrorText(
+                        result?.validity?.swimmerInMultipleTeamsViolations,
+                        "Es gibt Schwimmer, die in mehreren Teams schwimmen",
+                      )}
+                      {violationErrorText(
+                        result?.validity?.zeitspannePenaltySeconds,
+                        "Maximale Staffelzeitendifferenz nicht eingehalten",
+                      )}
+                    </Box>
 
-              <Box>
-                {violationErrorText(
-                  result?.validity?.minStartsPerSwimmerViolations,
-                  "Min Starts pro Schwimmer nicht eingehalten",
-                )}
-                {violationErrorText(
-                  result?.validity?.maxStartsPerSwimmerViolations,
-                  "Max Starts pro Schwimmer nicht eingehalten",
-                )}
-                {violationErrorText(result?.validity?.allMustSwimViolations, "Alle müssen schwimmen nicht eingehalten")}
-                {violationErrorText(
-                  result?.validity?.swimmerInMultipleTeamsViolations,
-                  "Es gibt Schwimmer, die in mehreren Teams schwimmen",
-                )}
-                {violationErrorText(
-                  result?.validity?.zeitspannePenaltySeconds,
-                  "Maximale Staffelzeitendifferenz nicht eingehalten",
-                )}
-              </Box>
+                    <Stack>{renderResult(result)}</Stack>
 
-              <Stack>{result && renderResult(result)}</Stack>
-
-              {running && (
-                <Box
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    top: 0,
-                    right: 0,
-                    left: 0,
-                    bottom: 0,
-                    background: "white",
-                    opacity: "80%",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Loader type="dots" size="xl" color="black" />
-                </Box>
-              )}
-            </Paper>
-          }
+                    {running && (
+                      <Box
+                        style={{
+                          position: "absolute",
+                          width: "100%",
+                          height: "100%",
+                          top: 0,
+                          right: 0,
+                          left: 0,
+                          bottom: 0,
+                          background: "white",
+                          opacity: "80%",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Loader type="dots" size="xl" color="black" />
+                      </Box>
+                    )}
+                  </Accordion.Panel>
+                </Accordion.Item>
+              ))}
+            </Accordion>
+          </Paper>
         </Box>
       </Stack>
     </Container>
