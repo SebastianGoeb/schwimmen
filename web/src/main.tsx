@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "@mantine/charts/styles.css";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { createBrowserRouter, replace, RouterProvider } from "react-router-dom";
 import Relays from "./pages/Relays/Relays.tsx";

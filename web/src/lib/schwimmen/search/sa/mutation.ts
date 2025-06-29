@@ -1,38 +1,50 @@
 import { RelayState, State, TeamState } from "../state/state";
 import { HighPerfConfiguration } from "../../eingabe/configuration.ts";
 import { stateScore } from "../score/state";
+import { range } from "lodash-es";
 
 export interface MutationResult {
   state: State;
   score: number;
   statesChecked: number;
+  localOptimum: boolean;
 }
 
-export function mutateRandom(state: State, configuration: HighPerfConfiguration): MutationResult {
-  const teamIndex = randomIndex(state.teams);
-  const teamState = state.teams[teamIndex];
+export function mutateRandom(
+  state: State,
+  configuration: HighPerfConfiguration,
+  options?: { mutations?: number },
+): MutationResult {
+  let newState;
+  for (const _unused of range(0, options?.mutations ?? 1)) {
+    const teamIndex = randomIndex(state.teams);
+    const teamState = state.teams[teamIndex];
 
-  const relayIndex = randomIndex(teamState.relays);
-  const relayState = teamState.relays[relayIndex];
+    const relayIndex = randomIndex(teamState.relays);
+    const relayState = teamState.relays[relayIndex];
 
-  const legIndex = randomIndex(relayState.swimmerIndices);
-  const swimmerIndex = relayState.swimmerIndices[legIndex];
-  const disciplineIndex = configuration.relays[relayIndex].disciplineIndices[legIndex];
+    const legIndex = randomIndex(relayState.swimmerIndices);
+    const swimmerIndex = relayState.swimmerIndices[legIndex];
+    const disciplineIndex = configuration.relays[relayIndex].disciplineIndices[legIndex];
 
-  const swimmerIndicesAndTimes = configuration.disciplineToSwimmerTimes[disciplineIndex];
+    const swimmerIndicesAndTimes = configuration.disciplineToSwimmerTimes[disciplineIndex];
 
-  const candidatesSwimmers = swimmerIndicesAndTimes.filter((it) => it.swimmerIndex != swimmerIndex);
-  const newSwimmerIndex = candidatesSwimmers[randomIndex(candidatesSwimmers)].swimmerIndex;
+    const candidatesSwimmers = swimmerIndicesAndTimes.filter((it) => it.swimmerIndex != swimmerIndex);
+    const newSwimmerIndex = candidatesSwimmers[randomIndex(candidatesSwimmers)].swimmerIndex;
 
-  const newState = replaceSwimmer(state, teamIndex, relayIndex, legIndex, newSwimmerIndex);
+    newState = replaceSwimmer(state, teamIndex, relayIndex, legIndex, newSwimmerIndex);
+  }
   return {
-    state: newState,
+    state: newState!,
     score: stateScore(state, configuration),
     statesChecked: 1,
+    localOptimum: false,
   };
 }
 
 export function mutateVerySmart(state: State, configuration: HighPerfConfiguration): MutationResult {
+  const referenceScore = stateScore(state, configuration);
+  let localOptimum = true;
   let best: { state: State; score: number } | undefined = undefined;
   let checked = 0;
 
@@ -58,6 +70,9 @@ export function mutateVerySmart(state: State, configuration: HighPerfConfigurati
             const candidateScore = stateScore(candidateState, configuration);
             if (best === undefined || candidateScore < best.score) {
               best = { state: candidateState, score: candidateScore };
+              if (best.score < referenceScore) {
+                localOptimum = false;
+              }
             }
             checked++;
           }
@@ -69,6 +84,7 @@ export function mutateVerySmart(state: State, configuration: HighPerfConfigurati
     state: best!.state,
     score: best!.score,
     statesChecked: checked,
+    localOptimum,
   };
 }
 

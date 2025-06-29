@@ -18,6 +18,7 @@ import {
   Table,
   Text,
 } from "@mantine/core";
+import chroma from "chroma-js";
 import { useCombinedStore } from "../../services/state/state.ts";
 import { useShallow } from "zustand/react/shallow";
 import { IMaskInput } from "react-imask";
@@ -26,7 +27,7 @@ import { Hyperparameters, Parameters } from "../../lib/schwimmen/eingabe/configu
 import { runCrappySimulatedAnnealing } from "../../lib/schwimmen/search/sa/crappy-simulated-annealing.ts";
 import { Swimmer } from "../../model/swimmer.ts";
 import { useState } from "react";
-import { sortBy, throttle, uniq } from "lodash-es";
+import { sortBy, throttle, uniq, uniqBy } from "lodash-es";
 import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.ts";
 import { IconCheck, IconX } from "@tabler/icons-react";
 import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
@@ -35,6 +36,7 @@ import { Progress } from "../../lib/schwimmen/search/state/progress.ts";
 import { Discipline } from "../../model/discipline.ts";
 import { Relay } from "../../model/relay.ts";
 import { TeamSettings } from "../../model/team-settings.ts";
+import { LineChart } from "@mantine/charts";
 
 function onlyNumbers(value: string | number): number {
   return typeof value === "number" ? value : 0;
@@ -51,7 +53,7 @@ function formatPerformanceMetrics({ checked, duration }: Progress) {
 const HYPERPARAMETERS: Hyperparameters = {
   smartMutationRate: 0.85,
   acceptanceProbability: 0.1,
-  globalGenerationLimit: 50,
+  globalGenerationLimit: 200,
   restartGenerationLimit: 20,
   maxGenerations: 1_000_000,
   populationSize: 10,
@@ -86,6 +88,21 @@ function toParameters(
   return parameters;
 }
 
+function calcDataFromProgress(progress: Progress) {
+  const result = [];
+  for (let generation = 0; generation < progress.history[0].length; generation++) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const datapoint: any = { generation: generation };
+    progress.history.forEach((individual, individualIndex) => {
+      datapoint[`score_${individualIndex}`] = individual[generation].score;
+    });
+    result.push(datapoint);
+  }
+  return result;
+}
+
+const colorScale = chroma.scale(["#fafa6e", "#2A4858"]).mode("lab");
+
 export default function Berechnen() {
   const [disciplines, swimmers, relays, teamSettings, updateTeamSettings] = useCombinedStore(
     useShallow((state) => [
@@ -113,7 +130,7 @@ export default function Berechnen() {
       );
       console.log(formatPerformanceMetrics(finalProgress));
       setProgress(finalProgress);
-      setResults([result]);
+      setResults([...results, result]);
       setAccordionValue(String(result.generated));
     } finally {
       setRunning(false);
@@ -356,6 +373,34 @@ export default function Berechnen() {
                       ],
                     ],
                   }}
+                />
+
+                <LineChart
+                  h={300}
+                  data={calcDataFromProgress(progress)}
+                  dataKey="generation"
+                  series={progress.history.map((_, i) => ({
+                    name: `score_${i}`,
+                    color: colorScale(i / progress.history.length).hex(),
+                  }))}
+                  curveType="linear"
+                  withDots={false}
+                />
+
+                <Table
+                  data={{
+                    head: ["Hash", "Score"],
+                    body: sortBy(
+                      uniqBy(
+                        progress.history.flatMap((entries) => entries),
+                        "hash",
+                      ),
+                      ["score", "state"],
+                    )
+                      .slice(0, 500)
+                      .map((entry) => [entry.hash, entry.score]),
+                  }}
+                  style={{ textWrap: "nowrap" }}
                 />
               </>
             )}
