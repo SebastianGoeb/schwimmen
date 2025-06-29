@@ -1,5 +1,5 @@
 import { RelayState, State, TeamState } from "../state/state";
-import { HighPerfConfiguration, HighPerfRelay } from "../../eingabe/configuration.ts";
+import { HighPerfConfiguration, HighPerfRelayConfiguration } from "../../eingabe/configuration.ts";
 import { times } from "lodash-es";
 
 export function generateRandomState(configuration: HighPerfConfiguration): State {
@@ -12,7 +12,7 @@ function generateRandomTeamState(configuration: HighPerfConfiguration): TeamStat
   };
 }
 
-function generateRandomRelayState(relay: HighPerfRelay, configuration: HighPerfConfiguration): RelayState {
+function generateRandomRelayState(relay: HighPerfRelayConfiguration, configuration: HighPerfConfiguration): RelayState {
   return {
     swimmerIndices: relay.disciplineIndices.map((disciplineIndex) =>
       generateRandomSwimmerIndex(disciplineIndex, configuration),

@@ -53,7 +53,13 @@ function countGenders(teamState: TeamState, configuration: HighPerfConfiguration
 export function teamScore(teamState: TeamState, configuration: HighPerfConfiguration): number {
   let relaysScore = 0;
   for (let relayIndex = 0; relayIndex < teamState.relays.length; relayIndex++) {
-    relaysScore += relayScore(teamState.relays[relayIndex], relayIndex, configuration);
+    relaysScore += relayScore(
+      teamState.relays[relayIndex],
+      configuration.relays[relayIndex],
+      configuration.disciplineToSwimmerToTime,
+      configuration.numSwimmers,
+      configuration.genders,
+    );
   }
 
   const numSwimmers = countSwimmers(teamState, configuration);

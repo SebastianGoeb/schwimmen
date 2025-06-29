@@ -97,7 +97,8 @@ function calculateRelayTimeDifferencePenaltySeconds(state: State, configuration:
     let max = 0;
     let min = 9999999;
     for (const teamState of state.teams) {
-      const time = relayTime(teamState.relays[relayIndex], relayIndex, configuration);
+      const relayConfiguration = configuration.relays[relayIndex];
+      const time = relayTime(teamState.relays[relayIndex], relayConfiguration, configuration.disciplineToSwimmerToTime);
       max = Math.max(time, max);
       min = Math.min(time, min);
     }
