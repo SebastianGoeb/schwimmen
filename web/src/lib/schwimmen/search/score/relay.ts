@@ -1,16 +1,19 @@
-import { getSwimmerTime, HighPerfConfiguration } from "../../eingabe/configuration.ts";
+import { HighPerfConfiguration, HighPerfRelayConfiguration } from "../../eingabe/configuration.ts";
 import { RelayState } from "../state/state";
 import { Gender } from "../../eingabe/gender.ts";
 import { penaltySecondsPerViolation } from "./common";
 
-export function relayTime(relayState: RelayState, relayIndex: number, configuration: HighPerfConfiguration): number {
-  const relay = configuration.relays[relayIndex];
+export function relayTime(
+  relayState: RelayState,
+  relayConfiguration: HighPerfRelayConfiguration,
+  disciplineToSwimmerToTime: (number | undefined)[][],
+): number {
   let time = 0;
   for (let legIndex = 0; legIndex < relayState.swimmerIndices.length; legIndex++) {
     const swimmerIndex = relayState.swimmerIndices[legIndex];
-    const disciplineIndex: number = relay.disciplineIndices[legIndex];
-    const swimmerTime = getSwimmerTime(configuration, disciplineIndex, swimmerIndex);
-    time = relay.team ? Math.max(time, swimmerTime) : time + swimmerTime;
+    const disciplineIndex: number = relayConfiguration.disciplineIndices[legIndex];
+    const swimmerTime = getSwimmerTime(disciplineToSwimmerToTime, disciplineIndex, swimmerIndex);
+    time = relayConfiguration.team ? Math.max(time, swimmerTime) : time + swimmerTime;
   }
 
   return time;
@@ -53,7 +56,7 @@ function calcMinOneFemaleViolations(relayState: RelayState, configuration: HighP
 
 export function relayScore(relayState: RelayState, relayIndex: number, configuration: HighPerfConfiguration): number {
   return (
-    relayTime(relayState, relayIndex, configuration) +
+    relayTime(relayState, configuration.relays[relayIndex], configuration.disciplineToSwimmerToTime) +
     penaltySecondsPerViolation * calcMaxOneStartPerSwimmerViolations(relayState, configuration) +
     penaltySecondsPerViolation * calcMinOneMaleViolations(relayState, configuration) +
     penaltySecondsPerViolation * calcMinOneFemaleViolations(relayState, configuration)
@@ -77,4 +80,16 @@ export function validateRelay(relayState: RelayState, configuration: HighPerfCon
     minOneMaleViolations,
     minOneFemaleViolations,
   };
+}
+
+function getSwimmerTime(
+  disciplineToSwimmerToTime: (number | undefined)[][],
+  disciplineIndex: number,
+  swimmerIndex: number,
+): number {
+  const zeit = disciplineToSwimmerToTime[disciplineIndex][swimmerIndex];
+  if (zeit === undefined) {
+    throw Error("Programmierfehler");
+  }
+  return zeit;
 }
