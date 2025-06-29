@@ -19,8 +19,8 @@ export function relayTime(
   return time;
 }
 
-function calcMaxOneStartPerSwimmerViolations(relayState: RelayState, configuration: HighPerfConfiguration): number {
-  const swimmerStarts = new Int8Array(configuration.numSwimmers);
+function calcMaxOneStartPerSwimmerViolations(relayState: RelayState, numSwimmers: number): number {
+  const swimmerStarts = new Int8Array(numSwimmers);
   for (const swimmerIndex of relayState.swimmerIndices) {
     swimmerStarts[swimmerIndex]++;
   }
@@ -34,32 +34,38 @@ function calcMaxOneStartPerSwimmerViolations(relayState: RelayState, configurati
   return violations;
 }
 
-function calcMinOneMaleViolations(relayState: RelayState, configuration: HighPerfConfiguration): number {
+function calcMinOneMaleViolations(relayState: RelayState, genders: Gender[]): number {
   let males = 0;
   for (const swimmerIndex of relayState.swimmerIndices) {
-    if (configuration.genders[swimmerIndex] == Gender.MALE) {
+    if (genders[swimmerIndex] == Gender.MALE) {
       males++;
     }
   }
   return Math.max(1 - males, 0);
 }
 
-function calcMinOneFemaleViolations(relayState: RelayState, configuration: HighPerfConfiguration): number {
+function calcMinOneFemaleViolations(relayState: RelayState, genders: Gender[]): number {
   let females = 0;
   for (const swimmerIndex of relayState.swimmerIndices) {
-    if (configuration.genders[swimmerIndex] == Gender.FEMALE) {
+    if (genders[swimmerIndex] == Gender.FEMALE) {
       females++;
     }
   }
   return Math.max(1 - females, 0);
 }
 
-export function relayScore(relayState: RelayState, relayIndex: number, configuration: HighPerfConfiguration): number {
+export function relayScore(
+  relayState: RelayState,
+  relayConfiguration: HighPerfRelayConfiguration,
+  disciplineToSwimmerToTime: (number | undefined)[][],
+  numSwimmers: number,
+  genders: Gender[],
+): number {
   return (
-    relayTime(relayState, configuration.relays[relayIndex], configuration.disciplineToSwimmerToTime) +
-    penaltySecondsPerViolation * calcMaxOneStartPerSwimmerViolations(relayState, configuration) +
-    penaltySecondsPerViolation * calcMinOneMaleViolations(relayState, configuration) +
-    penaltySecondsPerViolation * calcMinOneFemaleViolations(relayState, configuration)
+    relayTime(relayState, relayConfiguration, disciplineToSwimmerToTime) +
+    penaltySecondsPerViolation * calcMaxOneStartPerSwimmerViolations(relayState, numSwimmers) +
+    penaltySecondsPerViolation * calcMinOneMaleViolations(relayState, genders) +
+    penaltySecondsPerViolation * calcMinOneFemaleViolations(relayState, genders)
   );
 }
 
@@ -71,9 +77,9 @@ export interface RelayValidity {
 }
 
 export function validateRelay(relayState: RelayState, configuration: HighPerfConfiguration): RelayValidity {
-  const maxOneStartPerSwimmerViolations = calcMaxOneStartPerSwimmerViolations(relayState, configuration);
-  const minOneMaleViolations = calcMinOneMaleViolations(relayState, configuration);
-  const minOneFemaleViolations = calcMinOneFemaleViolations(relayState, configuration);
+  const maxOneStartPerSwimmerViolations = calcMaxOneStartPerSwimmerViolations(relayState, configuration.numSwimmers);
+  const minOneMaleViolations = calcMinOneMaleViolations(relayState, configuration.genders);
+  const minOneFemaleViolations = calcMinOneFemaleViolations(relayState, configuration.genders);
   return {
     valid: maxOneStartPerSwimmerViolations === 0 && minOneMaleViolations === 0 && minOneFemaleViolations === 0,
     maxOneStartPerSwimmerViolations: maxOneStartPerSwimmerViolations,
