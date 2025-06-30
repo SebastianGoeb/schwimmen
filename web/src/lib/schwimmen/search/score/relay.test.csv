@@ -1,0 +1,8 @@
+description                              | numSwimmers | genders | disciplineToSwimmerToTime | team  | disciplineIndices | swimmerIndices | expectedTime | expectedScore | expectedErrors
+discipline: 0                            | 2           | [1, 0]  | [[10, 20], [30, 40]]      | false | [0, 0]            | [0, 1]         | 30           | 30            | []
+disciplines: 0/1                         | 2           | [1, 0]  | [[10, 20], [30, 40]]      | false | [0, 1]            | [0, 1]         | 50           | 50            | []
+team                                     | 2           | [1, 0]  | [[10, 20], [30, 40]]      | true  | [0, 0]            | [0, 1]         | 20           | 20            | []
+violation: max one start per swimmer     | 2           | [1, 0]  | [[10, 20], [30, 40]]      | false | [0, 0, 0]         | [0, 0, 1]      | 40           | 340           | ["max-one-start-per-swimmer"]
+violation: min one male                  | 2           | [1, 1]  | [[10, 20], [30, 40]]      | false | [0, 0]            | [0, 1]         | 30           | 330           | ["min-one-male"]
+violation: min one female                | 2           | [0, 0]  | [[10, 20], [30, 40]]      | false | [0, 0]            | [0, 1]         | 30           | 330           | ["min-one-female"]
+violations: max one start + min one male | 2           | [1, 0]  | [[10, 20], [30, 40]]      | false | [0, 0]            | [0, 0]         | 20           | 620           | ["max-one-start-per-swimmer", "min-one-male"]

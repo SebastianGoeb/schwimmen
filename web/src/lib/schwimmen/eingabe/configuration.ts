@@ -41,14 +41,14 @@ export interface HighPerfConfiguration {
   maxTimeDifferencePerRelaySeconds: number;
   minStartsPerSwimmer: Int8Array;
   maxStartsPerSwimmer: Int8Array;
-  relays: HighPerfRelay[];
+  relays: HighPerfRelayConfiguration[];
   numSwimmers: number;
   genders: Gender[];
   disciplineToSwimmerTimes: { swimmerIndex: number; time: number }[][];
   disciplineToSwimmerToTime: (number | undefined)[][];
 }
 
-export interface HighPerfRelay {
+export interface HighPerfRelayConfiguration {
   disciplineIndices: number[];
   team: boolean;
 }
@@ -130,7 +130,7 @@ function hasTime(argument: {
   return argument.time !== undefined;
 }
 
-function buildHighPerfRelays(parameters: Parameters): HighPerfRelay[] {
+function buildHighPerfRelays(parameters: Parameters): HighPerfRelayConfiguration[] {
   const relayIdToIndex = new Map<number, number>(parameters.relays.map((relay, relayIndex) => [relay.id, relayIndex]));
   const disciplineIdToIndex = new Map<number, number>(
     parameters.disciplines.map((discipline, disciplineIndex) => [discipline.id, disciplineIndex]),
@@ -143,16 +143,4 @@ function buildHighPerfRelays(parameters: Parameters): HighPerfRelay[] {
     ),
     team: relay.team,
   }));
-}
-
-export function getSwimmerTime(
-  configuration: HighPerfConfiguration,
-  disciplineIndex: number,
-  swimmerIndex: number,
-): number {
-  const zeit = configuration.disciplineToSwimmerToTime[disciplineIndex][swimmerIndex];
-  if (zeit === undefined) {
-    throw Error("Programmierfehler");
-  }
-  return zeit;
 }
