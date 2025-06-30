@@ -3,6 +3,17 @@ import { RelayState } from "../state/state";
 import { Gender } from "../../eingabe/gender.ts";
 import { penaltySecondsPerViolation } from "./common";
 
+export interface RelayValidity {
+  valid: boolean;
+  errors: RelayError[];
+}
+
+export enum RelayError {
+  MAX_ONE_START_PER_SWIMMER = "max-one-start-per-swimmer",
+  MIN_ONE_MALE = "min-one-male",
+  MIN_ONE_FEMALE = "min-one-female",
+}
+
 export function relayTime(
   relayState: RelayState,
   relayConfiguration: HighPerfRelayConfiguration,
@@ -69,23 +80,18 @@ export function relayScore(
   );
 }
 
-export interface RelayValidity {
-  valid: boolean;
-  maxOneStartPerSwimmerViolations: number;
-  minOneMaleViolations: number;
-  minOneFemaleViolations: number;
-}
-
 export function validateRelay(relayState: RelayState, numSwimmers: number, genders: Gender[]): RelayValidity {
   const maxOneStartPerSwimmerViolations = calcMaxOneStartPerSwimmerViolations(relayState, numSwimmers);
   const minOneMaleViolations = calcMinOneMaleViolations(relayState, genders);
   const minOneFemaleViolations = calcMinOneFemaleViolations(relayState, genders);
-  return {
-    valid: maxOneStartPerSwimmerViolations === 0 && minOneMaleViolations === 0 && minOneFemaleViolations === 0,
-    maxOneStartPerSwimmerViolations,
-    minOneMaleViolations,
-    minOneFemaleViolations,
-  };
+
+  const errors = [
+    maxOneStartPerSwimmerViolations > 0 && RelayError.MAX_ONE_START_PER_SWIMMER,
+    minOneFemaleViolations > 0 && RelayError.MIN_ONE_FEMALE,
+    minOneMaleViolations > 0 && RelayError.MIN_ONE_MALE,
+  ].filter(Boolean) as RelayError[];
+
+  return { valid: errors.length === 0, errors };
 }
 
 function getSwimmerTime(

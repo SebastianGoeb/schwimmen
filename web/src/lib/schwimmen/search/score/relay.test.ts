@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { relayScore, relayTime, RelayValidity, validateRelay } from "./relay.ts";
+import { relayScore, relayTime, validateRelay } from "./relay.ts";
 import { parse } from "csv-parse/sync";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -37,14 +37,6 @@ function parseTests<T extends { description: string }>(filename: string): T[] {
   return parsed.map((t: Raw<T>) => parseRaw(t));
 }
 
-function extractRelayErrors(r: RelayValidity): string[] {
-  return [
-    r.minOneFemaleViolations > 0 && "min-one-female",
-    r.minOneMaleViolations > 0 && "min-one-male",
-    r.maxOneStartPerSwimmerViolations > 0 && "max-one-start-per-swimmer",
-  ].filter(Boolean) as string[];
-}
-
 test.each(parseTests<RelayScoreTestSpec>("relay.test.csv"))(
   "$description -> $expectedSeconds",
   ({
@@ -71,9 +63,6 @@ test.each(parseTests<RelayScoreTestSpec>("relay.test.csv"))(
     expect(score).toBe(expectedScore);
 
     const validity = validateRelay({ swimmerIndices }, numSwimmers, genders);
-    expect(validity.valid).toBe(expectedErrors.length == 0);
-
-    const errors = extractRelayErrors(validity);
-    expect(errors.sort()).toEqual(expectedErrors.sort());
+    expect(validity).toEqual({ valid: expectedErrors.length == 0, errors: expectedErrors });
   },
 );

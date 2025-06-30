@@ -29,7 +29,7 @@ import { useState } from "react";
 import { sortBy, throttle, uniq } from "lodash-es";
 import { formatMaskedTime, parseMaskedZeitToSeconds } from "../../utils/masking.ts";
 import { IconCheck, IconX } from "@tabler/icons-react";
-import { RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
+import { RelayError, RelayValidity } from "../../lib/schwimmen/search/score/relay.ts";
 import { RelayResult, Result, TeamResult } from "../../lib/schwimmen/search/state/result.ts";
 import { PerfInfo } from "../../lib/schwimmen/search/state/perf-info.ts";
 import { Discipline } from "../../model/discipline.ts";
@@ -157,9 +157,13 @@ export default function Berechnen() {
             }}
           >
             <Space />
-            {relayValidity.minOneFemaleViolations > 0 && <Text size="xs">Mindestens ein Mädchen benötigt</Text>}
-            {relayValidity.minOneMaleViolations > 0 && <Text size="xs">Mindestens ein Junge benötigt</Text>}
-            {relayValidity.maxOneStartPerSwimmerViolations > 0 && (
+            {relayValidity.errors.includes(RelayError.MIN_ONE_FEMALE) && (
+              <Text size="xs">Mindestens ein Mädchen benötigt</Text>
+            )}
+            {relayValidity.errors.includes(RelayError.MIN_ONE_MALE) && (
+              <Text size="xs">Mindestens ein Junge benötigt</Text>
+            )}
+            {relayValidity.errors.includes(RelayError.MAX_ONE_START_PER_SWIMMER) && (
               <Text size="xs">Maximal ein Start pro Schwimmer</Text>
             )}
           </Stack>
