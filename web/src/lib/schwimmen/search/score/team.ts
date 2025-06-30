@@ -88,7 +88,9 @@ export interface TeamValidity {
 }
 
 export function teamValidity(teamState: TeamState, configuration: HighPerfConfiguration): TeamValidity {
-  const relayValidities = teamState.relays.map((relayState) => validateRelay(relayState, configuration));
+  const relayValidities = teamState.relays.map((relayState) =>
+    validateRelay(relayState, configuration.numSwimmers, configuration.genders),
+  );
 
   const numSwimmers = countSwimmers(teamState, configuration);
   const minSwimmerViolations = Math.max(configuration.minSwimmersPerTeam - numSwimmers, 0);

@@ -1,21 +1,16 @@
-import { describe, expect, test } from "vitest";
-import { relayScore, relayTime } from "./relay.ts";
+import { expect, test } from "vitest";
+import { relayScore, relayTime, RelayValidity, validateRelay } from "./relay.ts";
 import { parse } from "csv-parse/sync";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { HighPerfConfiguration, HighPerfRelayConfiguration } from "../../eingabe/configuration.ts";
 import { RelayState } from "../state/state.ts";
 
-type RelayTimeTestSpec = {
-  description: string;
-  expectedSeconds: number;
-} & HighPerfRelayConfiguration &
-  Pick<HighPerfConfiguration, "disciplineToSwimmerToTime"> &
-  RelayState;
-
 type RelayScoreTestSpec = {
   description: string;
-  expectedSeconds: number;
+  expectedTime: number;
+  expectedScore: number;
+  expectedErrors: string[];
 } & HighPerfRelayConfiguration &
   Pick<HighPerfConfiguration, "disciplineToSwimmerToTime" | "numSwimmers" | "genders"> &
   RelayState;
@@ -38,32 +33,47 @@ function parseRaw<T extends { description: string }>(raw: Raw<T>): T {
 
 function parseTests<T extends { description: string }>(filename: string): T[] {
   const content = fs.readFileSync(path.resolve(__dirname, filename), "utf8");
-  const parsed = parse(content, { delimiter: "|", trim: true, columns: true });
+  const parsed = parse(content, { delimiter: "|", quote: "`", trim: true, columns: true });
   return parsed.map((t: Raw<T>) => parseRaw(t));
 }
 
-describe("relayTime", () => {
-  test.each(parseTests<RelayTimeTestSpec>("relay.time.test.csv"))(
-    "$description -> $expectedSeconds",
-    ({ expectedSeconds, disciplineToSwimmerToTime, team, disciplineIndices, swimmerIndices }) => {
-      const seconds = relayTime({ swimmerIndices }, { team, disciplineIndices }, disciplineToSwimmerToTime);
-      expect(seconds).toBe(expectedSeconds);
-    },
-  );
-});
+function extractRelayErrors(r: RelayValidity): string[] {
+  return [
+    r.minOneFemaleViolations > 0 && "min-one-female",
+    r.minOneMaleViolations > 0 && "min-one-male",
+    r.maxOneStartPerSwimmerViolations > 0 && "max-one-start-per-swimmer",
+  ].filter(Boolean) as string[];
+}
 
-describe("relayScore", () => {
-  test.each(parseTests<RelayScoreTestSpec>("relay.score.test.csv"))(
-    "$description -> $expectedSeconds",
-    ({ expectedSeconds, disciplineToSwimmerToTime, team, disciplineIndices, swimmerIndices, numSwimmers, genders }) => {
-      const seconds = relayScore(
-        { swimmerIndices },
-        { team, disciplineIndices },
-        disciplineToSwimmerToTime,
-        numSwimmers,
-        genders,
-      );
-      expect(seconds).toBe(expectedSeconds);
-    },
-  );
-});
+test.each(parseTests<RelayScoreTestSpec>("relay.test.csv"))(
+  "$description -> $expectedSeconds",
+  ({
+    expectedTime,
+    expectedScore,
+    expectedErrors,
+    disciplineToSwimmerToTime,
+    team,
+    disciplineIndices,
+    swimmerIndices,
+    numSwimmers,
+    genders,
+  }) => {
+    const time = relayTime({ swimmerIndices }, { team, disciplineIndices }, disciplineToSwimmerToTime);
+    expect(time).toBe(expectedTime);
+
+    const score = relayScore(
+      { swimmerIndices },
+      { team, disciplineIndices },
+      disciplineToSwimmerToTime,
+      numSwimmers,
+      genders,
+    );
+    expect(score).toBe(expectedScore);
+
+    const validity = validateRelay({ swimmerIndices }, numSwimmers, genders);
+    expect(validity.valid).toBe(expectedErrors.length == 0);
+
+    const errors = extractRelayErrors(validity);
+    expect(errors.sort()).toEqual(expectedErrors.sort());
+  },
+);

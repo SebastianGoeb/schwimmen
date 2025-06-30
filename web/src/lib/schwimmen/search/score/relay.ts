@@ -1,4 +1,4 @@
-import { HighPerfConfiguration, HighPerfRelayConfiguration } from "../../eingabe/configuration.ts";
+import { HighPerfRelayConfiguration } from "../../eingabe/configuration.ts";
 import { RelayState } from "../state/state";
 import { Gender } from "../../eingabe/gender.ts";
 import { penaltySecondsPerViolation } from "./common";
@@ -76,13 +76,13 @@ export interface RelayValidity {
   minOneFemaleViolations: number;
 }
 
-export function validateRelay(relayState: RelayState, configuration: HighPerfConfiguration): RelayValidity {
-  const maxOneStartPerSwimmerViolations = calcMaxOneStartPerSwimmerViolations(relayState, configuration.numSwimmers);
-  const minOneMaleViolations = calcMinOneMaleViolations(relayState, configuration.genders);
-  const minOneFemaleViolations = calcMinOneFemaleViolations(relayState, configuration.genders);
+export function validateRelay(relayState: RelayState, numSwimmers: number, genders: Gender[]): RelayValidity {
+  const maxOneStartPerSwimmerViolations = calcMaxOneStartPerSwimmerViolations(relayState, numSwimmers);
+  const minOneMaleViolations = calcMinOneMaleViolations(relayState, genders);
+  const minOneFemaleViolations = calcMinOneFemaleViolations(relayState, genders);
   return {
     valid: maxOneStartPerSwimmerViolations === 0 && minOneMaleViolations === 0 && minOneFemaleViolations === 0,
-    maxOneStartPerSwimmerViolations: maxOneStartPerSwimmerViolations,
+    maxOneStartPerSwimmerViolations,
     minOneMaleViolations,
     minOneFemaleViolations,
   };
