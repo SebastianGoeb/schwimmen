@@ -1,6 +1,6 @@
 
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
 }
 
 group = "org.example"
@@ -11,7 +11,7 @@ repositories {
 }
 
 val kotlinCsvVersion = "1.9.3"
-val kotestVersion = "6.1.2"
+val kotestVersion = "6.1.3"
 
 dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
