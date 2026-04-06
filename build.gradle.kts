@@ -11,7 +11,7 @@ repositories {
 }
 
 val kotlinCsvVersion = "1.9.3"
-val kotestVersion = "6.1.9"
+val kotestVersion = "6.1.11"
 
 dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
