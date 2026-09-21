@@ -21,7 +21,7 @@
     "react-dom": "^19.0.0",
     "react-imask": "^7.6.1",
     "react-router-dom": "^7.0.0",
-    "xlsx": "^0.18.5",
+    "@e965/xlsx": "^0.20.3",
     "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
